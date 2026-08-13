@@ -179,3 +179,41 @@ document.querySelectorAll('.projects .name').forEach(el => {
         el.appendChild(wrapper);
     });
 });
+
+// Smooth exit for infinite wobble on socials
+document.querySelectorAll('.socials a').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+        el.style.transition = ''; 
+        el.style.transform = ''; 
+        el.classList.add('is-wobbling');
+    });
+
+    el.addEventListener('mouseleave', () => {
+        // Obter o grau de inclinação exato no instante em que o mouse sai
+        const computedStyle = window.getComputedStyle(el);
+        const transform = computedStyle.getPropertyValue('transform');
+        
+        // Remove a classe infinita e "trava" o transform na posição que estava
+        el.classList.remove('is-wobbling');
+        el.style.transform = transform;
+        
+        // Força o navegador a renderizar o quadro atual travado
+        void el.offsetWidth;
+        
+        // Ativa a transição suave e manda ele de volta pro zero!
+        el.style.transition = 'transform 0.4s ease-out';
+        el.style.transform = 'rotate(0deg)';
+    });
+    
+    // Suporte para navegação via teclado
+    el.addEventListener('focus', () => {
+        el.style.transition = ''; 
+        el.style.transform = ''; 
+        el.classList.add('is-wobbling');
+    });
+    el.addEventListener('blur', () => {
+        el.classList.remove('is-wobbling');
+        el.style.transition = 'transform 0.4s ease-out';
+        el.style.transform = 'rotate(0deg)';
+    });
+});

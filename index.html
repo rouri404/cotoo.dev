@@ -3,7 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cotoo.dev</title>
+    <meta name="description" content="Portfólio de Gabriel Couto (cotoo.dev). Desenvolvedor de software focado em inovação, ferramentas e sistemas. Confira meus projetos.">
+    <meta name="keywords" content="Gabriel Couto, cotoo.dev, Desenvolvedor, Software Developer, Portfólio, FIAP, Projetos, Linux, Open Source">
+    <meta name="author" content="Gabriel Couto">
+    
+    <!-- Open Graph / Redes Sociais -->
+    <meta property="og:title" content="Gabriel Couto | cotoo.dev">
+    <meta property="og:description" content="Portfólio de Gabriel Couto. Desenvolvedor de software focado em inovação e sistemas.">
+    <meta property="og:url" content="https://cotoo.dev/">
+    <meta property="og:type" content="website">
+    
+    <link rel="canonical" href="https://cotoo.dev/">
+    
+    <title>Gabriel Couto | cotoo.dev</title>
     <link rel="icon" type="image/png" href="assets/img/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,9 +24,45 @@
 </head>
 <body>
     <canvas id="pixel-trail"></canvas>
-    <div class="content">
+
+    <div class="stage active" id="stage-hero">
         <h2>Gabriel Couto</h2>
         <p>cotoo.dev</p>
+        <p class="hint">role ou clique para continuar</p>
+    </div>
+
+    <div class="stage" id="stage-menu">
+        <p class="eyebrow">// projetos</p>
+        <ul class="projects" id="projectList">
+            <li tabindex="0" data-url="https://github.com/rouri404/site-gs-fiap">
+                <span class="sq"></span>
+                <span class="label">
+                    <span class="name">protech the future</span>
+                    <span class="desc">detecção de enchentes em tempo real — 1º lugar FIAP GS 2025</span>
+                </span>
+            </li>
+            <li tabindex="0" data-url="">
+                <span class="sq"></span>
+                <span class="label">
+                    <span class="name">actions heartbeat</span>
+                    <span class="desc">dead man's switch para GitHub Actions — em construção</span>
+                </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/GrupoMoskitto/Challenge-2026">
+                <span class="sq"></span>
+                <span class="label">
+                    <span class="name">crmed</span>
+                    <span class="desc">gestão clínica — Hospital São Rafael</span>
+                </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404/grabtext">
+                <span class="sq"></span>
+                <span class="label">
+                    <span class="name">grabtext</span>
+                    <span class="desc">OCR instantâneo para Linux</span>
+                </span>
+            </li>
+        </ul>
     </div>
 
     <script src="assets/js/script.js"></script>

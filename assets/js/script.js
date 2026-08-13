@@ -1,219 +1,321 @@
-const canvas = document.getElementById('pixel-trail');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById("pixel-trail");
+const ctx = canvas.getContext("2d");
 const FADE_DURATION = 500;
-
 let pixelSize = 24;
 const activePixels = new Map();
 
 function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    pixelSize = window.innerWidth < 768 ? 16 : 24;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  pixelSize = window.innerWidth < 768 ? 16 : 24;
 }
 
-
-
-
-/* ---------- render loop ---------- */
 function draw(now) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = '#ffffff';
-    for (const [key, startTime] of activePixels) {
-        const elapsed = now - startTime;
-        if (elapsed >= FADE_DURATION) {
-            activePixels.delete(key);
-        } else {
-            const opacity = 1 - elapsed / FADE_DURATION;
-            const [col, row] = key.split(',').map(Number);
-            ctx.globalAlpha = opacity;
-            ctx.fillRect(col * pixelSize, row * pixelSize, pixelSize, pixelSize);
-        }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = trailTheme === "dark" ? "#8FBC8B" : "#ffffff";
+  for (const [key, startTime] of activePixels) {
+    const elapsed = now - startTime;
+    if (elapsed >= FADE_DURATION) {
+      activePixels.delete(key);
+    } else {
+      const opacity = 1 - elapsed / FADE_DURATION;
+      const [col, row] = key.split(",").map(Number);
+      ctx.globalAlpha = opacity;
+      ctx.fillRect(col * pixelSize, row * pixelSize, pixelSize, pixelSize);
     }
-    ctx.globalAlpha = 1;
-
-    ctx.globalAlpha = 1;
-
-    requestAnimationFrame(draw);
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(draw);
 }
 
 function handlePointerMove(e) {
-    const col = Math.floor(e.clientX / pixelSize);
-    const row = Math.floor(e.clientY / pixelSize);
-    const key = `${col},${row}`;
-    activePixels.set(key, performance.now());
+  const col = Math.floor(e.clientX / pixelSize);
+  const row = Math.floor(e.clientY / pixelSize);
+  const key = `${col},${row}`;
+  activePixels.set(key, performance.now());
 }
 
-/* ---------- stage navigation ---------- */
-const heroStage = document.getElementById('stage-hero');
-const menuStage = document.getElementById('stage-menu');
+const heroStage = document.getElementById("stage-hero");
+const menuStage = document.getElementById("stage-menu");
 
 function goToMenu() {
-    if (document.body.dataset.stage === 'menu') return;
-    document.body.dataset.stage = 'menu';
-    heroStage.classList.remove('active');
-    menuStage.classList.add('active');
+  if (document.body.dataset.stage === "menu") return;
+  document.body.dataset.stage = "menu";
+  heroStage.classList.remove("active");
+  menuStage.classList.add("active");
 }
 
 function goToHero() {
-    if (document.body.dataset.stage === 'hero') return;
-    document.body.dataset.stage = 'hero';
-    menuStage.classList.remove('active');
-    heroStage.classList.add('active');
+  if (document.body.dataset.stage === "hero") return;
+  document.body.dataset.stage = "hero";
+  menuStage.classList.remove("active");
+  heroStage.classList.add("active");
 }
 
-window.addEventListener('resize', resize);
-window.addEventListener('pointermove', handlePointerMove);
+window.addEventListener("resize", resize);
 
-// Click anywhere on hero stage to advance
-window.addEventListener('click', (e) => {
-    if (document.body.dataset.stage === 'hero') goToMenu();
+window.addEventListener("pointermove", handlePointerMove);
+window.addEventListener("click", (e) => {
+  if (document.body.dataset.stage === "hero") {
+    goToMenu();
+  } else {
+    goToHero();
+  }
 });
 
-// Scroll to navigate
-window.addEventListener('wheel', (e) => {
+window.addEventListener(
+  "wheel",
+  (e) => {
     if (e.deltaY > 20) goToMenu();
     else if (e.deltaY < -20) goToHero();
-}, { passive: true });
+  },
+  { passive: true },
+);
 
-window.addEventListener('keydown', (e) => {
-    if (['Enter', ' ', 'ArrowDown', 'PageDown'].includes(e.key)) goToMenu();
-    if (['Escape', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) goToHero();
+window.addEventListener("keydown", (e) => {
+  if (["Enter", " ", "ArrowDown", "PageDown"].includes(e.key)) goToMenu();
+  if (["Escape", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) goToHero();
 });
 
-/* ---------- project list ---------- */
-document.querySelectorAll('.projects li').forEach((li) => {
-    li.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const url = li.getAttribute('data-url');
-        if (url) window.open(url, '_blank', 'noopener');
-    });
-    li.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') li.click();
-    });
+document.querySelectorAll(".projects li").forEach((li) => {
+  li.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const url = li.getAttribute("data-url");
+    
+    // Força o efeito hover (o flip 3D) a aparecer e ficar "travado"
+    li.classList.add("is-clicked");
+    
+    // Espera 400ms (tempo suficiente para o usuário ver o flip de 0.5s) antes de abrir a aba
+    setTimeout(() => {
+      if (url) window.open(url, "_blank", "noopener");
+      // Reseta o estado depois de abrir
+      setTimeout(() => li.classList.remove("is-clicked"), 100);
+    }, 400);
+  });
+  li.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") li.click();
+  });
 });
 
 resize();
-document.body.dataset.stage = 'hero';
+document.body.dataset.stage = "hero";
 requestAnimationFrame(draw);
-
-/* ---------- scramble effect ---------- */
 class ScrambleText {
-    constructor(el) {
-        this.el = el;
-        // Standard retro characters
-        this.chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*+-=?';
-        // USE textContent, NOT innerText! innerText returns "" if the element is visibility: hidden!
-        this.originalText = this.el.dataset.original || this.el.textContent.trim();
-        this.el.dataset.original = this.originalText;
-        this.interval = null;
-        this.isScrambling = false;
-    }
-
-    start() {
-        if (this.isScrambling) return;
-        this.isScrambling = true;
-        
-        let iteration = 0;
+  constructor(el) {
+    this.el = el;
+    this.chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*+-=?";
+    this.originalText = this.el.dataset.original || this.el.textContent.trim();
+    this.el.dataset.original = this.originalText;
+    this.interval = null;
+    this.isScrambling = false;
+  }
+  start() {
+    if (this.isScrambling) return;
+    this.isScrambling = true;
+    let iteration = 0;
+    clearInterval(this.interval);
+    this.interval = setInterval(() => {
+      let visiblePart = "";
+      let hiddenPart = "";
+      for (let i = 0; i < this.originalText.length; i++) {
+        if (i < Math.floor(iteration)) {
+          visiblePart += this.originalText[i];
+        } else if (i < Math.floor(iteration) + 2) {
+          visiblePart +=
+            this.originalText[i] === " "
+              ? " "
+              : this.chars[Math.floor(Math.random() * this.chars.length)];
+        } else {
+          hiddenPart += this.originalText[i];
+        }
+      }
+      this.el.innerHTML =
+        visiblePart + `<span style="opacity: 0">${hiddenPart}</span>`;
+      iteration += 1 / 2;
+      if (iteration >= this.originalText.length) {
         clearInterval(this.interval);
-        
-        this.interval = setInterval(() => {
-            let visiblePart = '';
-            let hiddenPart = '';
-
-            for (let i = 0; i < this.originalText.length; i++) {
-                if (i < Math.floor(iteration)) {
-                    // Character is fully revealed
-                    visiblePart += this.originalText[i];
-                } else if (i < Math.floor(iteration) + 2) { 
-                    // The "scrambling tip" (1 or 2 random characters at the edge)
-                    visiblePart += this.originalText[i] === ' ' ? ' ' : this.chars[Math.floor(Math.random() * this.chars.length)];
-                } else {
-                    // The rest of the string remains invisible but preserves exact layout width!
-                    hiddenPart += this.originalText[i];
-                }
-            }
-            
-            // Use opacity: 0 to hide the remaining text without collapsing the element's width/height
-            this.el.innerHTML = visiblePart + `<span style="opacity: 0">${hiddenPart}</span>`;
-            
-            iteration += 1 / 2; // Speed: reveals 1 character every 2 frames (60ms)
-
-            if (iteration >= this.originalText.length) {
-                clearInterval(this.interval);
-                this.el.textContent = this.originalText;
-                this.isScrambling = false;
-            }
-        }, 30);
-    }
+        this.el.textContent = this.originalText;
+        this.isScrambling = false;
+      }
+    }, 30);
+  }
 }
 
-// Scramble hero on load
 setTimeout(() => {
-    document.querySelectorAll('#stage-hero h2, #stage-hero p').forEach(el => {
-        new ScrambleText(el).start();
-    });
+  document.querySelectorAll("#stage-hero h2, #stage-hero p").forEach((el) => {
+    new ScrambleText(el).start();
+  });
 }, 200);
 
-// Scramble projects on hover (REMOVED)
-// Instead, prepare 3D letter swap effect on load
-document.querySelectorAll('.projects .name').forEach(el => {
-    const text = el.textContent.trim();
-    el.innerHTML = ''; // clear
-
-    text.split('').forEach((char, i) => {
-        const wrapper = document.createElement('span');
-        wrapper.className = 'letter-3d-wrapper';
-        wrapper.style.transitionDelay = `${i * 0.03}s`; // Stagger effect
-
-        const front = document.createElement('span');
-        front.className = 'letter-3d-front';
-        front.textContent = char === ' ' ? '\u00A0' : char; // Preserve spaces
-
-        const bottom = document.createElement('span');
-        bottom.className = 'letter-3d-bottom';
-        bottom.textContent = char === ' ' ? '\u00A0' : char;
-
-        wrapper.appendChild(front);
-        wrapper.appendChild(bottom);
-        el.appendChild(wrapper);
-    });
+document.querySelectorAll(".projects .name").forEach((el) => {
+  const text = el.textContent.trim();
+  el.innerHTML = "";
+  text.split("").forEach((char, i) => {
+    const wrapper = document.createElement("span");
+    wrapper.className = "letter-3d-wrapper";
+    wrapper.style.transitionDelay = `${i * 0.03}s`;
+    const front = document.createElement("span");
+    front.className = "letter-3d-front";
+    front.textContent = char === " " ? "\u00A0" : char;
+    const bottom = document.createElement("span");
+    bottom.className = "letter-3d-bottom";
+    bottom.textContent = char === " " ? "\u00A0" : char;
+    wrapper.appendChild(front);
+    wrapper.appendChild(bottom);
+    el.appendChild(wrapper);
+  });
 });
 
-// Smooth exit for infinite wobble on socials
-document.querySelectorAll('.socials a').forEach(el => {
-    el.addEventListener('mouseenter', () => {
-        el.style.transition = ''; 
-        el.style.transform = ''; 
-        el.classList.add('is-wobbling');
-    });
 
-    el.addEventListener('mouseleave', () => {
-        // Obter o grau de inclinação exato no instante em que o mouse sai
-        const computedStyle = window.getComputedStyle(el);
-        const transform = computedStyle.getPropertyValue('transform');
-        
-        // Remove a classe infinita e "trava" o transform na posição que estava
-        el.classList.remove('is-wobbling');
-        el.style.transform = transform;
-        
-        // Força o navegador a renderizar o quadro atual travado
-        void el.offsetWidth;
-        
-        // Ativa a transição suave e manda ele de volta pro zero!
-        el.style.transition = 'transform 0.4s ease-out';
-        el.style.transform = 'rotate(0deg)';
-    });
+
+const themeToggle = document.getElementById("themeToggle");
+const transCanvas = document.getElementById("pixel-transition");
+const transCtx = transCanvas.getContext("2d");
+let currentTheme = "light";
+let trailTheme = "light";
+if (
+  window.matchMedia &&
+  window.matchMedia("(prefers-color-scheme: dark)").matches
+) {
+  currentTheme = "dark";
+  trailTheme = "dark";
+  document.documentElement.setAttribute("data-theme", "dark");
+}
+
+const svgSun = `<svg viewBox="0 0 12 12" style="width:24px; height:24px; display:block;" fill="currentColor" shape-rendering="crispEdges">
+  <rect x="5" y="1" width="2" height="2" />
+  <rect x="3" y="3" width="1" height="1" />
+  <rect x="8" y="3" width="1" height="1" />
+  <rect x="5" y="4" width="2" height="1" />
+  <rect x="1" y="5" width="2" height="2" />
+  <rect x="4" y="5" width="4" height="2" />
+  <rect x="9" y="5" width="2" height="2" />
+  <rect x="5" y="7" width="2" height="1" />
+  <rect x="3" y="8" width="1" height="1" />
+  <rect x="8" y="8" width="1" height="1" />
+  <rect x="5" y="9" width="2" height="2" />
+</svg>`;
+
+const svgMoon = `<svg viewBox="0 0 12 12" style="width:24px; height:24px; display:block;" fill="currentColor" shape-rendering="crispEdges">
+  <rect x="7" y="1" width="3" height="1" />
+  <rect x="6" y="2" width="3" height="1" />
+  <rect x="5" y="3" width="4" height="1" />
+  <rect x="4" y="4" width="4" height="4" />
+  <rect x="5" y="8" width="4" height="1" />
+  <rect x="6" y="9" width="3" height="1" />
+  <rect x="7" y="10" width="3" height="1" />
+</svg>`;
+
+function updateThemeIcon() {
+  themeToggle.innerHTML = currentTheme === "light" ? svgMoon : svgSun;
+}
+
+updateThemeIcon();
+
+let isTransitioning = false;
+themeToggle.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (isTransitioning) return;
+  isTransitioning = true;
+  const newTheme = currentTheme === "light" ? "dark" : "light";
+  trailTheme = newTheme;
+  currentTheme = newTheme;
+  updateThemeIcon();
+  
+  const newBgColor = newTheme === "dark" ? "#121212" : "#8fbc8b";
+  
+  transCanvas.width = window.innerWidth;
+  transCanvas.height = window.innerHeight;
+  transCanvas.classList.add("active");
+  
+  const elementsToFlip = document.querySelectorAll(
+    '.theme-toggle, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img'
+  );
+  
+  const flips = Array.from(elementsToFlip).map(el => {
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const d = Math.sqrt((window.innerWidth - cx)**2 + cy**2);
+    return { el, d, flipped: false };
+  });
+
+  const size = window.innerWidth > 768 ? 30 : 20;
+  const cols = Math.ceil(window.innerWidth / size);
+  const rows = Math.ceil(window.innerHeight / size);
+  const maxR = Math.sqrt(cols * cols + rows * rows);
+  
+  const bayer = [
+    [ 0,  8,  2, 10],
+    [12,  4, 14,  6],
+    [ 3, 11,  1,  9],
+    [15,  7, 13,  5]
+  ];
+  const ditherBand = 12; // width of dither transition in grid cells
+  
+  const duration = 1200; // ms for the entire sweep
+  let startTime = null;
+  
+  function animateSweep(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1.0);
+    // EaseOutQuad for a smooth deceleration
+    const easeProgress = 1 - (1 - progress) * (1 - progress);
+    // Calculate the wave radius
+    let waveR = -ditherBand + (Math.sqrt(cols * cols + rows * rows) + ditherBand * 2) * easeProgress;
     
-    // Suporte para navegação via teclado
-    el.addEventListener('focus', () => {
-        el.style.transition = ''; 
-        el.style.transform = ''; 
-        el.classList.add('is-wobbling');
-    });
-    el.addEventListener('blur', () => {
-        el.classList.remove('is-wobbling');
-        el.style.transition = 'transform 0.4s ease-out';
-        el.style.transform = 'rotate(0deg)';
-    });
+    // Draw the dither pattern to canvas
+    transCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
+    transCtx.fillStyle = newBgColor;
+    
+    for (let x = 0; x < cols; x++) {
+      for (let y = 0; y < rows; y++) {
+        const cols_dist = cols - x;
+        const d = Math.sqrt(cols_dist * cols_dist + y * y);
+        let threshold = (waveR - d) / ditherBand;
+        
+        if (threshold > 0) {
+          const b = bayer[y % 4][x % 4] / 16;
+          if (threshold >= 1.0 || threshold > b) {
+            // Draw slightly larger to prevent subpixel gaps
+            transCtx.fillRect(x * size - 0.5, y * size - 0.5, size + 1, size + 1);
+          }
+        }
+      }
+    }
+    
+    // Flip individual elements as wave passes over them
+    for (let flip of flips) {
+      // Flip when the wave is dense enough (ditherBand / 1.5) to hide the instant color swap
+      if (!flip.flipped && (waveR - ditherBand / 1.5) > flip.d / size) {
+        flip.el.setAttribute("data-theme", newTheme);
+        flip.el.style.color = "var(--text-color)";
+        if (flip.el.tagName.toLowerCase() === "img") {
+          flip.el.style.filter = "var(--logo-filter)";
+        }
+        flip.flipped = true;
+      }
+    }
+    
+    if (progress < 1.0) {
+      requestAnimationFrame(animateSweep);
+    } else {
+      document.documentElement.setAttribute("data-theme", newTheme);
+      
+      // Cleanup
+      for (let flip of flips) {
+        flip.el.removeAttribute("data-theme");
+        flip.el.style.color = "";
+        if (flip.el.tagName.toLowerCase() === "img") {
+          flip.el.style.filter = "";
+        }
+      }
+      
+      transCanvas.classList.remove("active");
+      transCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
+      isTransitioning = false;
+    }
+  }
+  requestAnimationFrame(animateSweep);
 });

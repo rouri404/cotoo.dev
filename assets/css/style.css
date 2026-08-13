@@ -18,7 +18,7 @@ body, html {
     z-index: 0;
 }
 
-.content {
+.stage {
     position: absolute;
     inset: 0;
     z-index: 10;
@@ -28,11 +28,28 @@ body, html {
     align-items: center;
     text-align: center;
     pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s 0.6s;
+}
+
+#stage-hero {
+    transform: translateY(-50px);
+}
+
+#stage-menu {
+    transform: translateY(50px);
+}
+
+.stage.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) !important;
+    transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s 0s;
 }
 
 h2 {
     font-size: clamp(2.5rem, 8vw, 6rem);
-    /* text-transform: uppercase; */
     margin: 0;
     font-weight: 400;
     letter-spacing: 0.05em;
@@ -41,4 +58,121 @@ h2 {
 p {
     margin: 0.5rem 0 0;
     font-size: clamp(1rem, 3.5vw, 2.5rem);
+}
+
+.hint {
+    margin-top: 3rem;
+    font-size: clamp(0.7rem, 2vw, 1.1rem);
+    opacity: 0.55;
+    animation: fade 2.4s ease-in-out infinite;
+}
+
+@keyframes fade {
+    50% { opacity: 0.15; }
+}
+
+/* ---------- stage 2: projects ---------- */
+
+.eyebrow {
+    font-size: clamp(0.8rem, 2vw, 1.1rem);
+    opacity: 0.5;
+    margin-bottom: 1.5rem;
+}
+
+.projects {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+    pointer-events: auto;
+    max-width: 90vw;
+}
+
+.projects li {
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    text-align: left;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Staggered entry for list items */
+#stage-menu.active .projects li {
+    opacity: 1;
+    transform: translateX(0);
+}
+#stage-menu.active .projects li:nth-child(1) { transition-delay: 0.15s; }
+#stage-menu.active .projects li:nth-child(2) { transition-delay: 0.25s; }
+#stage-menu.active .projects li:nth-child(3) { transition-delay: 0.35s; }
+#stage-menu.active .projects li:nth-child(4) { transition-delay: 0.45s; }
+#stage-menu.active .projects li:nth-child(5) { transition-delay: 0.55s; }
+
+.projects .sq {
+    width: 10px;
+    height: 10px;
+    margin-top: 0.5em;
+    background: white;
+    opacity: 0;
+    flex: none;
+    transition: opacity 0.15s steps(2);
+}
+
+.projects li:hover .sq,
+.projects li:focus-visible .sq {
+    opacity: 1;
+}
+
+.projects .label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.projects .name {
+    font-family: 'Tiny5', sans-serif;
+    font-size: clamp(1.1rem, 2.8vw, 1.7rem);
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    perspective: 800px;
+}
+
+/* 3D Letter Swap Effects */
+.letter-3d-wrapper {
+    position: relative;
+    display: inline-block;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    line-height: 1;
+}
+
+.projects li:hover .letter-3d-wrapper,
+.projects li:focus-visible .letter-3d-wrapper {
+    transform: rotateX(90deg);
+}
+
+.letter-3d-front {
+    display: inline-block;
+    transform: translateZ(0.4em);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.letter-3d-bottom {
+    display: inline-block;
+    position: absolute;
+    top: 0; left: 0;
+    transform: rotateX(-90deg) translateZ(0.4em);
+    opacity: 0.65;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.projects .desc {
+    font-size: clamp(0.7rem, 1.6vw, 0.95rem);
+    opacity: 0.55;
 }

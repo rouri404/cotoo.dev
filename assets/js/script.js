@@ -230,7 +230,7 @@ themeToggle.addEventListener("click", (e) => {
   transCanvas.classList.add("active");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img'
+    '.theme-toggle, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget'
   );
   
   const flips = Array.from(elementsToFlip).map(el => {
@@ -319,3 +319,81 @@ themeToggle.addEventListener("click", (e) => {
   }
   requestAnimationFrame(animateSweep);
 });
+
+// Spotify Currently Playing Integration
+const spotifyWidget = document.getElementById("spotifyWidget");
+const spotifyTrack = document.getElementById("spotifyTrack");
+const spotifyLink = document.getElementById("spotifyLink");
+
+async function fetchSpotifyCurrentlyPlaying() {
+  try {
+    const res = await fetch("/api/spotify");
+    
+    if (res.ok) {
+      const data = await res.json();
+      const spotifyLabel = document.querySelector(".spotify-label");
+      
+      if (data.is_playing) {
+        spotifyLabel.textContent = "coto tá ouvindo agora";
+        const text = `${data.artist} - ${data.title}`.toLowerCase();
+        
+        // Só atualiza o texto e recria a animação se a música MUDOU
+        if (spotifyTrack.textContent !== text) {
+          spotifyTrack.textContent = text;
+          
+          // Checa se o texto precisa de scroll
+          setTimeout(() => {
+            const info = spotifyTrack.parentElement;
+            
+            // Limpa animações anteriores
+            if (spotifyTrack.scrollAnim) {
+              spotifyTrack.scrollAnim.cancel();
+            }
+            
+            // Verifica se é mobile e se precisa de scroll
+            const isMobile = window.innerWidth <= 600;
+            if (isMobile && spotifyTrack.scrollWidth > info.clientWidth) {
+              const dist = spotifyTrack.scrollWidth - info.clientWidth;
+              // 40ms por pixel, mínimo 3s, máximo 15s pra não ficar lento demais
+              const duration = Math.min(Math.max(3000, dist * 40), 15000); 
+              
+              spotifyTrack.scrollAnim = spotifyTrack.animate([
+                { transform: 'translateX(0)' },
+                { transform: 'translateX(0)', offset: 0.10 }, // Pausa menor no início
+                { transform: `translateX(-${dist}px)`, offset: 0.90 },
+                { transform: `translateX(-${dist}px)` } // Pausa no final
+              ], {
+                duration: duration,
+                iterations: Infinity,
+                direction: 'alternate',
+                easing: 'ease-in-out'
+              });
+            }
+          }, 100);
+        }
+        
+        spotifyLink.href = data.songUrl;
+        spotifyLink.style.pointerEvents = "auto";
+      } else {
+        spotifyLabel.textContent = "coto tá ouvindo";
+        if (spotifyTrack.textContent !== "nada no momento :c") {
+          spotifyTrack.textContent = "nada no momento :c";
+          if (spotifyTrack.scrollAnim) {
+            spotifyTrack.scrollAnim.cancel();
+          }
+        }
+        spotifyLink.href = "#";
+        spotifyLink.style.pointerEvents = "none";
+      }
+      spotifyWidget.classList.add("active");
+    } else {
+      spotifyWidget.classList.remove("active");
+    }
+  } catch (error) {
+    console.error("Erro ao buscar dados do Spotify:", error);
+  }
+}
+
+// Verifica a música ao carregar e atualiza a cada 5 segundos
+fetchSpotifyCurrentlyPlaying();
+setInterval(fetchSpotifyCurrentlyPlaying, 2000);

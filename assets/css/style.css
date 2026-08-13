@@ -8,7 +8,7 @@
 [data-theme="dark"] {
   --bg-color: #121212;
   --text-color: #8fbc8b;
-  --logo-filter: brightness(0) invert(72%) sepia(13%) saturate(1131%) hue-rotate(85deg) brightness(91%) contrast(87%);
+  --logo-filter: brightness(0) invert(81%) sepia(23%) saturate(440%) hue-rotate(68deg) brightness(82%) contrast(91%);
 }
 
 body,
@@ -244,6 +244,7 @@ p {
   height: 38px;
   object-fit: contain;
   filter: var(--logo-filter);
+  image-rendering: pixelated;
 }
 
 .theme-toggle {
@@ -287,13 +288,90 @@ p {
   .socials {
     bottom: 1.5rem;
     right: 1.5rem;
-    gap: 1rem;
+    gap: 0.8rem;
   }
   .socials img {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
   }
   .projects {
     gap: 1.2rem;
   }
+  .spotify-widget {
+    bottom: 1.5rem;
+    left: 1.5rem;
+  }
+  .spotify-icon svg, .spotify-icon img {
+    width: 28px;
+    height: 28px;
+  }
+  .spotify-info {
+    max-width: 130px;
+  }
+  .spotify-label {
+    font-size: 0.5rem;
+  }
+  .spotify-track {
+    font-size: 0.65rem;
+  }
+}
+
+.spotify-widget {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.spotify-widget.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.spotify-widget a {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s steps(3);
+}
+
+.spotify-widget a:hover,
+.spotify-widget a:focus-visible {
+  transform: translateY(-6px);
+}
+
+.spotify-widget a:active {
+  transform: translateY(2px);
+  transition: transform 0.05s steps(2);
+}
+
+.spotify-icon svg, .spotify-icon img {
+  width: 38px;
+  height: 38px;
+}
+
+.spotify-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.spotify-label {
+  font-size: clamp(0.7rem, 2vw, 0.9rem);
+  opacity: 0.55;
+  line-height: 1;
+  margin-bottom: 0.2rem;
+}
+
+.spotify-track {
+  font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+  line-height: 1;
+  white-space: nowrap;
+  display: inline-block;
 }

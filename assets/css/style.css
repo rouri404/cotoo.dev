@@ -3,12 +3,18 @@
   --bg-color: #8fbc8b;
   --text-color: #ffffff;
   --logo-filter: brightness(0) invert(1);
+  --label-opacity: 0.9;
+  --time-opacity: 0.8;
+  --progress-bg-opacity: 0.45;
 }
 
 [data-theme="dark"] {
   --bg-color: #121212;
   --text-color: #8fbc8b;
   --logo-filter: brightness(0) invert(81%) sepia(23%) saturate(440%) hue-rotate(68deg) brightness(82%) contrast(91%);
+  --label-opacity: 0.55;
+  --time-opacity: 0.4;
+  --progress-bg-opacity: 0.25;
 }
 
 body,
@@ -219,12 +225,15 @@ p {
   bottom: 2rem;
   right: 2rem;
   display: flex;
+  align-items: center;
+  height: 50px;
   gap: 1.2rem;
   z-index: 100;
 }
 
 .socials a {
-  display: block;
+  display: flex;
+  align-items: center;
   transition: transform 0.15s steps(3), filter 0.15s steps(3);
 }
 
@@ -300,13 +309,19 @@ p {
   .spotify-widget {
     bottom: 1.5rem;
     left: 1.5rem;
+    right: 110px;
+  }
+  .spotify-widget a {
+    width: 100%;
   }
   .spotify-icon svg, .spotify-icon img {
     width: 28px;
     height: 28px;
+    flex-shrink: 0;
   }
   .spotify-info {
-    max-width: 130px;
+    min-width: 0;
+    flex: 1;
   }
   .spotify-label {
     font-size: 0.5rem;
@@ -320,6 +335,9 @@ p {
   position: fixed;
   bottom: 2rem;
   left: 2rem;
+  height: 50px;
+  display: flex;
+  align-items: center;
   z-index: 100;
   opacity: 0;
   visibility: hidden;
@@ -360,18 +378,58 @@ p {
   flex-direction: column;
   justify-content: center;
   overflow: hidden;
+  max-width: 280px;
+}
+
+.spotify-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.2rem;
+  gap: 0.5rem;
 }
 
 .spotify-label {
   font-size: clamp(0.7rem, 2vw, 0.9rem);
-  opacity: 0.55;
+  opacity: var(--label-opacity);
   line-height: 1;
-  margin-bottom: 0.2rem;
+  white-space: nowrap;
+}
+
+.spotify-time {
+  font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+  opacity: var(--time-opacity);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .spotify-track {
   font-size: clamp(0.9rem, 2.5vw, 1.2rem);
   line-height: 1;
   white-space: nowrap;
-  display: inline-block;
+}
+
+.spotify-progress-wrapper {
+  width: 100%;
+  height: 2px;
+  position: relative;
+  margin-top: 0.35rem;
+}
+
+.spotify-progress-bg {
+  position: absolute;
+  inset: 0;
+  background-color: currentColor;
+  opacity: var(--progress-bg-opacity);
+}
+
+.spotify-progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: currentColor;
+  width: 0%;
+  transition: width 1s linear;
 }

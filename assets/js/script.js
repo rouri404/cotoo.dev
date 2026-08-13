@@ -320,11 +320,40 @@ themeToggle.addEventListener("click", (e) => {
   requestAnimationFrame(animateSweep);
 });
 
+
 // Spotify Currently Playing Integration
 const spotifyWidget = document.getElementById("spotifyWidget");
 const spotifyTrack = document.getElementById("spotifyTrack");
 const spotifyLink = document.getElementById("spotifyLink");
 
+let localProgressMs = 0;
+let localDurationMs = 0;
+let isPlayingLocal = false;
+let localTimerInterval = null;
+
+function formatSpotifyTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function updateLocalTimeUI() {
+  const spotifyTime = document.getElementById("spotifyTime");
+  const spotifyProgressBar = document.getElementById("spotifyProgressBar");
+  
+  if (spotifyTime && isPlayingLocal && localDurationMs > 0) {
+    // Garante que o progresso não ultrapasse a duração total
+    const safeProgress = Math.min(localProgressMs, localDurationMs);
+    spotifyTime.textContent = `${formatSpotifyTime(safeProgress)} / ${formatSpotifyTime(localDurationMs)}`;
+    
+    // Atualiza a barra de progresso visualmente
+    if (spotifyProgressBar) {
+      const percentage = (safeProgress / localDurationMs) * 100;
+      spotifyProgressBar.style.width = `${percentage}%`;
+    }
+  }
+}
 async function fetchSpotifyCurrentlyPlaying() {
   try {
     const res = await fetch("/api/spotify");
@@ -332,9 +361,30 @@ async function fetchSpotifyCurrentlyPlaying() {
     if (res.ok) {
       const data = await res.json();
       const spotifyLabel = document.querySelector(".spotify-label");
+      const spotifyTime = document.getElementById("spotifyTime");
+      const progressWrapper = document.querySelector(".spotify-progress-wrapper");
       
       if (data.is_playing) {
         spotifyLabel.textContent = "coto tá ouvindo agora";
+        if (progressWrapper) progressWrapper.style.display = "block";
+        
+        // Sincroniza o relógio local com os dados reais da API
+        if (data.progress_ms && data.duration_ms) {
+          localProgressMs = data.progress_ms;
+          localDurationMs = data.duration_ms;
+          isPlayingLocal = true;
+          updateLocalTimeUI();
+          
+          // Se o contador local não estiver rodando, inicia ele
+          if (!localTimerInterval) {
+            localTimerInterval = setInterval(() => {
+              if (isPlayingLocal && localProgressMs < localDurationMs) {
+                localProgressMs += 1000;
+                updateLocalTimeUI();
+              }
+            }, 1000);
+          }
+        }
         const text = `${data.artist} - ${data.title}`.toLowerCase();
         
         // Só atualiza o texto e recria a animação se a música MUDOU
@@ -350,9 +400,8 @@ async function fetchSpotifyCurrentlyPlaying() {
               spotifyTrack.scrollAnim.cancel();
             }
             
-            // Verifica se é mobile e se precisa de scroll
-            const isMobile = window.innerWidth <= 600;
-            if (isMobile && spotifyTrack.scrollWidth > info.clientWidth) {
+            // Verifica se precisa de scroll (independentemente se é mobile ou desktop)
+            if (spotifyTrack.scrollWidth > info.clientWidth) {
               const dist = spotifyTrack.scrollWidth - info.clientWidth;
               // 40ms por pixel, mínimo 3s, máximo 15s pra não ficar lento demais
               const duration = Math.min(Math.max(3000, dist * 40), 15000); 
@@ -376,6 +425,15 @@ async function fetchSpotifyCurrentlyPlaying() {
         spotifyLink.style.pointerEvents = "auto";
       } else {
         spotifyLabel.textContent = "coto tá ouvindo";
+        if (spotifyTime) spotifyTime.textContent = "";
+        if (progressWrapper) progressWrapper.style.display = "none";
+        
+        // Para o relógio local se a música pausou
+        isPlayingLocal = false;
+        if (localTimerInterval) {
+          clearInterval(localTimerInterval);
+          localTimerInterval = null;
+        }
         if (spotifyTrack.textContent !== "nada no momento :c") {
           spotifyTrack.textContent = "nada no momento :c";
           if (spotifyTrack.scrollAnim) {
@@ -394,6 +452,6 @@ async function fetchSpotifyCurrentlyPlaying() {
   }
 }
 
-// Verifica a música ao carregar e atualiza a cada 5 segundos
+// Verifica a música ao carregar e atualiza na API a cada 5 segundos
 fetchSpotifyCurrentlyPlaying();
 setInterval(fetchSpotifyCurrentlyPlaying, 2000);

@@ -108,7 +108,6 @@
     <div class="spotify-widget" id="spotifyWidget">
       <a id="spotifyLink" href="#" target="_blank" rel="noopener noreferrer">
         <div class="spotify-icon">
-
           <svg id="spotifySvg" viewBox="0 0 16 16" width="32" height="32" shape-rendering="crispEdges">
             <g fill="currentColor">
               <!-- Travessão -->
@@ -130,8 +129,15 @@
           </svg>
         </div>
         <div class="spotify-info">
-          <span class="spotify-label">coto tá ouvindo</span>
+          <div class="spotify-header">
+            <span class="spotify-label" id="spotifyLabel">coto tá ouvindo</span>
+            <span class="spotify-time" id="spotifyTime"></span>
+          </div>
           <span class="spotify-track" id="spotifyTrack">carregando...</span>
+          <div class="spotify-progress-wrapper">
+            <div class="spotify-progress-bg"></div>
+            <div class="spotify-progress-bar" id="spotifyProgressBar"></div>
+          </div>
         </div>
       </a>
     </div>

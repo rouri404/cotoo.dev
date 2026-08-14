@@ -74,6 +74,14 @@ window.addEventListener(
 );
 
 window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const activeModals = document.querySelectorAll(".modal-overlay.active");
+    if (activeModals.length > 0) {
+      activeModals.forEach((modal) => modal.classList.remove("active"));
+      if (document.activeElement) document.activeElement.blur();
+      return; // aborta para não voltar à tela inicial
+    }
+  }
   if (["Enter", " ", "ArrowDown", "PageDown"].includes(e.key)) goToMenu();
   if (["Escape", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) goToHero();
 });
@@ -82,13 +90,19 @@ document.querySelectorAll(".projects li").forEach((li) => {
   li.addEventListener("click", (e) => {
     e.stopPropagation();
     const url = li.getAttribute("data-url");
+    const modalId = li.getAttribute("data-modal");
     
     // Força o efeito hover (o flip 3D) a aparecer e ficar "travado"
     li.classList.add("is-clicked");
     
     // Espera 400ms (tempo suficiente para o usuário ver o flip de 0.5s) antes de abrir a aba
     setTimeout(() => {
-      if (url) window.open(url, "_blank", "noopener");
+      if (url) {
+        window.open(url, "_blank", "noopener");
+      } else if (modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.add("active");
+      }
       // Reseta o estado depois de abrir
       setTimeout(() => li.classList.remove("is-clicked"), 100);
     }, 400);

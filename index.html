@@ -46,44 +46,123 @@
     </div>
 
     <div class="stage" id="stage-menu">
-      <p class="eyebrow">// projetos</p>
-      <ul class="projects" id="projectList">
-        <li tabindex="0" data-url="https://github.com/rouri404/site-gs-fiap">
-          <span class="sq"></span>
-          <span class="label">
-            <span class="name">protech the future</span>
-            <span class="desc"
-              >detecção de enchentes em tempo real — 1º lugar FIAP GS 2025</span
-            >
-          </span>
-        </li>
-        <li tabindex="0" data-url="">
-          <span class="sq"></span>
-          <span class="label">
-            <span class="name">actions heartbeat</span>
-            <span class="desc"
-              >dead man's switch para GitHub Actions — em construção</span
-            >
-          </span>
-        </li>
-        <li
-          tabindex="0"
-          data-url="https://github.com/GrupoMoskitto/Challenge-2026"
-        >
-          <span class="sq"></span>
-          <span class="label">
-            <span class="name">crmed</span>
-            <span class="desc">gestão clínica — Hospital São Rafael</span>
-          </span>
-        </li>
-        <li tabindex="0" data-url="https://github.com/rouri404/grabtext">
-          <span class="sq"></span>
-          <span class="label">
-            <span class="name">grabtext</span>
-            <span class="desc">OCR instantâneo para Linux</span>
-          </span>
-        </li>
-      </ul>
+      <div class="menu-content">
+        <div class="menu-col">
+          <p class="eyebrow">// projetos</p>
+          <ul class="projects" id="projectList">
+            <li tabindex="0" data-url="https://github.com/rouri404/site-gs-fiap">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">Protech The Future</span>
+                <span class="desc">detecção de enchentes em tempo real — 1º lugar FIAP GS 2025</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/GrupoMoskitto/Challenge-2026">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">CRMed</span>
+                <span class="desc">gestão clínica (graphql + prisma + redis) — hospital são rafael</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404/grabtext">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">grabtext</span>
+                <span class="desc">ocr instantâneo via clipboard para gnu/linux (tesseract)</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404/armin-hofmann">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">armin-hofmann</span>
+                <span class="desc">recriação digital de winding suíço (arte generativa em canvas puro)</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404/oh-my-posh-toolbx">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">Tema para Uh My Posh Toolbx/OCI</span>
+                <span class="desc">tema com detecção de container distrobox para fedora silverblue</span>
+              </span>
+            </li>
+            <li tabindex="0" data-modal="actionsModal">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">Actions Heartbeat</span>
+                <span class="desc">dead man's switch para github actions — saas de monitoramento</span>
+              </span>
+            </li>
+            <li tabindex="0" data-modal="cadernoModal">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">Caderno Digital</span>
+                <span class="desc">hardware (esp32) + visão computacional (ocr) + sync em tempo real</span>
+              </span>
+            </li>
+            <li tabindex="0" data-modal="oedlaModal">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">OEDLA (Unicamp)</span>
+                <span class="desc">arquitetura de cache multi-camadas e otimização de custo (cloudflare)</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404/cotoo.dev">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">cotoo.dev</span>
+                <span class="desc">este portfólio — design de sistema e minimalismo</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div class="menu-col">
+          <p class="eyebrow">// stack técnica</p>
+          <ul class="projects" id="techList">
+            <li tabindex="0" data-url="https://github.com/rouri404">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">back-end & apis</span>
+                <span class="desc">python, typescript, fastapi, node.js</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">dados & schemas</span>
+                <span class="desc">postgresql, mongodb, redis, graphql, prisma</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">infraestrutura & cloud</span>
+                <span class="desc">docker, azure, aws, github actions</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">redes & observabilidade</span>
+                <span class="desc">cloudflare, proxy reverso, mqtt</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">sistemas & embarcados</span>
+                <span class="desc">linux imutável (fedora silverblue), bash, c/c++, esp32</span>
+              </span>
+            </li>
+            <li tabindex="0" data-url="https://github.com/rouri404">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">design & front-end</span>
+                <span class="desc">html/css puro, react, canvas api (generativo)</span>
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div class="socials">
@@ -147,6 +226,29 @@
     
     <div id="customNotification" class="custom-notification"></div>
 
+    <!-- Modals -->
+    <div class="modal-overlay" id="oedlaModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('oedlaModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>OEDLA</strong><br><br>Arquitetei a infraestrutura do OEDLA, um projeto de jornalismo vinculado à Unicamp, com foco em performance e disponibilidade em produção. Estruturei uma arquitetura de cache em múltiplas camadas com Cloudflare como proxy reverso, garantindo que o site se mantivesse responsivo mesmo sob picos de tráfego, e fiquei responsável pelo planejamento de infraestrutura e custo da stack como um todo. É um dos projetos que mais me aproximou de decisões de engenharia com peso real.</p>
+      </div>
+    </div>
+    
+    <div class="modal-overlay" id="actionsModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('actionsModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>Actions Heartbeat (Em Construção)</strong><br><br>Um dead man's switch em formato SaaS para monitoramento de workflows de cron do GitHub Actions. Sistema desenvolvido do zero com FastAPI, MongoDB, Redis e React, envelopado por um design system próprio inspirado em traçados de eletrocardiograma. Repositório e case study arquitetural serão publicados em breve.</p>
+      </div>
+    </div>
+    
+    <div class="modal-overlay" id="cadernoModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('cadernoModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>Caderno Digital (Em Construção)</strong><br><br>Projeto de hardware embarcado integrando um ESP32 a uma tela touchscreen de 7 polegadas. A interface local é desenhada via LVGL e os dados são sincronizados em tempo real através de SignalR/WebSockets. Conta com integração ao Azure AI Vision para OCR direto no dispositivo. A documentação completa e o código-fonte estarão abertos em breve.</p>
+      </div>
+    </div>
+
+    <script src="assets/js/pixel-effect.js"></script>
     <script src="assets/js/script.js"></script>
   </body>
 </html>

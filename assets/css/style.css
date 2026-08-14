@@ -74,6 +74,38 @@ html {
     transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
     visibility 0s 0s;
 }
+
+#stage-menu {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10vh 2rem 15vh 2rem;
+  justify-content: flex-start;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#stage-menu::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-content {
+  display: flex;
+  flex-direction: row;
+  gap: 6rem;
+  width: 100%;
+  max-width: 1200px;
+  justify-content: center;
+  align-items: flex-start;
+  margin: auto;
+}
+
+@media (max-width: 900px) {
+  .menu-content {
+    flex-direction: column;
+    gap: 4rem;
+    align-items: flex-start;
+  }
+}
+
 h2 {
   font-size: clamp(2.5rem, 8vw, 6rem);
   margin: 0;
@@ -149,9 +181,12 @@ p {
   transition-delay: 0.45s;
 }
 
-#stage-menu.active .projects li:nth-child(5) {
-  transition-delay: 0.55s;
-}
+#stage-menu.active .projects li:nth-child(5) { transition-delay: 0.55s; }
+#stage-menu.active .projects li:nth-child(6) { transition-delay: 0.65s; }
+#stage-menu.active .projects li:nth-child(7) { transition-delay: 0.75s; }
+#stage-menu.active .projects li:nth-child(8) { transition-delay: 0.85s; }
+#stage-menu.active .projects li:nth-child(9) { transition-delay: 0.95s; }
+#stage-menu.active .projects li:nth-child(10) { transition-delay: 1.05s; }
 
 .projects .sq {
   width: 10px;
@@ -599,4 +634,64 @@ p {
   .spotify-track {
     font-size: 0.9rem;
   }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--text-color);
+  padding: 3rem 2.5rem;
+  max-width: 600px;
+  width: 90%;
+  position: relative;
+  text-align: justify;
+  transform: translateY(20px);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.modal-content p {
+  font-size: clamp(0.7rem, 1.2vw, 0.95rem);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-overlay.active .modal-content {
+  transform: translateY(0);
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.5rem;
+  background: transparent;
+  color: var(--text-color);
+  border: none;
+  font-family: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.modal-close:hover {
+  opacity: 1;
 }

@@ -354,6 +354,8 @@ function updateLocalTimeUI() {
     }
   }
 }
+let currentSpotifyUri = null;
+
 async function fetchSpotifyCurrentlyPlaying() {
   try {
     const res = await fetch("/api/spotify");
@@ -421,13 +423,21 @@ async function fetchSpotifyCurrentlyPlaying() {
           }, 100);
         }
         
+        currentSpotifyUri = data.uri;
         spotifyLink.href = data.songUrl;
         spotifyLink.style.pointerEvents = "auto";
+        if (document.getElementById("listenAlongBtn")) {
+          const listenBtn = document.getElementById("listenAlongBtn");
+          listenBtn.href = data.songUrl;
+          listenBtn.style.display = "";
+        }
+        spotifyWidget.classList.remove("hide");
+        spotifyWidget.classList.add("active");
+        spotifyWidget.classList.add("is-playing");
       } else {
         spotifyLabel.textContent = "coto tá ouvindo";
         if (spotifyTime) spotifyTime.textContent = "";
-        if (progressWrapper) progressWrapper.style.display = "none";
-        
+        if (progressWrapper) progressWrapper.classList.remove("is-playing");
         // Para o relógio local se a música pausou
         isPlayingLocal = false;
         if (localTimerInterval) {
@@ -442,10 +452,30 @@ async function fetchSpotifyCurrentlyPlaying() {
         }
         spotifyLink.href = "#";
         spotifyLink.style.pointerEvents = "none";
+        if (document.getElementById("listenAlongBtn")) {
+          document.getElementById("listenAlongBtn").style.display = "";
+        }
+        spotifyWidget.classList.remove("is-playing");
+        spotifyWidget.classList.remove("hide");
+        spotifyWidget.classList.add("active");
       }
-      spotifyWidget.classList.add("active");
     } else {
-      spotifyWidget.classList.remove("active");
+      spotifyLabel.textContent = "coto tá ouvindo";
+      if (spotifyTime) spotifyTime.textContent = "";
+      if (spotifyTrack.textContent !== "nada no momento :c") {
+        spotifyTrack.textContent = "nada no momento :c";
+        if (spotifyTrack.scrollAnim) {
+          spotifyTrack.scrollAnim.cancel();
+        }
+      }
+      spotifyLink.href = "#";
+      spotifyLink.style.pointerEvents = "none";
+      if (document.getElementById("listenAlongBtn")) {
+        document.getElementById("listenAlongBtn").style.display = "";
+      }
+      spotifyWidget.classList.remove("is-playing");
+      spotifyWidget.classList.remove("hide");
+      spotifyWidget.classList.add("active");
     }
   } catch (error) {
     console.error("Erro ao buscar dados do Spotify:", error);
@@ -455,3 +485,180 @@ async function fetchSpotifyCurrentlyPlaying() {
 // Verifica a música ao carregar e atualiza na API a cada 5 segundos
 fetchSpotifyCurrentlyPlaying();
 setInterval(fetchSpotifyCurrentlyPlaying, 2000);
+
+// Custom Notification System
+let notificationTimeout;
+function showNotification(msg) {
+  const notifEl = document.getElementById("customNotification");
+  if (!notifEl) return;
+  notifEl.innerHTML = ""; // limpa tudo
+  notifEl.className = "custom-notification show"; // reseta
+  
+  // Cria os blocos caindo
+  const numBlocks = 5;
+  for (let i = 0; i < numBlocks; i++) {
+    const block = document.createElement("div");
+    block.className = "tetris-chunk";
+    // Define a posição horizontal e o delay do bloco
+    block.style.left = `${(i / numBlocks) * 100}%`;
+    block.style.width = `${100 / numBlocks}%`;
+    // Padrão de queda: bordas primeiro, centro por último
+    // Para 5 blocos (0, 1, 2, 3, 4), o centro é 2.
+    // Delay: 0s para as pontas, 0.1s para os meios, 0.2s pro centro.
+    const distFromCenter = Math.abs(i - 2);
+    const delay = (2 - distFromCenter) * 0.1;
+    block.style.setProperty('--delay-in', `${delay}s`);
+    block.style.setProperty('--delay-out', `${0.2 - delay}s`);
+    notifEl.appendChild(block);
+  }
+  
+  // Cria o texto
+  const textEl = document.createElement("div");
+  textEl.className = "tetris-msg";
+  textEl.textContent = msg.toLowerCase();
+  notifEl.appendChild(textEl);
+  
+  clearTimeout(notificationTimeout);
+  notificationTimeout = setTimeout(() => {
+    notifEl.classList.remove("show");
+    notifEl.classList.add("hide");
+    setTimeout(() => {
+      notifEl.innerHTML = "";
+      notifEl.classList.remove("hide");
+    }, 500); // tempo suficiente para as animações de saída terminarem
+  }, 4000);
+}
+
+// Visitor Listen Along Auth and Sync
+async function handleSpotifyAuthCode() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const error = params.get("error");
+  
+  if (error) {
+    showNotification("Erro na conexão com Spotify: " + error);
+    const url = new URL(window.location);
+    url.searchParams.delete("error");
+    window.history.replaceState({}, document.title, url.pathname + url.search);
+    return;
+  }
+  
+  if (code) {
+    try {
+      const redirectUri = (window.location.origin + window.location.pathname).replace(/\/$/, "");
+      const res = await fetch("/api/spotify-exchange", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ code, redirect_uri: redirectUri })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem("visitor_spotify_token", data.access_token);
+        localStorage.setItem("visitor_spotify_expires", Date.now() + (parseInt(data.expires_in) * 1000));
+        
+        // Clean URL
+        const url = new URL(window.location);
+        url.searchParams.delete("code");
+        window.history.replaceState({}, document.title, url.pathname + url.search);
+        
+        showNotification("Spotify conectado com sucesso!");
+      }
+    } catch (err) {
+      console.error("Erro ao trocar o código:", err);
+      showNotification("Erro ao conectar com Spotify.");
+    }
+  }
+}
+handleSpotifyAuthCode();
+
+const listenAlongBtn = document.getElementById("listenAlongBtn");
+if (listenAlongBtn) {
+  listenAlongBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!currentSpotifyUri) return;
+    
+    const token = localStorage.getItem("visitor_spotify_token");
+    const expires = localStorage.getItem("visitor_spotify_expires");
+    
+    if (token && expires && Date.now() < parseInt(expires)) {
+      // Tem token válido, tenta sincronizar
+      try {
+        listenAlongBtn.textContent = "sincronizando...";
+        const res = await fetch("https://api.spotify.com/v1/me/player/play", {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            uris: [currentSpotifyUri],
+            position_ms: localProgressMs
+          })
+        });
+        
+        if (res.ok || res.status === 204) {
+          listenAlongBtn.textContent = "sincronizado!";
+          showNotification("sincronizado!");
+          setTimeout(() => { listenAlongBtn.textContent = "ouvir com o coto"; }, 3000);
+        } else {
+          const text = await res.text();
+          let data = {};
+          try {
+            data = JSON.parse(text);
+          } catch(e) {}
+          
+          if (res.status === 403) {
+            showNotification("o spotify exige conta premium para isso :c");
+            listenAlongBtn.textContent = "ouvir com o coto";
+          } else if (data.error && data.error.reason === "NO_ACTIVE_DEVICE") {
+            showNotification("abra o Spotify e dê play em algo primeiro!");
+            listenAlongBtn.textContent = "ouvir com o coto";
+          } else if (res.status === 401) {
+            throw new Error("Token expirado ou revogado");
+          } else {
+            console.error("Erro da API:", text);
+            showNotification("erro. verifique se o Spotify está aberto.");
+            listenAlongBtn.textContent = "ouvir com o coto";
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao sincronizar:", err);
+        if (err.message === "Token expirado ou revogado") {
+          localStorage.removeItem("visitor_spotify_token");
+          listenAlongBtn.textContent = "ouvir com o coto";
+          showNotification("Sessão expirada. Por favor, conecte de novo.");
+        } else {
+          listenAlongBtn.textContent = "ouvir com o coto";
+          showNotification("Falha na sincronização.");
+        }
+      }
+    } else {
+      // Sem token ou token expirado, inicia auth
+      try {
+        listenAlongBtn.textContent = "conectando...";
+        const res = await fetch("/api/spotify-client-id");
+        const data = await res.json();
+        const clientId = data.clientId;
+        
+        const redirectUri = (window.location.origin + window.location.pathname).replace(/\/$/, "");
+        const scopes = "user-modify-playback-state";
+        const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+        
+        window.location.href = authUrl;
+      } catch (err) {
+        console.error("Erro ao buscar client id:", err);
+        listenAlongBtn.textContent = "ouvir com o coto";
+      }
+    }
+  });
+}
+
+if (spotifyWidget) {
+  spotifyWidget.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+}

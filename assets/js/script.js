@@ -590,7 +590,11 @@ async function handleSpotifyAuthCode() {
   
   if (code) {
     try {
-      const redirectUri = (window.location.origin + window.location.pathname).replace(/\/$/, "");
+      // Busca a redirect URI que o backend estiver configurado para usar
+      const resId = await fetch("/api/spotify-client-id");
+      const dataId = await resId.json();
+      const redirectUri = dataId.redirectUri || "https://cotoo.dev";
+      
       const res = await fetch("/api/spotify-exchange", {
         method: "POST",
         headers: {
@@ -689,7 +693,8 @@ if (listenAlongBtn) {
         const data = await res.json();
         const clientId = data.clientId;
         
-        const redirectUri = (window.location.origin + window.location.pathname).replace(/\/$/, "");
+        // Pega do backend ou fallback pra prod
+        const redirectUri = data.redirectUri || "https://cotoo.dev";
         const scopes = "user-modify-playback-state";
         const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
         

@@ -166,22 +166,25 @@
     </div>
 
     <div class="socials">
-      <a
-        href="https://github.com/rouri404"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="GitHub"
-      >
-        <img src="assets/img/github.png" alt="GitHub" />
-      </a>
-      <a
-        href="https://linkedin.com/in/gabricouto"
-        target="_blank"
-        rel="noopener noreferrer"
-        title="LinkedIn"
-      >
-        <img src="assets/img/linkedin.png" alt="LinkedIn" />
-      </a>
+      <div id="githubStatus" class="github-status">buscando status...</div>
+      <div class="social-icons">
+        <a
+          href="https://github.com/rouri404"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="GitHub"
+        >
+          <img src="assets/img/github.png" alt="GitHub" />
+        </a>
+        <a
+          href="https://linkedin.com/in/gabricouto"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="LinkedIn"
+        >
+          <img src="assets/img/linkedin.png" alt="LinkedIn" />
+        </a>
+      </div>
     </div>
 
     <div class="spotify-widget" id="spotifyWidget">
@@ -245,6 +248,14 @@
       <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('cadernoModal').classList.remove('active')" title="fechar">x</button>
         <p><strong>Caderno Digital (Em Construção)</strong><br><br>Projeto de hardware embarcado integrando um ESP32 a uma tela touchscreen de 7 polegadas. A interface local é desenhada via LVGL e os dados são sincronizados em tempo real através de SignalR/WebSockets. Conta com integração ao Azure AI Vision para OCR direto no dispositivo. A documentação completa e o código-fonte estarão abertos em breve.</p>
+      </div>
+    </div>
+    
+    <!-- Secret Modal -->
+    <div class="modal-overlay" id="secretModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('secretModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>O TAL DO COTO</strong><br><br>Se você digitou meu nome, é porque quer saber mais sobre mim, né?<br><br>Que tal hobbies? Eu sou apaixonado pelo vintage, sabe? Carhartt de 1900 e antigamente, estética destroyed (roupas realmente destruídas), sun fades absurdas, lavagens de uso constante, a contrapartida da moda japonesa nos anos 2000...<br><br>E, obviamente, math-rock (se não conhece, vai escutar um TTNG, toe, American Football, Just Neighbors, archipiélagos ou Totorro).</p>
       </div>
     </div>
 

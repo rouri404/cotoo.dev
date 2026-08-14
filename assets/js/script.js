@@ -1,3 +1,17 @@
+console.log(
+  "%c\n" +
+  "   ____      __              __\n" +
+  "  / __/___  / /____  ___    / /\n" +
+  " / /_/ __ \\/ __/ _ \\/ _ \\  /_/ \n" +
+  " \\__/\\____/\\__/\\___/\\___/ (_)\n" +
+  "\n" +
+  "olhando o codigo, amigao? \n" +
+  "vamo lá bate um papo \n" +
+  "quem sabe sou o novo linus :p \n" +
+  "https://linkedin.com/in/gabricouto",
+  "color: #8FBC8B; font-size: 14px; font-weight: bold; font-family: monospace;"
+);
+
 const canvas = document.getElementById("pixel-trail");
 const ctx = canvas.getContext("2d");
 const FADE_DURATION = 500;
@@ -73,7 +87,23 @@ window.addEventListener(
   { passive: true },
 );
 
+let secretKeystrokes = "";
+
 window.addEventListener("keydown", (e) => {
+  // Track "coto" konami code
+  if (e.key.length === 1) {
+    secretKeystrokes += e.key.toLowerCase();
+    if (secretKeystrokes.length > 4) secretKeystrokes = secretKeystrokes.slice(-4);
+    if (secretKeystrokes === "coto") {
+      firePixelConfetti();
+      setTimeout(() => {
+        const secretModal = document.getElementById("secretModal");
+        if (secretModal) secretModal.classList.add("active");
+      }, 800); // delay modal slightly to enjoy confetti
+      secretKeystrokes = "";
+    }
+  }
+
   if (e.key === "Escape") {
     const activeModals = document.querySelectorAll(".modal-overlay.active");
     if (activeModals.length > 0) {
@@ -95,17 +125,18 @@ document.querySelectorAll(".projects li").forEach((li) => {
     // Força o efeito hover (o flip 3D) a aparecer e ficar "travado"
     li.classList.add("is-clicked");
     
-    // Espera 400ms (tempo suficiente para o usuário ver o flip de 0.5s) antes de abrir a aba
-    setTimeout(() => {
-      if (url) {
-        window.open(url, "_blank", "noopener");
-      } else if (modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.classList.add("active");
-      }
-      // Reseta o estado depois de abrir
+    if (modalId) {
+      // Abre o modal instantaneamente (sem lag)
+      const modal = document.getElementById(modalId);
+      if (modal) modal.classList.add("active");
       setTimeout(() => li.classList.remove("is-clicked"), 100);
-    }, 400);
+    } else if (url) {
+      // Para links externos, espera 400ms pro usuário ver a animação de flip 3D antes de mudar de aba
+      setTimeout(() => {
+        window.open(url, "_blank", "noopener");
+        setTimeout(() => li.classList.remove("is-clicked"), 100);
+      }, 400);
+    }
   });
   li.addEventListener("keydown", (e) => {
     if (e.key === "Enter") li.click();
@@ -675,4 +706,110 @@ if (spotifyWidget) {
   spotifyWidget.addEventListener("click", (e) => {
     e.stopPropagation();
   });
+}
+
+// Github Live Status
+async function fetchGithubActivity() {
+  const el = document.getElementById("githubStatus");
+  if (!el) return;
+  
+  try {
+    const res = await fetch("https://api.github.com/users/rouri404/events/public");
+    if (!res.ok) throw new Error("API rate limit");
+    
+    const events = await res.json();
+    const pushEvent = events.find(e => e.type === "PushEvent");
+    
+    if (pushEvent) {
+      const date = new Date(pushEvent.created_at);
+      const diff = Math.floor((new Date() - date) / 60000); // minutos
+      
+      if (diff === 0) {
+        el.textContent = `último commit: agora mesmo`;
+      } else {
+        let timeStr = "";
+        if (diff < 60) timeStr = `${diff}m`;
+        else if (diff < 1440) timeStr = `${Math.floor(diff / 60)}h`;
+        else timeStr = `${Math.floor(diff / 1440)}d`;
+        
+        el.textContent = `último commit: ${timeStr} atrás`;
+      }
+    } else {
+      el.style.display = "none";
+    }
+  } catch (err) {
+    el.style.display = "none";
+  }
+}
+fetchGithubActivity();
+
+// Pixel Confetti Effect
+function firePixelConfetti() {
+  const colors = ["#8FBC8B", "#ffffff", "#444444"];
+  const isMobile = window.innerWidth < 600;
+  const count = isMobile ? 80 : 150;
+  
+  // Super Glitch / Flashbang Effect
+  document.body.style.transition = "none";
+  document.body.style.filter = "invert(100%) contrast(150%)";
+  setTimeout(() => document.body.style.filter = "none", 50);
+  setTimeout(() => document.body.style.filter = "invert(100%) contrast(150%)", 100);
+  setTimeout(() => document.body.style.filter = "none", 150);
+  
+  for (let i = 0; i < count; i++) {
+    const confetti = document.createElement("div");
+    confetti.style.position = "fixed";
+    const size = Math.random() > 0.5 ? "10px" : "16px";
+    confetti.style.width = size;
+    confetti.style.height = size;
+    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.left = "50%";
+    confetti.style.top = "50%";
+    confetti.style.zIndex = 100000;
+    confetti.style.pointerEvents = "none";
+    // Retro box shadow to give it depth
+    confetti.style.boxShadow = "2px 2px 0px rgba(0,0,0,0.5)";
+    document.body.appendChild(confetti);
+
+    const angle = Math.random() * Math.PI * 2;
+    const velocity = 8 + Math.random() * 25;
+    let vx = Math.cos(angle) * velocity;
+    let vy = Math.sin(angle) * velocity - 15;
+    
+    let x = 0;
+    let y = 0;
+    let currentVy = vy;
+    let rotation = 0;
+    let rotSpeed = (Math.random() - 0.5) * 30;
+    let bounces = 0;
+    
+    function animateConfetti() {
+      x += vx;
+      y += currentVy;
+      currentVy += 0.8; // gravidade pesada retro
+      rotation += rotSpeed;
+      
+      // Bouncing off the bottom of the screen
+      const bottomLimit = window.innerHeight / 2 - 20;
+      if (y > bottomLimit) {
+        y = bottomLimit;
+        currentVy = -currentVy * 0.5; // quica perdendo força
+        vx *= 0.8; // atrito no chão
+        bounces++;
+      }
+      
+      confetti.style.transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
+      
+      // Remove after bouncing around and falling or losing momentum
+      if (bounces < 3 || Math.abs(currentVy) > 1) {
+        requestAnimationFrame(animateConfetti);
+      } else {
+        // Fade out
+        confetti.style.transition = "opacity 0.5s";
+        confetti.style.opacity = "0";
+        setTimeout(() => confetti.remove(), 500);
+      }
+    }
+    requestAnimationFrame(animateConfetti);
+  }
 }

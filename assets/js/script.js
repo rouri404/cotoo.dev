@@ -81,8 +81,15 @@ window.addEventListener("click", (e) => {
 window.addEventListener(
   "wheel",
   (e) => {
-    if (e.deltaY > 20) goToMenu();
-    else if (e.deltaY < -20) goToHero();
+    const stage = document.body.dataset.stage || "hero";
+    if (stage === "hero") {
+      if (e.deltaY > 20) goToMenu();
+    } else if (stage === "menu") {
+      const wrapper = document.querySelector(".scroll-wrapper");
+      if (wrapper && e.deltaY < -20 && wrapper.scrollTop <= 0) {
+        goToHero();
+      }
+    }
   },
   { passive: true },
 );
@@ -311,9 +318,10 @@ themeToggle.addEventListener("click", (e) => {
   transCanvas.width = window.innerWidth;
   transCanvas.height = window.innerHeight;
   transCanvas.classList.add("active");
+  document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget'
+    '.theme-toggle, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status'
   );
   
   const flips = Array.from(elementsToFlip).map(el => {
@@ -337,7 +345,7 @@ themeToggle.addEventListener("click", (e) => {
   ];
   const ditherBand = 12; // width of dither transition in grid cells
   
-  const duration = 1200; // ms for the entire sweep
+  const duration = 800; // ms for the entire sweep (mais rápido!)
   let startTime = null;
   
   function animateSweep(timestamp) {
@@ -397,6 +405,7 @@ themeToggle.addEventListener("click", (e) => {
       
       transCanvas.classList.remove("active");
       transCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
+      document.body.classList.remove("is-transitioning");
       isTransitioning = false;
     }
   }

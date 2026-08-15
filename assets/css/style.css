@@ -71,6 +71,7 @@ body {
 .stage.active {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
   transform: translateY(0) !important;
   transition:
     opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -90,6 +91,7 @@ body {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   padding: 10vh 2rem 150px 2rem;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -601,7 +603,7 @@ p {
 
 @media (max-width: 600px) {
   .theme-toggle {
-    top: 1.5rem;
+    top: 0.2rem;
     right: 1.5rem;
     left: auto;
     height: 50px;
@@ -610,7 +612,7 @@ p {
     justify-content: center;
   }
   .socials {
-    top: 1.5rem;
+    top: 0.2rem;
     bottom: auto;
     left: 1.5rem;
     right: auto;
@@ -618,11 +620,14 @@ p {
   }
   .github-status {
     position: fixed;
-    top: 1.5rem;
+    top: 0.2rem;
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
     width: max-content;
+    height: 50px;
+    display: flex;
+    align-items: center;
   }
   .socials img {
     width: 28px;
@@ -635,7 +640,7 @@ p {
     padding-bottom: 25vh; /* Evita que a nav bar do iOS/Android coma o final */
   }
   .spotify-widget {
-    bottom: 1.5rem;
+    bottom: 0.8rem;
     left: 1.5rem;
     right: 1.5rem;
     height: auto;

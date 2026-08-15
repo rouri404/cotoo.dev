@@ -44,6 +44,7 @@ function draw(now) {
 }
 
 function handlePointerMove(e) {
+  if (e.pointerType === "touch") return;
   const col = Math.floor(e.clientX / pixelSize);
   const row = Math.floor(e.clientY / pixelSize);
   const key = `${col},${row}`;
@@ -314,6 +315,8 @@ themeToggle.addEventListener("click", (e) => {
   updateThemeIcon();
   
   const newBgColor = newTheme === "dark" ? "#121212" : "#8fbc8b";
+  const metaTheme = document.getElementById("meta-theme-color");
+  if (metaTheme) metaTheme.setAttribute("content", newBgColor);
   
   transCanvas.width = window.innerWidth;
   transCanvas.height = window.innerHeight;

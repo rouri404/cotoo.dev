@@ -196,19 +196,57 @@ setTimeout(() => {
 document.querySelectorAll(".projects .name").forEach((el) => {
   const text = el.textContent.trim();
   el.innerHTML = "";
-  text.split("").forEach((char, i) => {
-    const wrapper = document.createElement("span");
-    wrapper.className = "letter-3d-wrapper";
-    wrapper.style.transitionDelay = `${i * 0.03}s`;
-    const front = document.createElement("span");
-    front.className = "letter-3d-front";
-    front.textContent = char === " " ? "\u00A0" : char;
-    const bottom = document.createElement("span");
-    bottom.className = "letter-3d-bottom";
-    bottom.textContent = char === " " ? "\u00A0" : char;
-    wrapper.appendChild(front);
-    wrapper.appendChild(bottom);
-    el.appendChild(wrapper);
+  let globalIndex = 0;
+  
+  // Agrupa os caracteres em palavras para evitar quebra no meio da palavra no mobile
+  const words = text.split(" ");
+  words.forEach((word, wordIdx) => {
+    const wordSpan = document.createElement("span");
+    wordSpan.style.display = "inline-block";
+    wordSpan.style.whiteSpace = "nowrap";
+    
+    word.split("").forEach((char) => {
+      const wrapper = document.createElement("span");
+      wrapper.className = "letter-3d-wrapper";
+      wrapper.style.transitionDelay = `${globalIndex * 0.03}s`;
+      
+      const front = document.createElement("span");
+      front.className = "letter-3d-front";
+      front.textContent = char;
+      
+      const bottom = document.createElement("span");
+      bottom.className = "letter-3d-bottom";
+      bottom.textContent = char;
+      
+      wrapper.appendChild(front);
+      wrapper.appendChild(bottom);
+      wordSpan.appendChild(wrapper);
+      
+      globalIndex++;
+    });
+    
+    el.appendChild(wordSpan);
+    
+    // Adiciona o espaço entre as palavras, exceto na última
+    if (wordIdx < words.length - 1) {
+      const spaceWrapper = document.createElement("span");
+      spaceWrapper.className = "letter-3d-wrapper";
+      spaceWrapper.style.transitionDelay = `${globalIndex * 0.03}s`;
+      
+      const front = document.createElement("span");
+      front.className = "letter-3d-front";
+      front.textContent = "\u00A0";
+      
+      const bottom = document.createElement("span");
+      bottom.className = "letter-3d-bottom";
+      bottom.textContent = "\u00A0";
+      
+      spaceWrapper.appendChild(front);
+      spaceWrapper.appendChild(bottom);
+      el.appendChild(spaceWrapper);
+      
+      globalIndex++;
+    }
   });
 });
 

@@ -351,6 +351,21 @@ p {
   z-index: 100;
   opacity: 0;
   visibility: hidden;
+  background-color: var(--bg-color);
+  box-shadow: 0 0 15px 15px var(--bg-color);
+  border-radius: 2px;
+}
+
+/* Bloqueia o texto de aparecer no espaço vazio abaixo do widget */
+.spotify-widget::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: -20px;
+  right: -20px;
+  height: 100px;
+  background: var(--bg-color);
+  z-index: -1;
 }
 
 @keyframes spotifyRise {
@@ -612,7 +627,10 @@ p {
     height: 28px;
   }
   .projects {
-    gap: 1.2rem;
+    gap: 1.8rem; /* Melhor para tocar no celular */
+  }
+  #stage-menu {
+    padding-bottom: 25vh; /* Evita que a nav bar do iOS/Android coma o final */
   }
   .spotify-widget {
     bottom: 1.5rem;

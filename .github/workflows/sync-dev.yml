@@ -1,0 +1,37 @@
+name: Sync Dev Branch
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync-dev:
+    runs-on: ubuntu-latest
+    environment: Actions
+    permissions:
+      contents: write
+    steps:
+      - name: Generate bot token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Recreate dev branch from main
+        run: |
+          git config user.name "cotomation[bot]"
+          git config user.email "cotomation[bot]@users.noreply.github.com"
+
+          git push origin --delete dev || true
+
+          git checkout -b dev
+
+          git push origin dev

@@ -577,9 +577,8 @@ async function fetchSpotifyCurrentlyPlaying() {
   }
 }
 
-// Verifica a música ao carregar e atualiza na API a cada 5 segundos
 fetchSpotifyCurrentlyPlaying();
-setInterval(fetchSpotifyCurrentlyPlaying, 2000);
+setInterval(fetchSpotifyCurrentlyPlaying, 2500);
 
 // Custom Notification System
 let notificationTimeout;

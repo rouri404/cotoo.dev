@@ -768,14 +768,13 @@ async function fetchGithubActivity() {
   if (!el) return;
   
   try {
-    const res = await fetch("https://api.github.com/users/rouri404/events/public");
-    if (!res.ok) throw new Error("API rate limit");
+    const res = await fetch("/api/github");
+    if (!res.ok) throw new Error("API error");
     
-    const events = await res.json();
-    const pushEvent = events.find(e => e.type === "PushEvent");
+    const data = await res.json();
     
-    if (pushEvent) {
-      const date = new Date(pushEvent.created_at);
+    if (data.found) {
+      const date = new Date(data.created_at);
       const diff = Math.floor((new Date() - date) / 60000); // minutos
       
       if (diff === 0) {

@@ -98,7 +98,7 @@ window.addEventListener(
 let secretKeystrokes = "";
 
 window.addEventListener("keydown", (e) => {
-  // Track "coto" konami code
+    // Track Konami code
   if (e.key.length === 1) {
     secretKeystrokes += e.key.toLowerCase();
     if (secretKeystrokes.length > 4) secretKeystrokes = secretKeystrokes.slice(-4);
@@ -107,7 +107,7 @@ window.addEventListener("keydown", (e) => {
       setTimeout(() => {
         const secretModal = document.getElementById("secretModal");
         if (secretModal) secretModal.classList.add("active");
-      }, 800); // delay modal slightly to enjoy confetti
+      }, 800);
       secretKeystrokes = "";
     }
   }
@@ -117,7 +117,7 @@ window.addEventListener("keydown", (e) => {
     if (activeModals.length > 0) {
       activeModals.forEach((modal) => modal.classList.remove("active"));
       if (document.activeElement) document.activeElement.blur();
-      return; // aborta para não voltar à tela inicial
+      return;
     }
   }
   if (["Enter", " ", "ArrowDown", "PageDown"].includes(e.key)) goToMenu();
@@ -130,16 +130,16 @@ document.querySelectorAll(".projects li").forEach((li) => {
     const url = li.getAttribute("data-url");
     const modalId = li.getAttribute("data-modal");
     
-    // Força o efeito hover (o flip 3D) a aparecer e ficar "travado"
+        // Lock 3D flip hover effect
     li.classList.add("is-clicked");
     
     if (modalId) {
-      // Abre o modal instantaneamente (sem lag)
+            // Open modal instantly
       const modal = document.getElementById(modalId);
       if (modal) modal.classList.add("active");
       setTimeout(() => li.classList.remove("is-clicked"), 100);
     } else if (url) {
-      // Para links externos, espera 400ms pro usuário ver a animação de flip 3D antes de mudar de aba
+            // Wait for flip animation before external redirect
       setTimeout(() => {
         window.open(url, "_blank", "noopener");
         setTimeout(() => li.classList.remove("is-clicked"), 100);
@@ -206,7 +206,7 @@ document.querySelectorAll(".projects .name").forEach((el) => {
   el.innerHTML = "";
   let globalIndex = 0;
   
-  // Agrupa os caracteres em palavras para evitar quebra no meio da palavra no mobile
+    // Group characters into words to prevent breaking
   const words = text.split(" ");
   words.forEach((word, wordIdx) => {
     const wordSpan = document.createElement("span");
@@ -235,7 +235,7 @@ document.querySelectorAll(".projects .name").forEach((el) => {
     
     el.appendChild(wordSpan);
     
-    // Adiciona o espaço entre as palavras, exceto na última
+        // Add spacing between words
     if (wordIdx < words.length - 1) {
       const spaceWrapper = document.createElement("span");
       spaceWrapper.className = "letter-3d-wrapper";
@@ -346,20 +346,20 @@ themeToggle.addEventListener("click", (e) => {
     [ 3, 11,  1,  9],
     [15,  7, 13,  5]
   ];
-  const ditherBand = 12; // width of dither transition in grid cells
+  const ditherBand = 12;
   
-  const duration = 800; // ms for the entire sweep (mais rápido!)
+  const duration = 800;
   let startTime = null;
   
   function animateSweep(timestamp) {
     if (!startTime) startTime = timestamp;
     const progress = Math.min((timestamp - startTime) / duration, 1.0);
-    // EaseOutQuad for a smooth deceleration
+        // EaseOutQuad for smooth deceleration
     const easeProgress = 1 - (1 - progress) * (1 - progress);
-    // Calculate the wave radius
+        // Calculate wave radius
     let waveR = -ditherBand + (Math.sqrt(cols * cols + rows * rows) + ditherBand * 2) * easeProgress;
     
-    // Draw the dither pattern to canvas
+        // Draw dither pattern to canvas
     transCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
     transCtx.fillStyle = newBgColor;
     
@@ -372,16 +372,16 @@ themeToggle.addEventListener("click", (e) => {
         if (threshold > 0) {
           const b = bayer[y % 4][x % 4] / 16;
           if (threshold >= 1.0 || threshold > b) {
-            // Draw slightly larger to prevent subpixel gaps
+                        // Draw slightly larger to prevent subpixel gaps
             transCtx.fillRect(x * size - 0.5, y * size - 0.5, size + 1, size + 1);
           }
         }
       }
     }
     
-    // Flip individual elements as wave passes over them
+        // Flip individual elements as wave passes
     for (let flip of flips) {
-      // Flip when the wave is dense enough (ditherBand / 1.5) to hide the instant color swap
+            // Hide instant color swap using dither band
       if (!flip.flipped && (waveR - ditherBand / 1.5) > flip.d / size) {
         flip.el.setAttribute("data-theme", newTheme);
         flip.el.style.color = "var(--text-color)";
@@ -397,7 +397,7 @@ themeToggle.addEventListener("click", (e) => {
     } else {
       document.documentElement.setAttribute("data-theme", newTheme);
       
-      // Cleanup
+            // Cleanup
       for (let flip of flips) {
         flip.el.removeAttribute("data-theme");
         flip.el.style.color = "";
@@ -416,7 +416,7 @@ themeToggle.addEventListener("click", (e) => {
 });
 
 
-// Spotify Currently Playing Integration
+// Spotify Integration
 const spotifyWidget = document.getElementById("spotifyWidget");
 const spotifyTrack = document.getElementById("spotifyTrack");
 const spotifyLink = document.getElementById("spotifyLink");
@@ -438,14 +438,30 @@ function updateLocalTimeUI() {
   const spotifyProgressBar = document.getElementById("spotifyProgressBar");
   
   if (spotifyTime && isPlayingLocal && localDurationMs > 0) {
-    // Garante que o progresso não ultrapasse a duração total
+        // Cap progress at total duration
     const safeProgress = Math.min(localProgressMs, localDurationMs);
     spotifyTime.textContent = `${formatSpotifyTime(safeProgress)} / ${formatSpotifyTime(localDurationMs)}`;
     
-    // Atualiza a barra de progresso visualmente
+        // Update visual progress bar
     if (spotifyProgressBar) {
       const percentage = (safeProgress / localDurationMs) * 100;
-      spotifyProgressBar.style.width = `${percentage}%`;
+      const currentWidth = parseFloat(spotifyProgressBar.style.width) || 0;
+      
+            // Remove animation when restarting or skipping
+      if (percentage < currentWidth || percentage === 0) {
+        spotifyProgressBar.style.transition = "none";
+        spotifyProgressBar.style.width = `${percentage}%`;
+        
+                // Force reflow for instant change
+        void spotifyProgressBar.offsetWidth;
+        
+                // Restore animation
+        setTimeout(() => {
+          spotifyProgressBar.style.transition = "width 1s linear";
+        }, 50);
+      } else {
+        spotifyProgressBar.style.width = `${percentage}%`;
+      }
     }
   }
 }
@@ -465,14 +481,14 @@ async function fetchSpotifyCurrentlyPlaying() {
         spotifyLabel.textContent = "coto tá ouvindo agora";
         if (progressWrapper) progressWrapper.style.display = "block";
         
-        // Sincroniza o relógio local com os dados reais da API
+                // Sync local clock with API data
         if (data.progress_ms && data.duration_ms) {
           localProgressMs = data.progress_ms;
           localDurationMs = data.duration_ms;
           isPlayingLocal = true;
           updateLocalTimeUI();
           
-          // Se o contador local não estiver rodando, inicia ele
+                    // Start local timer if stopped
           if (!localTimerInterval) {
             localTimerInterval = setInterval(() => {
               if (isPlayingLocal && localProgressMs < localDurationMs) {
@@ -484,30 +500,30 @@ async function fetchSpotifyCurrentlyPlaying() {
         }
         const text = `${data.artist} - ${data.title}`.toLowerCase();
         
-        // Só atualiza o texto e recria a animação se a música MUDOU
+                // Update text and animation only on song change
         if (spotifyTrack.textContent !== text) {
           spotifyTrack.textContent = text;
           
-          // Checa se o texto precisa de scroll
+                    // Check for scrolling text
           setTimeout(() => {
             const info = spotifyTrack.parentElement;
             
-            // Limpa animações anteriores
+                        // Clear previous animations
             if (spotifyTrack.scrollAnim) {
               spotifyTrack.scrollAnim.cancel();
             }
             
-            // Verifica se precisa de scroll (independentemente se é mobile ou desktop)
+                        // Validate scrolling requirement
             if (spotifyTrack.scrollWidth > info.clientWidth) {
               const dist = spotifyTrack.scrollWidth - info.clientWidth;
-              // 40ms por pixel, mínimo 3s, máximo 15s pra não ficar lento demais
+                            // Calculate dynamic animation duration
               const duration = Math.min(Math.max(3000, dist * 40), 15000); 
               
               spotifyTrack.scrollAnim = spotifyTrack.animate([
                 { transform: 'translateX(0)' },
-                { transform: 'translateX(0)', offset: 0.10 }, // Pausa menor no início
+                { transform: 'translateX(0)', offset: 0.10 },
                 { transform: `translateX(-${dist}px)`, offset: 0.90 },
-                { transform: `translateX(-${dist}px)` } // Pausa no final
+                { transform: `translateX(-${dist}px)` }
               ], {
                 duration: duration,
                 iterations: Infinity,
@@ -533,7 +549,7 @@ async function fetchSpotifyCurrentlyPlaying() {
         spotifyLabel.textContent = "coto tá ouvindo";
         if (spotifyTime) spotifyTime.textContent = "";
         if (progressWrapper) progressWrapper.classList.remove("is-playing");
-        // Para o relógio local se a música pausou
+                // Pause local timer
         isPlayingLocal = false;
         if (localTimerInterval) {
           clearInterval(localTimerInterval);
@@ -580,25 +596,23 @@ async function fetchSpotifyCurrentlyPlaying() {
 fetchSpotifyCurrentlyPlaying();
 setInterval(fetchSpotifyCurrentlyPlaying, 2500);
 
-// Custom Notification System
+// Notification System
 let notificationTimeout;
 function showNotification(msg) {
   const notifEl = document.getElementById("customNotification");
   if (!notifEl) return;
-  notifEl.innerHTML = ""; // limpa tudo
-  notifEl.className = "custom-notification show"; // reseta
+  notifEl.innerHTML = "";
+  notifEl.className = "custom-notification show";
   
-  // Cria os blocos caindo
+    // Create falling blocks
   const numBlocks = 5;
   for (let i = 0; i < numBlocks; i++) {
     const block = document.createElement("div");
     block.className = "tetris-chunk";
-    // Define a posição horizontal e o delay do bloco
+        // Set block position and delay
     block.style.left = `${(i / numBlocks) * 100}%`;
     block.style.width = `${100 / numBlocks}%`;
-    // Padrão de queda: bordas primeiro, centro por último
-    // Para 5 blocos (0, 1, 2, 3, 4), o centro é 2.
-    // Delay: 0s para as pontas, 0.1s para os meios, 0.2s pro centro.
+        // Center-last falling pattern
     const distFromCenter = Math.abs(i - 2);
     const delay = (2 - distFromCenter) * 0.1;
     block.style.setProperty('--delay-in', `${delay}s`);
@@ -606,7 +620,7 @@ function showNotification(msg) {
     notifEl.appendChild(block);
   }
   
-  // Cria o texto
+    // Create text container
   const textEl = document.createElement("div");
   textEl.className = "tetris-msg";
   textEl.textContent = msg.toLowerCase();
@@ -619,11 +633,11 @@ function showNotification(msg) {
     setTimeout(() => {
       notifEl.innerHTML = "";
       notifEl.classList.remove("hide");
-    }, 500); // tempo suficiente para as animações de saída terminarem
+    }, 500);
   }, 4000);
 }
 
-// Visitor Listen Along Auth and Sync
+// Spotify Listen Along
 async function handleSpotifyAuthCode() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
@@ -639,7 +653,7 @@ async function handleSpotifyAuthCode() {
   
   if (code) {
     try {
-      // Busca a redirect URI que o backend estiver configurado para usar
+            // Fetch redirect URI from backend
       const resId = await fetch("/api/spotify-client-id");
       const dataId = await resId.json();
       const redirectUri = dataId.redirectUri || "https://cotoo.dev";
@@ -657,7 +671,7 @@ async function handleSpotifyAuthCode() {
         localStorage.setItem("visitor_spotify_token", data.access_token);
         localStorage.setItem("visitor_spotify_expires", Date.now() + (parseInt(data.expires_in) * 1000));
         
-        // Clean URL
+                // Clean URL parameters
         const url = new URL(window.location);
         url.searchParams.delete("code");
         window.history.replaceState({}, document.title, url.pathname + url.search);
@@ -683,7 +697,7 @@ if (listenAlongBtn) {
     const expires = localStorage.getItem("visitor_spotify_expires");
     
     if (token && expires && Date.now() < parseInt(expires)) {
-      // Tem token válido, tenta sincronizar
+            // Sync with valid token
       try {
         listenAlongBtn.textContent = "sincronizando...";
         const res = await fetch("https://api.spotify.com/v1/me/player/play", {
@@ -735,14 +749,14 @@ if (listenAlongBtn) {
         }
       }
     } else {
-      // Sem token ou token expirado, inicia auth
+            // Authenticate if token is invalid
       try {
         listenAlongBtn.textContent = "conectando...";
         const res = await fetch("/api/spotify-client-id");
         const data = await res.json();
         const clientId = data.clientId;
         
-        // Pega do backend ou fallback pra prod
+                // Get redirect URI
         const redirectUri = data.redirectUri || "https://cotoo.dev";
         const scopes = "user-modify-playback-state";
         const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
@@ -762,7 +776,7 @@ if (spotifyWidget) {
   });
 }
 
-// Github Live Status
+// GitHub Integration
 async function fetchGithubActivity() {
   const el = document.getElementById("githubStatus");
   if (!el) return;
@@ -775,7 +789,7 @@ async function fetchGithubActivity() {
     
     if (data.found) {
       const date = new Date(data.created_at);
-      const diff = Math.floor((new Date() - date) / 60000); // minutos
+      const diff = Math.floor((new Date() - date) / 60000);
       
       if (diff === 0) {
         el.textContent = `último commit: agora mesmo`;
@@ -796,13 +810,13 @@ async function fetchGithubActivity() {
 }
 fetchGithubActivity();
 
-// Pixel Confetti Effect
+// Confetti Effect
 function firePixelConfetti() {
   const colors = ["#8FBC8B", "#ffffff", "#444444"];
   const isMobile = window.innerWidth < 600;
   const count = isMobile ? 80 : 150;
   
-  // Super Glitch / Flashbang Effect
+    // Glitch Effect
   document.body.style.transition = "none";
   document.body.style.filter = "invert(100%) contrast(150%)";
   setTimeout(() => document.body.style.filter = "none", 50);
@@ -820,7 +834,7 @@ function firePixelConfetti() {
     confetti.style.top = "50%";
     confetti.style.zIndex = 100000;
     confetti.style.pointerEvents = "none";
-    // Retro box shadow to give it depth
+        // Retro box shadow
     confetti.style.boxShadow = "2px 2px 0px rgba(0,0,0,0.5)";
     document.body.appendChild(confetti);
 
@@ -839,25 +853,25 @@ function firePixelConfetti() {
     function animateConfetti() {
       x += vx;
       y += currentVy;
-      currentVy += 0.8; // gravidade pesada retro
+      currentVy += 0.8;
       rotation += rotSpeed;
       
-      // Bouncing off the bottom of the screen
+            // Floor bounce
       const bottomLimit = window.innerHeight / 2 - 20;
       if (y > bottomLimit) {
         y = bottomLimit;
-        currentVy = -currentVy * 0.5; // quica perdendo força
-        vx *= 0.8; // atrito no chão
+        currentVy = -currentVy * 0.5;
+        vx *= 0.8;
         bounces++;
       }
       
       confetti.style.transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
       
-      // Remove after bouncing around and falling or losing momentum
+            // Remove after momentum loss
       if (bounces < 3 || Math.abs(currentVy) > 1) {
         requestAnimationFrame(animateConfetti);
       } else {
-        // Fade out
+                // Fade out
         confetti.style.transition = "opacity 0.5s";
         confetti.style.opacity = "0";
         setTimeout(() => confetti.remove(), 500);

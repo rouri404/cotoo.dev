@@ -603,7 +603,7 @@ p {
 
 @media (max-width: 600px) {
   .theme-toggle {
-    top: 0.2rem;
+    top: 0.35rem; /* Visually aligns with social icons which have more internal padding */
     right: 1.5rem;
     left: auto;
     height: 50px;
@@ -742,4 +742,23 @@ p {
 
 .modal-close:hover {
   opacity: 1;
+}
+
+/* Fix hover flickering on buttons */
+.socials a, #spotifyLink {
+  position: relative;
+}
+.socials a::after, .theme-toggle::after, #spotifyLink::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  transition: transform 0.15s steps(3);
+}
+.socials a:hover::after, .theme-toggle:hover::after, #spotifyLink:hover::after,
+.socials a:focus-visible::after, .theme-toggle:focus-visible::after, #spotifyLink:focus-visible::after {
+  transform: translateY(6px);
+}
+.socials a:active::after, .theme-toggle:active::after, #spotifyLink:active::after {
+  transform: translateY(-2px);
+  transition: transform 0.05s steps(2);
 }

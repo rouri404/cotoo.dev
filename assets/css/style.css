@@ -603,7 +603,7 @@ p {
 
 @media (max-width: 600px) {
   .theme-toggle {
-    top: 0.35rem; /* Visually aligns with social icons which have more internal padding */
+    top: 0.11rem; /* Visually aligns with social icons which have more internal padding */
     right: 1.5rem;
     left: auto;
     height: 50px;

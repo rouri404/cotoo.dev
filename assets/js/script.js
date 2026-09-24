@@ -54,6 +54,34 @@ function handlePointerMove(e) {
 const heroStage = document.getElementById("stage-hero");
 const menuStage = document.getElementById("stage-menu");
 
+// Education progress (FIAP Aug 2024 – Jul 2028)
+(function initEducationProgress() {
+  const start = new Date(2024, 7, 1);  // Aug 1, 2024
+  const end = new Date(2028, 6, 31);   // Jul 31, 2028
+  const now = new Date();
+  const totalMs = end - start;
+  const elapsedMs = Math.max(0, Math.min(now - start, totalMs));
+  const pct = (elapsedMs / totalMs) * 100;
+
+  const totalMonths = Math.floor(elapsedMs / (1000 * 60 * 60 * 24 * 30.44));
+  const years = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+
+  const bars = document.querySelectorAll(".education-progress-bar-fill");
+  const labels = document.querySelectorAll(".education-elapsed-text");
+  bars.forEach(bar => {
+    if (bar) bar.style.width = pct.toFixed(1) + "%";
+  });
+  labels.forEach(label => {
+    if (label) {
+      const parts = [];
+      if (years > 0) parts.push(years + (years === 1 ? " ano" : " anos"));
+      if (months > 0) parts.push(months + (months === 1 ? " mês" : " meses"));
+      label.textContent = (parts.length ? parts.join(" e ") : "início") + " — " + pct.toFixed(0) + "% concluído";
+    }
+  });
+})();
+
 function goToMenu() {
   if (document.body.dataset.stage === "menu") return;
   document.body.dataset.stage = "menu";
@@ -95,20 +123,32 @@ window.addEventListener(
   { passive: true },
 );
 
-let secretKeystrokes = "";
+let _ks = "";
 
 window.addEventListener("keydown", (e) => {
-    // Track Konami code
   if (e.key.length === 1) {
-    secretKeystrokes += e.key.toLowerCase();
-    if (secretKeystrokes.length > 4) secretKeystrokes = secretKeystrokes.slice(-4);
-    if (secretKeystrokes === "coto") {
+    _ks += e.key.toLowerCase();
+    if (_ks.length > 4) _ks = _ks.slice(-4);
+    if (_ks === [99,111,116,111].map(c => String.fromCharCode(c)).join("")) {
       firePixelConfetti();
       setTimeout(() => {
-        const secretModal = document.getElementById("secretModal");
-        if (secretModal) secretModal.classList.add("active");
+        const _o = document.createElement("div");
+        _o.className = "modal-overlay active";
+        _o.onclick = () => _o.remove();
+        const _c = document.createElement("div");
+        _c.className = "modal-content";
+        _c.onclick = (ev) => ev.stopPropagation();
+        const _b = document.createElement("button");
+        _b.className = "modal-close";
+        _b.title = "fechar";
+        _b.textContent = "x";
+        _b.onclick = () => _o.remove();
+        _c.appendChild(_b);
+        _c.insertAdjacentHTML("beforeend", atob("PHAgZGF0YS1ub3NuaXBwZXQ+PHN0cm9uZz5PIFRBTCBETyBDT1RPPC9zdHJvbmc+PGJyPjxicj5TZSB2b2PDqiBkaWdpdG91IG1ldSBub21lLCDDqSBwb3JxdWUgcXVlciBzYWJlciBtYWlzIHNvYnJlIG1pbSwgbsOpPzxicj48YnI+UXVlIHRhbCBob2JiaWVzPyBFdSBzb3UgYXBhaXhvbmFkbyBwZWxvIHZpbnRhZ2UsIHNhYmU/IENhcmhhcnR0IGRlIDE5MDAgZSBhbnRpZ2FtZW50ZSwgZXN0w6l0aWNhIGRlc3Ryb3llZCAocm91cGFzIHJlYWxtZW50ZSBkZXN0cnXDrWRhcyksIHN1biBmYWRlcyBhYnN1cmRhcywgbGF2YWdlbnMgZGUgdXNvIGNvbnN0YW50ZSwgYSBjb250cmFwYXJ0aWRhIGRhIG1vZGEgamFwb25lc2Egbm9zIGFub3MgMjAwMC4uLjxicj48YnI+RSwgb2J2aWFtZW50ZSwgbWF0aC1yb2NrIChzZSBuw6NvIGNvbmhlY2UsIHZhaSBlc2N1dGFyIHVtIFRUTkcsIHRvZSwgQW1lcmljYW4gRm9vdGJhbGwsIEp1c3QgTmVpZ2hib3JzLCBhcmNoaXBpw6lsYWdvcyBvdSBUb3RvcnJvKS48L3A+"));
+        _o.appendChild(_c);
+        document.body.appendChild(_o);
       }, 800);
-      secretKeystrokes = "";
+      _ks = "";
     }
   }
 

@@ -124,7 +124,7 @@ body {
   }
 }
 
-h2 {
+h1, h2 {
   font-size: clamp(2.5rem, 8vw, 6rem);
   margin: 0;
   font-weight: 400;

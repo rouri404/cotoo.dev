@@ -87,6 +87,8 @@ function goToMenu() {
   document.body.dataset.stage = "menu";
   heroStage.classList.remove("active");
   menuStage.classList.add("active");
+  const wrapper = document.querySelector(".scroll-wrapper");
+  if (wrapper) wrapper.scrollTop = 0;
 }
 
 function goToHero() {
@@ -191,6 +193,14 @@ document.querySelectorAll(".projects li").forEach((li) => {
   });
 });
 
+const contactEmail = document.querySelector(".contact-email");
+
+if (contactEmail) {
+  contactEmail.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+}
+
 resize();
 document.body.dataset.stage = "hero";
 requestAnimationFrame(draw);
@@ -236,7 +246,7 @@ class ScrambleText {
 }
 
 setTimeout(() => {
-  document.querySelectorAll("#stage-hero h2, #stage-hero p").forEach((el) => {
+  document.querySelectorAll("#stage-hero h1, #stage-hero h2, #stage-hero p").forEach((el) => {
     new ScrambleText(el).start();
   });
 }, 200);

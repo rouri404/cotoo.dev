@@ -122,6 +122,9 @@ body {
     width: 100%;
     padding-left: 0;
   }
+  .contact-section {
+    margin-top: 6rem;
+  }
 }
 
 h1, h2 {
@@ -172,42 +175,46 @@ p {
   align-items: flex-start;
   gap: 0.8rem;
   text-align: left;
-  opacity: 0;
-  transform: translateX(-20px);
-  transition:
-    opacity 0.5s ease,
-    transform 0.5s ease;
+}
+
+@keyframes listItemIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 #stage-menu.active .projects li {
-  opacity: 1;
-  transform: translateX(0);
+  animation: listItemIn 0.5s ease backwards;
 }
 
 #stage-menu.active .projects li:nth-child(1) {
-  transition-delay: 0.15s;
+  animation-delay: 0.15s;
 }
 
 #stage-menu.active .projects li:nth-child(2) {
-  transition-delay: 0.25s;
+  animation-delay: 0.25s;
 }
 
 #stage-menu.active .projects li:nth-child(3) {
-  transition-delay: 0.35s;
+  animation-delay: 0.35s;
 }
 
 #stage-menu.active .projects li:nth-child(4) {
-  transition-delay: 0.45s;
+  animation-delay: 0.45s;
 }
 
-#stage-menu.active .projects li:nth-child(5) { transition-delay: 0.55s; }
-#stage-menu.active .projects li:nth-child(6) { transition-delay: 0.65s; }
-#stage-menu.active .projects li:nth-child(7) { transition-delay: 0.75s; }
-#stage-menu.active .projects li:nth-child(8) { transition-delay: 0.85s; }
-#stage-menu.active .projects li:nth-child(9) { transition-delay: 0.95s; }
-#stage-menu.active .projects li:nth-child(10) { transition-delay: 1.05s; }
-#stage-menu.active .projects li:nth-child(11) { transition-delay: 1.15s; }
-#stage-menu.active .projects li:nth-child(12) { transition-delay: 1.25s; }
+#stage-menu.active .projects li:nth-child(5) { animation-delay: 0.55s; }
+#stage-menu.active .projects li:nth-child(6) { animation-delay: 0.65s; }
+#stage-menu.active .projects li:nth-child(7) { animation-delay: 0.75s; }
+#stage-menu.active .projects li:nth-child(8) { animation-delay: 0.85s; }
+#stage-menu.active .projects li:nth-child(9) { animation-delay: 0.95s; }
+#stage-menu.active .projects li:nth-child(10) { animation-delay: 1.05s; }
+#stage-menu.active .projects li:nth-child(11) { animation-delay: 1.15s; }
+#stage-menu.active .projects li:nth-child(12) { animation-delay: 1.25s; }
 
 .projects .sq {
   width: 10px;
@@ -400,15 +407,84 @@ p {
   max-width: 1200px;
   margin: 4rem auto 0;
   padding-left: calc(10px + 0.8rem);
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease 1.3s, transform 0.6s ease 1.3s;
   display: none;
 }
 
+@keyframes blockIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 #stage-menu.active .mobile-edu {
-  opacity: 1;
-  transform: translateY(0);
+  animation: blockIn 0.6s ease 1.3s backwards;
+}
+
+.contact-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 4rem auto 0;
+}
+
+.contact-section .eyebrow {
+  width: auto;
+  padding-left: 0;
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.contact-email {
+  display: inline-block;
+  font-size: clamp(1rem, 3vw, 1.6rem);
+  color: var(--text-color);
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+  padding-bottom: 0.2rem;
+  transition:
+    transform 0.15s steps(3),
+    filter 0.15s steps(3);
+}
+
+/* Keyframes reiniciam a cada entrada no stage; transition nao, por causa do delay */
+@keyframes contactIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes contactEyebrowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 0.5;
+  }
+}
+
+#stage-menu.active .contact-email {
+  animation: contactIn 0.5s ease 0.9s backwards;
+}
+
+.contact-email:hover,
+.contact-email:focus-visible {
+  transform: translateY(-6px);
+  filter: drop-shadow(0 10px 15px var(--shadow-color, rgba(0, 0, 0, 0.4)));
+  border-bottom-style: solid;
+}
+
+.contact-email:active {
+  transform: translateY(2px);
+  transition: transform 0.05s steps(2);
 }
 
 .education-card {
@@ -966,20 +1042,20 @@ p {
 }
 
 /* Fix hover flickering on buttons */
-.socials a, #spotifyLink {
+.socials a, #spotifyLink, .contact-email {
   position: relative;
 }
-.socials a::after, .theme-toggle::after, #spotifyLink::after {
+.socials a::after, .theme-toggle::after, #spotifyLink::after, .contact-email::after {
   content: "";
   position: absolute;
   inset: -5px;
   transition: transform 0.15s steps(3);
 }
-.socials a:hover::after, .theme-toggle:hover::after, #spotifyLink:hover::after,
-.socials a:focus-visible::after, .theme-toggle:focus-visible::after, #spotifyLink:focus-visible::after {
+.socials a:hover::after, .theme-toggle:hover::after, #spotifyLink:hover::after, .contact-email:hover::after,
+.socials a:focus-visible::after, .theme-toggle:focus-visible::after, #spotifyLink:focus-visible::after, .contact-email:focus-visible::after {
   transform: translateY(6px);
 }
-.socials a:active::after, .theme-toggle:active::after, #spotifyLink:active::after {
+.socials a:active::after, .theme-toggle:active::after, #spotifyLink:active::after, .contact-email:active::after {
   transform: translateY(-2px);
   transition: transform 0.05s steps(2);
 }

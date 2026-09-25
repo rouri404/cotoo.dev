@@ -87,6 +87,8 @@ function goToMenu() {
   document.body.dataset.stage = "menu";
   heroStage.classList.remove("active");
   menuStage.classList.add("active");
+  const wrapper = document.querySelector(".scroll-wrapper");
+  if (wrapper) wrapper.scrollTop = 0;
 }
 
 function goToHero() {
@@ -144,7 +146,7 @@ window.addEventListener("keydown", (e) => {
         _b.textContent = "x";
         _b.onclick = () => _o.remove();
         _c.appendChild(_b);
-        _c.insertAdjacentHTML("beforeend", atob("PHAgZGF0YS1ub3NuaXBwZXQ+PHN0cm9uZz5PIFRBTCBETyBDT1RPPC9zdHJvbmc+PGJyPjxicj5TZSB2b2PDqiBkaWdpdG91IG1ldSBub21lLCDDqSBwb3JxdWUgcXVlciBzYWJlciBtYWlzIHNvYnJlIG1pbSwgbsOpPzxicj48YnI+UXVlIHRhbCBob2JiaWVzPyBFdSBzb3UgYXBhaXhvbmFkbyBwZWxvIHZpbnRhZ2UsIHNhYmU/IENhcmhhcnR0IGRlIDE5MDAgZSBhbnRpZ2FtZW50ZSwgZXN0w6l0aWNhIGRlc3Ryb3llZCAocm91cGFzIHJlYWxtZW50ZSBkZXN0cnXDrWRhcyksIHN1biBmYWRlcyBhYnN1cmRhcywgbGF2YWdlbnMgZGUgdXNvIGNvbnN0YW50ZSwgYSBjb250cmFwYXJ0aWRhIGRhIG1vZGEgamFwb25lc2Egbm9zIGFub3MgMjAwMC4uLjxicj48YnI+RSwgb2J2aWFtZW50ZSwgbWF0aC1yb2NrIChzZSBuw6NvIGNvbmhlY2UsIHZhaSBlc2N1dGFyIHVtIFRUTkcsIHRvZSwgQW1lcmljYW4gRm9vdGJhbGwsIEp1c3QgTmVpZ2hib3JzLCBhcmNoaXBpw6lsYWdvcyBvdSBUb3RvcnJvKS48L3A+"));
+        _c.insertAdjacentHTML("beforeend", decodeURIComponent(escape(atob("PHAgZGF0YS1ub3NuaXBwZXQ+PHN0cm9uZz5PIFRBTCBETyBDT1RPPC9zdHJvbmc+PGJyPjxicj5TZSB2b2PDqiB2ZWlvIHBhcmFyIGFxdWkgcGVzcXVpc2FuZG8gbWV1IG5vbWUsIGltYWdpbm8gcXVlIHF1ZWlyYSBzYWJlciBxdWVtIGV1IHNvdSBkZSB2ZXJkYWRlLCBuw6k/PGJyPjxicj5QcmEgZmFsYXIgZGUgaG9iYnksIHRlbmhvIHVtYSBmaXhhw6fDo28gbWVpbyBpbmV4cGxpY8OhdmVsIHBvciBjb2lzYXMgdmVsaGFzIGUgZ2FzdGFzIHBlbG8gdGVtcG8uIENhcmhhcnR0cyBhbnRpZ2FzLCByb3VwYSBjb20gc3VuIGZhZGVzIGJpemFycm9zLCBkZW5pbSBkZXN0cnXDrWRvIGRlIHVzbyBlIG9wZW4tc291cmNlIGF0w6kgbyB0YWxvLiBCYXNpY2FtZW50ZSwgY29pc2FzIHF1ZSB0w6ptIGhpc3TDs3JpYSwgcGVyc29uYWxpZGFkZSBlIGF0aXR1ZGUuPGJyPjxicj5FIGNsYXJvLCBjb21vIG7Do28gdml2byBzZW0gbWV1cyBmb25lcyBkZSBvdXZpZG8sIHBhc3NvIG8gdGVtcG8gb3V2aW5kbyBtYXRoLXJvY2suIFNlIG7Do28gY29uaGVjZSwgcG9lIGHDrSBubyBTcG90aWZ5IHVtIFRUTkcsIHRvZSwgdGhlIGNhYnMgb3UgQW1lcmljYW4gRm9vdGJhbGwgcHJhIGVudGVuZGVyIG8gY2xpbWEgKHNlIGN1cnRpciwgYWluZGEgdGVtIEp1c3QgTmVpZ2hib3JzLCBhcmNoaXBpw6lsYWdvcyBlIFRvdG9ycm8pLjwvcD4="))));
         _o.appendChild(_c);
         document.body.appendChild(_o);
       }, 800);
@@ -191,6 +193,14 @@ document.querySelectorAll(".projects li").forEach((li) => {
   });
 });
 
+const contactEmail = document.querySelector(".contact-email");
+
+if (contactEmail) {
+  contactEmail.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+}
+
 resize();
 document.body.dataset.stage = "hero";
 requestAnimationFrame(draw);
@@ -236,7 +246,7 @@ class ScrambleText {
 }
 
 setTimeout(() => {
-  document.querySelectorAll("#stage-hero h2, #stage-hero p").forEach((el) => {
+  document.querySelectorAll("#stage-hero h1, #stage-hero h2, #stage-hero p").forEach((el) => {
     new ScrambleText(el).start();
   });
 }, 200);
@@ -364,7 +374,7 @@ themeToggle.addEventListener("click", (e) => {
   document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status'
+    '.theme-toggle, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .education-card, .contact-email'
   );
   
   const flips = Array.from(elementsToFlip).map(el => {

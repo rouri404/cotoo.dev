@@ -128,7 +128,9 @@ window.addEventListener(
 let _ks = "";
 
 window.addEventListener("keydown", (e) => {
-  if (e.key && e.key.length === 1) {
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+    _ks = "";
+  } else if (e.key && e.key.length === 1) {
     _ks += e.key.toLowerCase();
     if (_ks.length > 4) _ks = _ks.slice(-4);
     if (_ks === [99,111,116,111].map(c => String.fromCharCode(c)).join("")) {

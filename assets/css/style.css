@@ -489,6 +489,11 @@ p {
   animation: contactIn 0.5s ease 0.9s backwards;
 }
 
+#stage-menu.active #contactExpandBtn {
+  animation: contactIn 0.5s ease 1.0s backwards;
+}
+
+
 .contact-email:hover,
 .contact-email:focus-visible {
   transform: translateY(-6px);

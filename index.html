@@ -285,10 +285,10 @@
           <div class="contact-expandable" id="contactExpandable">
             <button type="button" class="btn" id="contactExpandBtn">enviar mensagem</button>
             <div class="contact-form-wrapper" id="contactFormWrapper">
-              <form id="contactForm" class="contact-form">
-                <input type="text" id="contactName" name="name" placeholder="Nome" required maxlength="100" />
-                <input type="email" id="contactEmail" name="email" placeholder="E-mail" required maxlength="100" />
-                <textarea id="contactMessage" name="message" placeholder="Mensagem" required maxlength="1000"></textarea>
+              <form id="contactForm" class="contact-form" autocomplete="off">
+                <input type="text" id="contactName" name="name" placeholder="Nome" required maxlength="100" autocomplete="off" spellcheck="false" />
+                <input type="email" id="contactEmail" name="email" placeholder="E-mail" required maxlength="100" autocomplete="off" spellcheck="false" />
+                <textarea id="contactMessage" name="message" placeholder="Mensagem" required maxlength="1000" autocomplete="off" spellcheck="false"></textarea>
                 <div class="cf-turnstile" data-sitekey="0x4AAAAAAFTF2BA7_ctKveQk" data-size="invisible"></div>
                 <div>
                   <button type="submit" id="contactSubmit" class="btn" style="width: 100%;">enviar</button>

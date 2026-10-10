@@ -114,26 +114,122 @@ export default async function handler(req, res) {
     <p>${message.replace(/\n/g, '<br/>')}</p>
   `;
 
+  const autoReplyHtmlBody = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email de Gabriel Coto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tiny5&display=swap');
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #121212; color: #8fbc8b; font-family: 'Tiny5', 'Courier New', Courier, monospace; letter-spacing: 0.05em; -webkit-font-smoothing: none;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #121212; padding: 100px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #121212; text-align: left;">
+                    <tr>
+                        <td style="font-size: 18px; color: #8fbc8b; opacity: 0.5; padding-bottom: 20px;">
+                            // recebido
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 64px; line-height: 1.1; color: #8fbc8b; padding-bottom: 10px; font-weight: 400;">
+                            Olá, ${sanitizedName.split(' ')[0]}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 24px; color: #8fbc8b; opacity: 0.8; padding-bottom: 40px; margin: 0;">
+                            Sua mensagem pousou na minha caixa de entrada!
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td width="10" valign="top" style="padding-top: 6px;">
+                                        <div style="width: 10px; height: 10px; background-color: #8fbc8b; opacity: 0.8;"></div>
+                                    </td>
+                                    <td style="padding-left: 15px;">
+                                        <div style="font-size: 20px; color: #8fbc8b; margin-bottom: 5px;">Aviso do Sistema</div>
+                                        <div style="font-size: 16px; color: #8fbc8b; opacity: 0.55; line-height: 1.5; font-style: italic;">
+                                            "${message.replace(/\n/g, '<br/>')}"
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 80px;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td style="font-size: 18px; color: #8fbc8b; opacity: 0.5; padding-bottom: 15px;">
+                                        // log
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <a href="https://cotoo.dev" style="font-size: 24px; color: #8fbc8b; text-decoration: none; border-bottom: 2px dashed #8fbc8b; padding-bottom: 4px; display: inline-block;">
+                                            voltar_para_cotoo.dev
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+  `;
+
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-    const resendRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: `"${sanitizedName} (via cotoo.dev)" <${process.env.CONTACT_FROM_EMAIL || 'hi@cotoo.dev'}>`,
-        to: process.env.CONTACT_TO_EMAIL,
-        reply_to: email,
-        subject: subject,
-        text: textBody,
-        html: htmlBody
+    const [resendRes, autoReplyRes] = await Promise.all([
+      // 1. Email de notificação para o dono (Gabriel)
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: `"${sanitizedName} (via cotoo.dev)" <${process.env.CONTACT_FROM_EMAIL || 'hi@cotoo.dev'}>`,
+          to: process.env.CONTACT_TO_EMAIL,
+          reply_to: email,
+          subject: subject,
+          text: textBody,
+          html: htmlBody
+        }),
+        signal: controller.signal,
       }),
-      signal: controller.signal,
-    });
+      // 2. Email de resposta automática para o remetente
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: `"Gabriel Couto" <${process.env.CONTACT_FROM_EMAIL || 'hi@cotoo.dev'}>`,
+          to: email,
+          subject: "Recebi sua mensagem! | cotoo.dev",
+          text: "Recebi sua mensagem enviada através do meu site. Responderei em breve!",
+          html: autoReplyHtmlBody
+        }),
+        signal: controller.signal,
+      })
+    ]);
     clearTimeout(timeoutId);
 
     if (!resendRes.ok) {

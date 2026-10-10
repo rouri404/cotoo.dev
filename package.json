@@ -1,0 +1,25 @@
+{
+  "name": "cotoo.dev",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">   <a href=\"https://cotoo.dev\">     <img src=\"assets/img/header.svg\" alt=\"cotoo.dev\" width=\"464\">   </a> </div>",
+  "main": "script-spotify.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rouri404/cotoo.dev.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rouri404/cotoo.dev/issues"
+  },
+  "homepage": "https://github.com/rouri404/cotoo.dev#readme",
+  "dependencies": {
+    "@upstash/ratelimit": "^2.2.0",
+    "@upstash/redis": "^1.39.0"
+  }
+}

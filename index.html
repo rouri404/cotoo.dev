@@ -81,6 +81,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/css/style.css" />
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </head>
   <body onclick="">
     <canvas id="pixel-trail"></canvas>
@@ -281,6 +282,20 @@
         <div class="contact-section">
           <p class="eyebrow">// contato</p>
           <a class="contact-email" href="mailto:gabriel@cotoo.dev" target="_blank" rel="noopener">gabriel@cotoo.dev</a>
+          <div class="contact-expandable" id="contactExpandable">
+            <button type="button" class="btn" id="contactExpandBtn">enviar mensagem</button>
+            <div class="contact-form-wrapper" id="contactFormWrapper">
+              <form id="contactForm" class="contact-form">
+                <input type="text" id="contactName" name="name" placeholder="Nome" required maxlength="100" />
+                <input type="email" id="contactEmail" name="email" placeholder="E-mail" required maxlength="100" />
+                <textarea id="contactMessage" name="message" placeholder="Mensagem" required maxlength="1000"></textarea>
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAAFTF2BA7_ctKveQk" data-size="invisible"></div>
+                <div>
+                  <button type="submit" id="contactSubmit" class="btn" style="width: 100%;">enviar</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -371,7 +386,6 @@
       </div>
     </div>
     
-
     <script src="assets/js/script.js"></script>
   </body>
 </html>

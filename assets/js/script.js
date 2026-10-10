@@ -128,7 +128,7 @@ window.addEventListener(
 let _ks = "";
 
 window.addEventListener("keydown", (e) => {
-  if (e.key.length === 1) {
+  if (e.key && e.key.length === 1) {
     _ks += e.key.toLowerCase();
     if (_ks.length > 4) _ks = _ks.slice(-4);
     if (_ks === [99,111,116,111].map(c => String.fromCharCode(c)).join("")) {
@@ -162,6 +162,12 @@ window.addEventListener("keydown", (e) => {
       return;
     }
   }
+
+  const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+  if (activeTag === "input" || activeTag === "textarea") {
+    return;
+  }
+
   if (["Enter", " ", "ArrowDown", "PageDown"].includes(e.key)) goToMenu();
   if (["Escape", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) goToHero();
 });
@@ -193,11 +199,71 @@ document.querySelectorAll(".projects li").forEach((li) => {
   });
 });
 
-const contactEmail = document.querySelector(".contact-email");
+const contactEmail = document.getElementById("contactExpandBtn");
+const contactExpandable = document.getElementById("contactExpandable");
 
-if (contactEmail) {
-  contactEmail.addEventListener("click", (e) => {
+if (contactExpandable) {
+  contactExpandable.addEventListener("click", (e) => {
     e.stopPropagation();
+  });
+}
+
+const mailtoLink = document.querySelector("a.contact-email");
+if (mailtoLink) {
+  mailtoLink.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+}
+
+if (contactEmail && contactExpandable) {
+  contactEmail.addEventListener("click", (e) => {
+    e.preventDefault();
+    contactExpandable.classList.toggle("is-expanded");
+  });
+}
+
+const contactForm = document.getElementById("contactForm");
+if (contactForm) {
+  contactForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("contactSubmit");
+    if (!btn) return;
+
+    btn.disabled = true;
+    btn.textContent = "enviando...";
+    const formData = new FormData(contactForm);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (res.status === 429) {
+        showNotification("Muitas tentativas, tente mais tarde.");
+      } else if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        showNotification(errorData.error || "Algo deu errado. Tente novamente mais tarde.");
+      } else {
+        showNotification("Mensagem enviada com sucesso!");
+        contactForm.reset();
+        const contactExpandable = document.getElementById("contactExpandable");
+        if (contactExpandable) contactExpandable.classList.remove("is-expanded");
+      }
+    } catch (err) {
+      console.error(err);
+      showNotification("Erro de conexão. Tente novamente.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "enviar";
+      if (typeof turnstile !== "undefined") {
+        turnstile.reset();
+      }
+    }
   });
 }
 
@@ -654,27 +720,41 @@ function showNotification(msg) {
   notifEl.innerHTML = "";
   notifEl.className = "custom-notification show";
   
-    // Create falling blocks
-  const numBlocks = 5;
-  for (let i = 0; i < numBlocks; i++) {
-    const block = document.createElement("div");
-    block.className = "tetris-chunk";
-        // Set block position and delay
-    block.style.left = `${(i / numBlocks) * 100}%`;
-    block.style.width = `${100 / numBlocks}%`;
-        // Center-last falling pattern
-    const distFromCenter = Math.abs(i - 2);
-    const delay = (2 - distFromCenter) * 0.1;
-    block.style.setProperty('--delay-in', `${delay}s`);
-    block.style.setProperty('--delay-out', `${0.2 - delay}s`);
-    notifEl.appendChild(block);
-  }
-  
-    // Create text container
+  // Create text container (invisible, used to establish dimensions)
   const textEl = document.createElement("div");
   textEl.className = "tetris-msg";
   textEl.textContent = msg.toLowerCase();
   notifEl.appendChild(textEl);
+  
+  // Create falling blocks with clip-path masking
+  const numBlocks = 5;
+  for (let i = 0; i < numBlocks; i++) {
+    const block = document.createElement("div");
+    block.className = "tetris-chunk";
+    block.textContent = msg.toLowerCase();
+    
+    // Set clip path: inset(top right bottom left)
+    const leftPercent = i * 20;
+    const rightPercent = 100 - (i + 1) * 20;
+    
+    // Add a 1px overlap on inner edges to prevent subpixel anti-aliasing gaps
+    let leftInset = `${leftPercent}%`;
+    let rightInset = `${rightPercent}%`;
+    
+    if (i > 0) leftInset = `calc(${leftPercent}% - 1px)`;
+    if (i < numBlocks - 1) rightInset = `calc(${rightPercent}% - 1px)`;
+    
+    block.style.clipPath = `inset(0 ${rightInset} 0 ${leftInset})`;
+    block.style.webkitClipPath = `inset(0 ${rightInset} 0 ${leftInset})`;
+    
+    // Center-last falling pattern
+    const distFromCenter = Math.abs(i - 2);
+    const delay = (2 - distFromCenter) * 0.1;
+    block.style.setProperty('--delay-in', `${delay}s`);
+    block.style.setProperty('--delay-out', `${0.2 - delay}s`);
+    
+    notifEl.appendChild(block);
+  }
   
   clearTimeout(notificationTimeout);
   notificationTimeout = setTimeout(() => {
@@ -683,7 +763,7 @@ function showNotification(msg) {
     setTimeout(() => {
       notifEl.innerHTML = "";
       notifEl.classList.remove("hide");
-    }, 500);
+    }, 700);
   }, 4000);
 }
 

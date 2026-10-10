@@ -30,6 +30,8 @@ export default async function handler(req, res) {
       },
     });
 
+    res.setHeader("Cache-Control", "s-maxage=2, stale-while-revalidate=5");
+
     if (response.status === 204 || response.status > 400) {
       return res.status(200).json({ is_playing: false });
     }

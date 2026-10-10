@@ -495,7 +495,15 @@ p {
   cursor: pointer;
   text-decoration: none;
   color: inherit;
+  position: relative;
   transition: opacity 0.2s ease, transform 0.2s steps(4);
+}
+
+.education-card::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  transition: transform 0.2s steps(4);
 }
 
 .education-card:hover,
@@ -504,9 +512,19 @@ p {
   transform: translateY(-4px);
 }
 
+.education-card:hover::after,
+.education-card:focus-visible::after {
+  transform: translateY(4px);
+}
+
 .education-card:active {
   opacity: 0.6;
   transform: translateY(2px);
+  transition: transform 0.05s steps(2);
+}
+
+.education-card:active::after {
+  transform: translateY(-2px);
   transition: transform 0.05s steps(2);
 }
 

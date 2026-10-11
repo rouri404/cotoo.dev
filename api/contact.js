@@ -1,38 +1,48 @@
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+
 export default async function handler(req, res) {
-  // 1. Method & Origin Validation
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método não permitido.' });
   }
 
   const origin = req.headers.origin;
-  const isDev = process.env.VERCEL_ENV !== 'production';
+  const isDev = process.env.VERCEL_ENV === 'development';
   const allowedOrigins = ['https://cotoo.dev', 'https://www.cotoo.dev'];
   
   if (!allowedOrigins.includes(origin) && (!isDev || origin !== 'http://localhost:3000')) {
     return res.status(403).json({ error: 'Erro de segurança: Origem não autorizada.' });
   }
 
-  const { name, email, message, 'cf-turnstile-response': turnstileToken } = req.body || {};
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const { name, email, message, 'cf-turnstile-response': turnstileToken } = body;
 
-  // 3. Data Validation & Sanitization
   if (!name || typeof name !== 'string' || name.length > 100) {
     return res.status(400).json({ error: 'Nome inválido.' });
   }
-  if (!email || typeof email !== 'string' || email.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!email || typeof email !== 'string' || email.length > 100 || !EMAIL_REGEX.test(email)) {
     return res.status(400).json({ error: 'E-mail inválido.' });
   }
   if (!message || typeof message !== 'string' || message.length > 1000) {
     return res.status(400).json({ error: 'Mensagem inválida ou muito longa.' });
   }
 
-  // Strip line breaks from name to prevent header injection in subject
-  const sanitizedName = name.replace(/[\r\n]/g, '').trim();
+  const sanitizedName = name.replace(/[\u0000-\u001f\u007f"<>\\]/g, '').trim();
+  if (!sanitizedName) {
+    return res.status(400).json({ error: 'Nome inválido.' });
+  }
   const subject = `Contato de ${sanitizedName}`;
 
-  // 4. IP Extraction (DNS Only -> x-real-ip)
   const ip = req.headers['x-real-ip'] || '127.0.0.1';
 
-  // 5. IP-Level Rate Limiting
   try {
     const { Ratelimit } = await import('@upstash/ratelimit');
     const { Redis } = await import('@upstash/redis');
@@ -54,7 +64,6 @@ export default async function handler(req, res) {
       return res.status(429).json({ error: 'Muitas tentativas, tente mais tarde' });
     }
 
-    // 6. Turnstile Verification
     if (!turnstileToken) {
       return res.status(403).json({ error: 'Token inválido' });
     }
@@ -79,13 +88,11 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Falha na verificação de segurança' });
     }
 
-    // Check hostname if in production
     const allowedHosts = ['cotoo.dev', 'www.cotoo.dev'];
     if (!isDev && !allowedHosts.includes(turnstileData.hostname)) {
       return res.status(403).json({ error: 'Origem inválida' });
     }
 
-    // 7. Global Rate Limiting
     const globalLimit = parseInt(process.env.CONTACT_GLOBAL_RATE_LIMIT || '10', 10);
     const globalRatelimit = new Ratelimit({
       redis,
@@ -98,20 +105,22 @@ export default async function handler(req, res) {
       return res.status(429).json({ error: 'Serviço indisponível no momento' });
     }
   } catch (error) {
-    // Fail-closed for Redis or Turnstile errors
     console.error('Security/KV Error:', error);
     return res.status(500).json({ error: 'Erro interno de validação' });
   }
 
-  // 8. Email Dispatch
-  const textBody = `Nome: ${name}\nE-mail: ${email}\n\nMensagem:\n${message}`;
+  const safeName = escapeHtml(sanitizedName);
+  const safeEmail = escapeHtml(email);
+  const safeMessage = escapeHtml(message).replace(/\r?\n/g, '<br/>');
+
+  const textBody = `Nome: ${sanitizedName}\nE-mail: ${email}\n\nMensagem:\n${message}`;
   const htmlBody = `
     <h3>Novo contato via cotoo.dev</h3>
-    <p><strong>Nome:</strong> ${name}</p>
-    <p><strong>E-mail:</strong> <a href="mailto:${email}">${email}</a></p>
+    <p><strong>Nome:</strong> ${safeName}</p>
+    <p><strong>E-mail:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
     <br/>
     <p><strong>Mensagem:</strong></p>
-    <p>${message.replace(/\n/g, '<br/>')}</p>
+    <p>${safeMessage}</p>
   `;
 
   const firstName = sanitizedName.split(' ')[0];
@@ -139,7 +148,6 @@ export default async function handler(req, res) {
     const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     const [resendRes, autoReplyRes] = await Promise.all([
-      // 1. Email de notificação para o dono (Gabriel)
       fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -156,7 +164,7 @@ export default async function handler(req, res) {
         }),
         signal: controller.signal,
       }),
-      // 2. Email de resposta automática para o remetente
+
       fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {

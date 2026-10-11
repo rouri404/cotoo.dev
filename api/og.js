@@ -5,7 +5,12 @@ let cachedFont = null;
 
 module.exports = async function handler(req, res) {
   try {
-    const { name = 'Usuário', msg = 'Mensagem recebida!' } = req.query;
+    const { name, msg } = req.query;
+
+    const isValid = (v, max) => typeof v === 'string' && v.trim().length > 0 && v.length <= max;
+    if (!isValid(name, 100) || !isValid(msg, 80)) {
+      return res.redirect(302, '/');
+    }
     
     if (!cachedFont) {
       const fontRes = await fetch('https://raw.githubusercontent.com/Gissio/font_Tiny5/main/fonts/ttf/Tiny5-Regular.ttf');

@@ -18,10 +18,17 @@ This file provides context and strict rules for any AI agent working on the `cot
   - *Fix Pattern:* Always use a synchronized `::after` pseudo-element with an inverse transform (e.g. `transform: translateY(6px)`) to maintain a stationary hit area.
 - **Pixel Art Assets:** When aligning SVGs and PNG pixel art (e.g., in `.socials` or `.theme-toggle`), rely on precise CSS centering, but manually verify optical alignment (`top` or `margin`) since PNG padding might differ from SVG bounding boxes.
 - **Mobile First/Media Queries:** The site is heavily responsive. Ensure `max-width: 600px` rules are carefully tested, especially for fixed elements.
+- **Theme Transitions (`elementsToFlip`):** When introducing new UI components, buttons, badges, forms, or text elements that must respond to dark/light theme switching, ALWAYS add their selector to `elementsToFlip` (`document.querySelectorAll(...)`) in `assets/js/script.js`. Without this, the element will not invert colors synchronously under the canvas Bayer dither wave and will harshly pop/desync after the transition finishes.
 
 ### 3. APIs & Backend
 - **GitHub API:** To fetch real-time commit data, ALWAYS use the **GitHub Search API** (`/search/commits`) instead of the Events API (`/events`), because the Events API has a 15-30 minute caching delay.
-- **Vercel Rate Limits:** Add `Cache-Control` headers (e.g., `s-maxage=60, stale-while-revalidate=120`) to Vercel serverless functions to avoid hitting third-party API rate limits.
+- **Cache-Control Headers:** Apply appropriate caching to serverless functions:
+  - Proxied external reads: Use `s-maxage=60, stale-while-revalidate=120` to prevent third-party rate limits.
+  - Real-time/counter endpoints (e.g. `/api/visits`): ALWAYS use `Cache-Control: no-store`.
+- **Input Sanitization & Injection Prevention:** ALWAYS validate and sanitize user input in API endpoints. HTML-escape values before embedding in email bodies, validate email addresses strictly (disallow angle brackets/quotes), and strip control characters from header fields (`From`, `Subject`) to prevent email header injection.
+- **Endpoint Protection & Invalid Query Handling:** Endpoints generating assets or handling dynamic requests (e.g. `/api/og`) must strictly validate required parameters. If queries are missing or invalid, redirect (`res.redirect(302, '/')`) or reject early, rather than rendering fallback/arbitrary content.
+- **Environment Checks (Fail-Closed):** For development-only relaxations (CORS, origin checks, Turnstile validation), ALWAYS check `process.env.VERCEL_ENV === 'development'`. Never check `!== 'production'`, as preview deployments and unset environment variables must remain secure.
+- **Redis Integration:** Use `@upstash/redis` (REST-based). For local development, support `KV_REST_API_URL` and `KV_REST_API_TOKEN` through a serverless REST proxy (e.g. `hiett/serverless-redis-http` via Docker Compose) before falling back to production Upstash variables.
 
 ### 4. General Best Practices
 - Do NOT randomly reformat code or change variables unrelated to the user's explicit request.

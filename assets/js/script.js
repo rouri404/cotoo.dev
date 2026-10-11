@@ -442,7 +442,7 @@ themeToggle.addEventListener("click", (e) => {
   document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .education-card, .contact-email'
+    '.theme-toggle, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .education-card, .contact-email, .btn, .contact-form, .contact-form input, .contact-form textarea'
   );
   
   const flips = Array.from(elementsToFlip).map(el => {
@@ -909,29 +909,44 @@ if (spotifyWidget) {
 }
 
 // GitHub Integration
+function revealStatus(el, text) {
+  // Fade out the loading dots, then wipe the result in from the right
+  el.classList.add("leaving");
+  setTimeout(() => {
+    el.classList.remove("loading", "leaving");
+    el.textContent = text;
+    el.classList.add("reveal");
+  }, 250);
+}
+
 async function fetchGithubActivity() {
   const el = document.getElementById("githubStatus");
   if (!el) return;
-  
+  const startedAt = Date.now();
+
   try {
     const res = await fetch("/api/github");
     if (!res.ok) throw new Error("API error");
-    
+
     const data = await res.json();
-    
+
+    // Let the loading dots play for a moment before revealing the result
+    const wait = Math.max(0, 900 - (Date.now() - startedAt));
+    await new Promise((r) => setTimeout(r, wait));
+
     if (data.found) {
       const date = new Date(data.created_at);
       const diff = Math.floor((new Date() - date) / 60000);
-      
+
       if (diff === 0) {
-        el.textContent = `último commit: agora mesmo`;
+        revealStatus(el, `último commit: agora mesmo`);
       } else {
         let timeStr = "";
         if (diff < 60) timeStr = `${diff}m`;
         else if (diff < 1440) timeStr = `${Math.floor(diff / 60)}h`;
         else timeStr = `${Math.floor(diff / 1440)}d`;
-        
-        el.textContent = `último commit: ${timeStr} atrás`;
+
+        revealStatus(el, `último commit: ${timeStr} atrás`);
       }
     } else {
       el.style.display = "none";
@@ -1012,3 +1027,64 @@ function firePixelConfetti() {
     requestAnimationFrame(animateConfetti);
   }
 }
+
+// Visit Counter
+async function registerVisit() {
+  const el = document.getElementById("visitCounter");
+  const box = document.getElementById("visitDigits");
+  if (!el || !box) return;
+
+  const MIN_DIGITS = 5;
+  const makeDigits = (n) => {
+    box.innerHTML = "";
+    return Array.from({ length: n }, () => {
+      const d = document.createElement("span");
+      d.className = "visit-digit rolling";
+      d.textContent = "0";
+      box.appendChild(d);
+      return d;
+    });
+  };
+
+  // Slot-machine roll while waiting for the API
+  let digits = makeDigits(MIN_DIGITS);
+  el.hidden = false;
+  const roll = setInterval(() => {
+    digits.forEach((d) => {
+      if (d.classList.contains("rolling")) d.textContent = Math.floor(Math.random() * 10);
+    });
+  }, 70);
+  const startedAt = Date.now();
+
+  try {
+    // Count once per browser session
+    const counted = sessionStorage.getItem("visitCounted");
+    const res = await fetch("/api/visits", { method: counted ? "GET" : "POST" });
+    if (!res.ok) throw new Error("API error");
+
+    const { visits } = await res.json();
+    sessionStorage.setItem("visitCounted", "1");
+
+    // Keep the roll visible for a minimum time so it never just pops in
+    const wait = Math.max(0, 700 - (Date.now() - startedAt));
+    await new Promise((r) => setTimeout(r, wait));
+
+    const text = String(visits).padStart(MIN_DIGITS, "0");
+    if (text.length !== digits.length) digits = makeDigits(text.length);
+    el.title = `${visits.toLocaleString("pt-BR")} visitas`;
+
+    // Lock digits one by one, left to right
+    digits.forEach((d, i) => {
+      setTimeout(() => {
+        d.textContent = text[i];
+        d.classList.remove("rolling");
+        d.classList.add("locked");
+        if (i === digits.length - 1) clearInterval(roll);
+      }, i * 120);
+    });
+  } catch (err) {
+    clearInterval(roll);
+    el.hidden = true;
+  }
+}
+registerVisit();

@@ -636,6 +636,89 @@ p {
   pointer-events: none;
 }
 
+.visit-counter {
+  position: fixed;
+  top: 2rem;
+  left: 2rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-color);
+  pointer-events: none;
+  animation: visitIn 0.4s steps(4) both;
+}
+
+.visit-label {
+  opacity: 0.6;
+}
+
+.visit-digits {
+  display: flex;
+  gap: 3px;
+}
+
+.visit-digit {
+  min-width: 1.15em;
+  padding: 0.2em 0.1em;
+  text-align: center;
+  border: 2px solid var(--text-color);
+  line-height: 1;
+}
+
+.visit-digit.rolling {
+  opacity: 0.55;
+}
+
+.visit-digit.locked {
+  animation: digitLock 0.35s steps(5);
+}
+
+@keyframes visitIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes digitLock {
+  0% { transform: translateY(-6px); background: var(--text-color); color: var(--bg-color); }
+  60% { transform: translateY(2px); background: var(--text-color); color: var(--bg-color); }
+  100% { transform: translateY(0); }
+}
+
+.github-status.loading::after {
+  content: "";
+  display: inline-block;
+  width: 3ch;
+  text-align: left;
+  animation: statusDots 1.2s steps(1) infinite;
+}
+
+.github-status.leaving {
+  animation: statusLeave 0.25s ease-in forwards;
+}
+
+.github-status.reveal {
+  animation: statusReveal 0.5s steps(8) both;
+}
+
+@keyframes statusDots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+}
+
+@keyframes statusLeave {
+  to { opacity: 0; }
+}
+
+/* Slides in from the right; uses `translate` so mobile's centering `transform` is untouched */
+@keyframes statusReveal {
+  from { opacity: 0; translate: 40px 0; }
+  to { opacity: 0.6; translate: 0 0; }
+}
+
 .socials a {
   display: flex;
   align-items: center;
@@ -941,14 +1024,35 @@ p {
   }
   .github-status {
     position: fixed;
-    top: 0.2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    text-align: center;
+    top: 3.2rem;
+    left: 1.5rem;
+    transform: none;
+    text-align: left;
     width: max-content;
-    height: 50px;
+    height: auto;
     display: flex;
     align-items: center;
+    font-size: 0.68rem;
+  }
+  .visit-counter {
+    position: fixed;
+    top: 3.2rem;
+    right: 1.5rem;
+    left: auto;
+    transform: none;
+    animation: none;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .visit-label {
+    position: static;
+    font-size: 0.65rem;
+  }
+  .visit-digit {
+    font-size: 0.68rem;
+    min-width: 1em;
+    padding: 0.15em 0.1em;
   }
   .socials img {
     width: 28px;

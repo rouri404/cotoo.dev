@@ -26,7 +26,7 @@ function resize() {
 
 function draw(now) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = trailTheme === "dark" ? "#8FBC8B" : "#ffffff";
+  ctx.fillStyle = trailTheme === "dark" ? "#8FBC8B" : "#121212";
   for (const [key, startTime] of activePixels) {
     const elapsed = now - startTime;
     if (elapsed >= FADE_DURATION) {
@@ -102,6 +102,13 @@ window.addEventListener("resize", resize);
 
 window.addEventListener("pointermove", handlePointerMove);
 window.addEventListener("click", (e) => {
+  const sel = window.getSelection ? window.getSelection().toString() : "";
+  if (sel && sel.trim().length > 0) return;
+
+  if (e.target.closest("a, button, input, textarea, .top-nav, .theme-toggle, .nav-blog-btn, .modal-content, .custom-notification, .spotify-widget")) {
+    return;
+  }
+
   if (document.body.dataset.stage === "hero") {
     goToMenu();
   } else {
@@ -176,6 +183,9 @@ window.addEventListener("keydown", (e) => {
 
 document.querySelectorAll(".projects li").forEach((li) => {
   li.addEventListener("click", (e) => {
+    const sel = window.getSelection ? window.getSelection().toString() : "";
+    if (sel && sel.trim().length > 0) return;
+
     e.stopPropagation();
     const url = li.getAttribute("data-url");
     const modalId = li.getAttribute("data-modal");
@@ -191,7 +201,11 @@ document.querySelectorAll(".projects li").forEach((li) => {
     } else if (url) {
             // Wait for flip animation before external redirect
       setTimeout(() => {
-        window.open(url, "_blank", "noopener");
+        if (url.startsWith("/")) {
+          window.location.href = url;
+        } else {
+          window.open(url, "_blank", "noopener");
+        }
         setTimeout(() => li.classList.remove("is-clicked"), 100);
       }, 400);
     }
@@ -319,12 +333,12 @@ setTimeout(() => {
   });
 }, 200);
 
-document.querySelectorAll(".projects .name").forEach((el) => {
-  const text = el.textContent.trim();
+function wrapLetters3D(el, textContent) {
+  const text = (textContent !== undefined ? textContent : el.textContent).trim();
   el.innerHTML = "";
   let globalIndex = 0;
   
-    // Group characters into words to prevent breaking
+  // Group characters into words to prevent breaking
   const words = text.split(" ");
   words.forEach((word, wordIdx) => {
     const wordSpan = document.createElement("span");
@@ -353,7 +367,7 @@ document.querySelectorAll(".projects .name").forEach((el) => {
     
     el.appendChild(wordSpan);
     
-        // Add spacing between words
+    // Add spacing between words
     if (wordIdx < words.length - 1) {
       const spaceWrapper = document.createElement("span");
       spaceWrapper.className = "letter-3d-wrapper";
@@ -374,6 +388,10 @@ document.querySelectorAll(".projects .name").forEach((el) => {
       globalIndex++;
     }
   });
+}
+
+document.querySelectorAll(".projects .name").forEach((el) => {
+  wrapLetters3D(el);
 });
 
 
@@ -383,27 +401,25 @@ const transCanvas = document.getElementById("pixel-transition");
 const transCtx = transCanvas.getContext("2d");
 let currentTheme = "light";
 let trailTheme = "light";
-if (
-  window.matchMedia &&
-  window.matchMedia("(prefers-color-scheme: dark)").matches
-) {
-  currentTheme = "dark";
-  trailTheme = "dark";
-  document.documentElement.setAttribute("data-theme", "dark");
-}
+try {
+  const saved = localStorage.getItem("theme");
+  if (saved === "dark" || (!saved && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+    currentTheme = "dark";
+    trailTheme = "dark";
+    document.documentElement.setAttribute("data-theme", "dark");
+  }
+} catch (_) {}
 
 const svgSun = `<svg viewBox="0 0 12 12" style="width:24px; height:24px; display:block;" fill="currentColor" shape-rendering="crispEdges">
   <rect x="5" y="1" width="2" height="2" />
-  <rect x="3" y="3" width="1" height="1" />
-  <rect x="8" y="3" width="1" height="1" />
-  <rect x="5" y="4" width="2" height="1" />
-  <rect x="1" y="5" width="2" height="2" />
-  <rect x="4" y="5" width="4" height="2" />
-  <rect x="9" y="5" width="2" height="2" />
-  <rect x="5" y="7" width="2" height="1" />
-  <rect x="3" y="8" width="1" height="1" />
-  <rect x="8" y="8" width="1" height="1" />
   <rect x="5" y="9" width="2" height="2" />
+  <rect x="1" y="5" width="2" height="2" />
+  <rect x="9" y="5" width="2" height="2" />
+  <rect x="2" y="2" width="2" height="2" />
+  <rect x="8" y="2" width="2" height="2" />
+  <rect x="2" y="8" width="2" height="2" />
+  <rect x="8" y="8" width="2" height="2" />
+  <rect x="4" y="4" width="4" height="4" />
 </svg>`;
 
 const svgMoon = `<svg viewBox="0 0 12 12" style="width:24px; height:24px; display:block;" fill="currentColor" shape-rendering="crispEdges">
@@ -430,6 +446,9 @@ themeToggle.addEventListener("click", (e) => {
   const newTheme = currentTheme === "light" ? "dark" : "light";
   trailTheme = newTheme;
   currentTheme = newTheme;
+  try {
+    localStorage.setItem("theme", newTheme);
+  } catch (_) {}
   updateThemeIcon();
   
   const newBgColor = newTheme === "dark" ? "#121212" : "#8fbc8b";
@@ -442,7 +461,7 @@ themeToggle.addEventListener("click", (e) => {
   document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .education-card, .contact-email, .btn, .contact-form, .contact-form input, .contact-form textarea'
+    '.theme-toggle, .top-nav, .nav-blog-btn, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects'
   );
   
   const flips = Array.from(elementsToFlip).map(el => {
@@ -468,16 +487,20 @@ themeToggle.addEventListener("click", (e) => {
   
   const duration = 800;
   let startTime = null;
+  const targetTextColor = newTheme === "dark" ? "#8fbc8b" : "#121212";
+  const targetLogoFilter = newTheme === "dark"
+    ? "brightness(0) invert(81%) sepia(23%) saturate(440%) hue-rotate(68deg) brightness(82%) contrast(91%)"
+    : "none";
   
   function animateSweep(timestamp) {
     if (!startTime) startTime = timestamp;
     const progress = Math.min((timestamp - startTime) / duration, 1.0);
-        // EaseOutQuad for smooth deceleration
+    // EaseOutQuad for smooth deceleration
     const easeProgress = 1 - (1 - progress) * (1 - progress);
-        // Calculate wave radius
+    // Calculate wave radius
     let waveR = -ditherBand + (Math.sqrt(cols * cols + rows * rows) + ditherBand * 2) * easeProgress;
     
-        // Draw dither pattern to canvas
+    // Draw dither pattern to canvas
     transCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
     transCtx.fillStyle = newBgColor;
     
@@ -490,21 +513,23 @@ themeToggle.addEventListener("click", (e) => {
         if (threshold > 0) {
           const b = bayer[y % 4][x % 4] / 16;
           if (threshold >= 1.0 || threshold > b) {
-                        // Draw slightly larger to prevent subpixel gaps
+            // Draw slightly larger to prevent subpixel gaps
             transCtx.fillRect(x * size - 0.5, y * size - 0.5, size + 1, size + 1);
           }
         }
       }
     }
     
-        // Flip individual elements as wave passes
+    // Flip individual elements as wave passes
     for (let flip of flips) {
-            // Hide instant color swap using dither band
       if (!flip.flipped && (waveR - ditherBand / 1.5) > flip.d / size) {
         flip.el.setAttribute("data-theme", newTheme);
-        flip.el.style.color = "var(--text-color)";
+        flip.el.style.color = targetTextColor;
+        if (flip.el.matches('.education-card, .btn, .modal-content, .contact-form input, .contact-form textarea, .menu-col, .projects li, .blog-all-btn, .visit-digit')) {
+          flip.el.style.borderColor = targetTextColor;
+        }
         if (flip.el.tagName.toLowerCase() === "img") {
-          flip.el.style.filter = "var(--logo-filter)";
+          flip.el.style.filter = targetLogoFilter;
         }
         flip.flipped = true;
       }
@@ -515,10 +540,11 @@ themeToggle.addEventListener("click", (e) => {
     } else {
       document.documentElement.setAttribute("data-theme", newTheme);
       
-            // Cleanup
+      // Cleanup
       for (let flip of flips) {
         flip.el.removeAttribute("data-theme");
         flip.el.style.color = "";
+        flip.el.style.borderColor = "";
         if (flip.el.tagName.toLowerCase() === "img") {
           flip.el.style.filter = "";
         }
@@ -1088,3 +1114,78 @@ async function registerVisit() {
   }
 }
 registerVisit();
+
+// Dynamic latest blog post loader
+async function initLatestBlogPost() {
+  const blogList = document.getElementById("blogList");
+  if (!blogList) return;
+
+  try {
+    const res = await fetch("/api/blog?format=json");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.latest) {
+      const p = data.latest;
+      const li = blogList.querySelector("li");
+      if (li) {
+        li.setAttribute("data-url", `/blog/${p.slug}/`);
+        const nameEl = li.querySelector(".name");
+        const descEl = li.querySelector(".desc");
+        if (nameEl) {
+          wrapLetters3D(nameEl, p.meta.shortTitle || p.meta.title);
+        }
+        if (descEl) descEl.textContent = p.meta.description;
+      }
+    }
+  } catch (_) {
+    // Graceful fallback to static markup
+  }
+}
+initLatestBlogPost();
+
+// Instant blog prefetching on link hover / focus
+(function initBlogPrefetch() {
+  function prefetchUrl(url) {
+    if (!url || document.querySelector(`link[rel="prefetch"][href="${url}"]`)) return;
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.href = url;
+    document.head.appendChild(link);
+  }
+
+  const blogLinks = document.querySelectorAll('#navBlogBtn, .blog-all-btn, #blogList li');
+  blogLinks.forEach((el) => {
+    el.addEventListener(
+      "mouseenter",
+      () => {
+        const target = el.getAttribute("data-url") || el.getAttribute("href") || "/blog/";
+        prefetchUrl(target);
+      },
+      { once: true, passive: true }
+    );
+    el.addEventListener(
+      "focus",
+      () => {
+        const target = el.getAttribute("data-url") || el.getAttribute("href") || "/blog/";
+        prefetchUrl(target);
+      },
+      { once: true, passive: true }
+    );
+  });
+
+  const navBlogBtn = document.getElementById("navBlogBtn");
+  if (navBlogBtn) {
+    navBlogBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) {
+        return;
+      }
+      e.preventDefault();
+      window.location.href = navBlogBtn.getAttribute("href") || "/blog/";
+    });
+    navBlogBtn.addEventListener("pointerdown", (e) => e.stopPropagation());
+    navBlogBtn.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
+  }
+})();
+
+

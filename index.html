@@ -6,11 +6,11 @@
     <meta name="theme-color" content="#121212" id="meta-theme-color" />
     <meta
       name="description"
-      content="Gabriel Couto, Engenheiro de Software e estudante de Engenharia de Software na FIAP. Projetos de back-end, infraestrutura e cloud."
+      content="Gabriel Couto — Architecture and Technology IT Intern na Ideal CTVM, estudante de Engenharia de Software na FIAP. Projetos de back-end, infraestrutura e sistemas."
     />
     <meta
       name="keywords"
-      content="Gabriel Couto, Gabriel Coto, Gabriel Cotoo, Gabriel Coutinho, Couto, Coto, Cotoo, Coutinho, Coto Dev, Cotoo Dev, cotoo.dev, rouri404, Desenvolvedor, Software Engineer, Engenharia de Software, Portfólio, FIAP, Open Source, Linux, Automação, GitHub Actions, OCR, Desenvolvimento Web, Tecnologia, Programador"
+      content="Gabriel Couto, Gabriel Coto, Gabriel Cotoo, Gabriel Coutinho, Couto, Coto, Cotoo, Coutinho, Coto Dev, Cotoo Dev, cotoo.dev, rouri404, QuickFIX/J, FIX Protocol, Trading Systems, Low Latency, Ideal CTVM, HFT, Concorrência, Cálculo, Álgebra Linear, Desenvolvedor, Software Engineer, Engenharia de Software, Portfólio, FIAP, Open Source, Linux, Automação, GitHub Actions, OCR, Desenvolvimento Web, Tecnologia, Programador"
     />
     <meta name="author" content="Gabriel Couto" />
     <meta name="robots" content="index, follow" />
@@ -18,7 +18,7 @@
     <meta property="og:title" content="Gabriel Couto | Engenheiro de Software" />
     <meta
       property="og:description"
-      content="Gabriel Couto, Engenheiro de Software e estudante da FIAP. Projetos de back-end, infraestrutura, cloud e open source."
+      content="Gabriel Couto — Architecture and Technology IT Intern na Ideal CTVM, estudante de Engenharia de Software na FIAP. Projetos de back-end, infraestrutura e sistemas."
     />
     <meta property="og:url" content="https://www.cotoo.dev/" />
     <meta property="og:type" content="website" />
@@ -32,7 +32,7 @@
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Gabriel Couto | Engenheiro de Software" />
-    <meta name="twitter:description" content="Gabriel Couto, Engenheiro de Software e estudante da FIAP. Projetos de back-end, infraestrutura, cloud e open source." />
+    <meta name="twitter:description" content="Gabriel Couto — Architecture and Technology IT Intern na Ideal CTVM, estudante de Engenharia de Software na FIAP. Projetos de back-end, infraestrutura e sistemas." />
     <meta name="twitter:image" content="https://www.cotoo.dev/assets/img/og-image.png" />
     <meta name="twitter:image:alt" content="Gabriel Couto — Engenheiro de Software" />
 
@@ -61,14 +61,21 @@
           "url": "https://www.cotoo.dev/",
           "mainEntityOfPage": "https://www.cotoo.dev/",
           "image": "https://www.cotoo.dev/assets/img/og-image.png",
-          "jobTitle": "Engenheiro de Software",
+          "jobTitle": "Architecture and Technology IT Intern",
           "email": "gabriel@cotoo.dev",
-          "description": "Engenheiro de Software e estudante de Engenharia de Software na FIAP. Projetos de back-end, infraestrutura, cloud e open source.",
+          "description": "Architecture and Technology IT Intern na Ideal CTVM, estudante de Engenharia de Software na FIAP. Projetos de back-end, infraestrutura e sistemas.",
           "alumniOf": {
             "@type": "CollegeOrUniversity",
             "name": "FIAP"
           },
           "knowsAbout": [
+            "Trading Systems",
+            "Low-Latency Systems",
+            "QuickFIX/J",
+            "FIX Protocol",
+            "Concurrency",
+            "Calculus",
+            "Linear Algebra",
             "Back-end Development",
             "DevOps",
             "Cloud Infrastructure",
@@ -102,7 +109,10 @@
     <canvas id="pixel-trail"></canvas>
     <canvas id="pixel-transition"></canvas>
 
-    <div class="theme-toggle" id="themeToggle" title="Alternar tema">[ ☾ ]</div>
+    <div class="top-nav" onclick="event.stopPropagation()">
+      <a href="/blog/" class="nav-blog-btn" id="navBlogBtn" title="Acessar o blog">blog ↗</a>
+      <div class="theme-toggle" id="themeToggle" title="Alternar tema"></div>
+    </div>
 
     <div class="visit-counter" id="visitCounter" title="visitas" hidden>
       <span class="visit-label">visitas</span>
@@ -139,21 +149,21 @@
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Protech The Future</span>
-                <span class="desc">Detecção de enchentes em tempo real — <span class="shimmer">1º lugar</span> FIAP GS 2025</span>
+                <span class="desc">Telemetria e detecção de enchentes em tempo real (Edge/IoT) — <span class="shimmer">1º lugar</span> FIAP GS 2025</span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/GrupoMoskitto/Challenge-2026">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">CRMed</span>
-                <span class="desc">Gestão clínica (GraphQL + Prisma + Redis) — Hospital São Rafael</span>
+                <span class="desc">Gestão clínica com cache em memória (Redis) e GraphQL — Hospital São Rafael</span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/rouri404/grabtext">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Grabtext</span>
-                <span class="desc">OCR instantâneo via clipboard para GNU/Linux (Tesseract)</span>
+                <span class="desc">Processamento de imagem e OCR local de baixa latência no clipboard GNU/Linux</span>
               </span>
             </li>
             <!-- <li tabindex="0" data-url="https://github.com/rouri404/armin-hofmann">
@@ -188,17 +198,17 @@
               <span class="sq"></span>
               <span class="label">
                 <span class="name">OEDLA (Unicamp)</span>
-                <span class="desc">Arquitetura de cache multi-camadas e otimização de custo (Cloudflare)</span>
+                <span class="desc">Portal de notícias com SEO agressivo e cache na borda (~93% hit ratio)</span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/rouri404/premium-uuid">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">PremiumUUID</span>
-                <span class="desc">Plugin de Minecraft Paper 26.x — Resolução de UUID Mojang em servidores offline-mode</span>
+                <span class="desc">Resolução concorrente de UUID Mojang com cache assíncrono em memória (Java/Paper)</span>
               </span>
             </li>
-            <li tabindex="0" data-url="https://github.com/rouri404/docker-alura">
+            <li tabindex="0" data-url="/blog/docker-containers/">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Guia de Docker & Containers</span>
@@ -220,43 +230,36 @@
             <li tabindex="0" data-url="https://github.com/rouri404">
               <span class="sq"></span>
               <span class="label">
-                <span class="name">Back-end & APIs</span>
-                <span class="desc">Python, Typescript, Java, Express, Node.js, .NET, Flask, GraphQL</span>
+                <span class="name">Sistemas &amp; Baixa Latência</span>
+                <span class="desc">Java (JVM/GC), C/C++, QuickFIX/J, Linux Internals, Concorrência</span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/rouri404">
               <span class="sq"></span>
               <span class="label">
-                <span class="name">Dados & Schemas</span>
-                <span class="desc">Postgresql, Mysql/Mariadb, MongoDB, Redis, Prisma, TypeORM</span>
+                <span class="name">Redes &amp; Infraestrutura</span>
+                <span class="desc">Sockets (TCP/UDP), Protocolo FIX, Docker, Kubernetes, AWS, Cloudflare</span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/rouri404">
               <span class="sq"></span>
               <span class="label">
-                <span class="name">Infraestrutura & Cloud</span>
-                <span class="desc">Docker, K8s, AWS, Github Actions</span>
+                <span class="name">Back-end &amp; Dados</span>
+                <span class="desc">Redis (In-Memory), PostgreSQL, Python, TypeScript, GraphQL, Prisma</span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/rouri404">
               <span class="sq"></span>
               <span class="label">
-                <span class="name">Redes & Observabilidade</span>
-                <span class="desc">Cloudflare, MQTT, Grafana, Jaeger</span>
+                <span class="name">Observabilidade &amp; Automação</span>
+                <span class="desc">Grafana, Jaeger, MQTT, GitHub Actions, Shell Scripting</span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/rouri404">
               <span class="sq"></span>
               <span class="label">
-                <span class="name">Sistemas & Embarcados</span>
-                <span class="desc">Linux, Shell Scripting, C/C++, ESP32/Arduino</span>
-              </span>
-            </li>
-            <li tabindex="0" data-url="https://github.com/rouri404">
-              <span class="sq"></span>
-              <span class="label">
-                <span class="name">Design & Front-end</span>
-                <span class="desc">Expo, React, Tailwind CSS</span>
+                <span class="name">Front-end &amp; Interfaces</span>
+                <span class="desc">React, Tailwind CSS, Expo, Canvas Puro</span>
               </span>
             </li>
           </ul>
@@ -267,21 +270,39 @@
           <div class="menu-col experience-col">
             <p class="eyebrow">// experiência</p>
             <ul class="projects" id="experienceList">
-              <li tabindex="0" data-url="https://idealctvm.com.br">
+              <li tabindex="0" data-modal="idealModal">
                 <span class="sq"></span>
                 <span class="label">
                   <span class="name">Architecture and Technology IT Intern</span>
                   <span class="desc">Ideal CTVM — dez/2025 - o momento</span>
                 </span>
               </li>
-              <li tabindex="0" data-url="https://www.kumon.com.br">
+              <li tabindex="0" data-modal="kumonModal">
                 <span class="sq"></span>
                 <span class="label">
-                  <span class="name">Math Tutor</span>
+                  <span class="name">Calculus &amp; Linear Algebra Tutor</span>
                   <span class="desc">Kumon Brasil — jan/2022 - dez/2025</span>
                 </span>
               </li>
             </ul>
+          </div>
+          <div class="menu-col experience-col">
+            <p class="eyebrow">// blog</p>
+            <ul class="projects" id="blogList">
+              <li tabindex="0" data-url="/blog/docker-containers/">
+                <span class="sq"></span>
+                <span class="label">
+                  <span class="name">Docker: Criando e Gerenciando Containers</span>
+                  <span class="desc">Guia completo e prático de Docker, da instalação à orquestração com Docker Compose. Imagens, volumes, redes e boas práticas.</span>
+                </span>
+              </li>
+            </ul>
+            <div class="blog-more-wrap">
+              <a href="/blog/" class="blog-all-btn" title="Ver todos os posts">
+                <span>ver todos os posts</span>
+                <span class="native-arrow" aria-hidden="true">-&gt;</span>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -385,10 +406,24 @@
     <div id="customNotification" class="custom-notification"></div>
 
     <!-- Modals -->
+    <div class="modal-overlay" id="idealModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('idealModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>Ideal CTVM (Grupo Itaú) — Architecture and Technology IT Intern</strong><br><br>Atuação como estagiário na área de arquitetura e tecnologia da Ideal CTVM (corretora institucional e HFT, 50,1% Itaú).<br><br>• <strong>Conectividade &amp; Protocolo FIX:</strong> Introdução e atuação prática com o protocolo <strong>FIX</strong> utilizando <strong>QuickFIX/J</strong>, acompanhando a integração de gateways de mercado e o fluxo de mensageria financeira.<br>• <strong>Desenvolvimento Back-end:</strong> Apoio no desenvolvimento e manutenção de serviços internos com <strong>Java</strong> e <strong>TypeScript</strong>, auxiliando no processamento de dados e suporte a rotinas operacionais.<br>• <strong>Ambiente de Missão Crítica:</strong> Aprendizado contínuo sobre sistemas de trading, redes, sockets de baixa latência e requisitos de alta confiabilidade em ambiente institucional.<br><br><a href="https://idealctvm.com.br" target="_blank" rel="noopener">idealctvm.com.br ↗</a></p>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="kumonModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('kumonModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>Kumon Brasil — Calculus &amp; Linear Algebra Tutor</strong><br><br>Atuação por 4 anos (jan/2022 – dez/2025) como orientador especializado em matemática superior e avançada:<br><br>• <strong>Cálculo Diferencial e Integral (1 a 3):</strong> Instrução e resolução aprofundada de limites, derivadas, integrais múltiplas, campos vetoriais, séries infinitas e equações diferenciais aplicadas.<br>• <strong>Álgebra Linear:</strong> Espaços vetoriais, transformações lineares, determinantes, álgebra matricial, autovalores e autovetores.<br>• <strong>Rigor Analítico:</strong> Capacidade comprovada de decompor problemas complexos, rigor matemático e didática técnica.<br><br><a href="https://www.kumon.com.br" target="_blank" rel="noopener">kumon.com.br ↗</a></p>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="oedlaModal" onclick="this.classList.remove('active')">
       <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('oedlaModal').classList.remove('active')" title="fechar">x</button>
-        <p><strong>OEDLA</strong><br><br>Arquitetei a infraestrutura do OEDLA, um projeto de jornalismo vinculado à Unicamp, com foco em performance e disponibilidade em produção. Estruturei uma arquitetura de cache em múltiplas camadas com Cloudflare como proxy reverso, garantindo que o site se mantivesse responsivo mesmo sob picos de tráfego, e fiquei responsável pelo planejamento de infraestrutura e custo da stack como um todo. É um dos projetos que mais me aproximou de decisões de engenharia com peso real.</p>
+        <p><strong>OEDLA (Unicamp) — Portal de Notícias &amp; Arquitetura de Cache</strong><br><br>Arquitetei toda a infraestrutura e a plataforma do OEDLA (iniciativa acadêmica de observatório sediada na Unicamp), concebido e estruturado como um <strong>portal de notícias de ponta a ponta</strong> com foco em alta disponibilidade sob picos de tráfego, SEO agressivo e latência mínima para os leitores no Brasil.<br><br>• <strong>Portal de Notícias Ponta a Ponta:</strong> Arquitetura completa para publicação jornalística e acadêmica, contemplando fluxo editorial, gestão de artigos e dossiês, categorização temática, pipeline de renderização rápida e distribuição contínua.<br>• <strong>SEO Agressivo &amp; Descoberta:</strong> Otimização técnica aprofundada voltada a indexação imediata nos motores de busca e Google Notícias: Schema.org semântico (<code>NewsArticle</code>), metadados Open Graph/Twitter completos, sitemaps dinâmicos e URLs amigáveis estruturadas para captura de tráfego orgânico.<br>• <strong>Cache na Borda com ~93% de Hit Ratio:</strong> Implementação de proxy reverso com Cloudflare e regras rigorosas de cache. Cerca de <strong>~93% de todas as requisições são entregues diretamente pelo cache na borda (edge)</strong>, eliminando gargalos no servidor de origem.<br>• <strong>Baixa Latência no Brasil:</strong> Roteamento inteligente pelos PoPs locais no Brasil (São Paulo, Rio de Janeiro e Fortaleza), garantindo TTFB (Time to First Byte) na casa dos milissegundos sem requisições transatlânticas desnecessárias.<br>• <strong>Estratégia Multi-Camadas &amp; Mitigação de Egress:</strong> Cabeçalhos <code>Cache-Control</code> com <code>s-maxage</code> e <code>stale-while-revalidate</code>, garantindo custos de infraestrutura praticamente nulos e blindagem ativa contra bots e scraping abusivo.</p>
       </div>
     </div>
     

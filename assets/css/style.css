@@ -242,6 +242,7 @@ code {
 #stage-menu.active #experienceList li:nth-child(1) { animation-delay: 0.85s; }
 #stage-menu.active #experienceList li:nth-child(2) { animation-delay: 0.95s; }
 #stage-menu.active #blogList li:nth-child(1) { animation-delay: 1.05s; }
+#stage-menu.active .blog-all-btn { animation: listItemIn 0.5s ease 1.15s backwards; }
 
 .projects .sq {
   width: 10px;
@@ -788,8 +789,15 @@ code {
   user-select: none;
 }
 
-.nav-blog-btn:hover {
+.nav-blog-btn:hover,
+.nav-blog-btn:focus-visible {
   opacity: 0.75;
+}
+
+.nav-blog-btn:hover .nav-blog-text,
+.nav-blog-btn:focus-visible .nav-blog-text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .nav-blog-btn:active {
@@ -1229,6 +1237,15 @@ body.is-transitioning *::after {
   transition: opacity 0.2s ease;
 }
 
+.modal-content a:has(.link-arrow) {
+  text-decoration: none;
+}
+
+.modal-content a .modal-link-text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .modal-content a:hover {
   opacity: 1;
 }
@@ -1465,6 +1482,19 @@ body.is-transitioning *::after {
 .blog-all-btn:hover::after,
 .blog-all-btn:focus-visible::after {
   transform: translateY(4px);
+}
+
+.link-arrow {
+  display: inline-block;
+  line-height: 1;
+  text-decoration: none;
+  transform-origin: center;
+  transition: transform 0.15s ease;
+}
+
+a:hover .link-arrow,
+a:focus-visible .link-arrow {
+  transform: rotate(45deg);
 }
 
 .native-arrow {

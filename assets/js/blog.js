@@ -50,6 +50,15 @@
     }
     updateThemeIcon();
 
+    const blogBar = document.querySelector(".blog-bar");
+    function updateBarHeight() {
+      if (blogBar) {
+        document.documentElement.style.setProperty("--bar-height", blogBar.offsetHeight + "px");
+      }
+    }
+    updateBarHeight();
+    window.addEventListener("resize", updateBarHeight, { passive: true });
+
     // 1. Theme toggle with full Bayer dither transition wave matching initial screen
     let isTransitioning = false;
     if (themeToggle) {
@@ -77,9 +86,12 @@
         transCanvas.height = window.innerHeight;
         transCanvas.classList.add("active");
         document.body.classList.add("is-transitioning");
+        if (window.scrollY > 0) {
+          document.body.classList.add("is-scrolled");
+        }
 
         const elementsToFlip = document.querySelectorAll(
-          '.blog-bar, .blog-brand-link, .blog-nav-slash, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .code-header, .code-lang, .copy-btn, .copy-text, time, a, pre, code, .table-wrap, table, th, td'
+          '.blog-nav-brand, .blog-bar-actions, .blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .code-header, .code-lang, .copy-btn, .copy-text, time, a, pre, code, .table-wrap, table, th, td'
         );
 
         const flips = Array.from(elementsToFlip).map((el) => {
@@ -105,6 +117,9 @@
         let startTime = null;
         const targetTextColor = newTheme === "dark" ? "#8fbc8b" : "#121212";
         const targetRuleColor = newTheme === "dark" ? "rgba(143, 188, 139, 0.3)" : "rgba(18, 18, 18, 0.35)";
+        const barHeight = blogBar ? Math.round(blogBar.getBoundingClientRect().height) : 58;
+        const borderTop = barHeight - 2;
+        const borderBottom = barHeight;
 
         function animateSweep(timestamp) {
           if (!startTime) startTime = timestamp;
@@ -113,7 +128,6 @@
           const waveR = -ditherBand + (Math.sqrt(cols * cols + rows * rows) + ditherBand * 2) * easeProgress;
 
           transCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
-          transCtx.fillStyle = newBgColor;
 
           for (let x = 0; x < cols; x++) {
             for (let y = 0; y < rows; y++) {
@@ -124,7 +138,20 @@
               if (threshold > 0) {
                 const b = bayer[y % 4][x % 4] / 16;
                 if (threshold >= 1.0 || threshold > b) {
-                  transCtx.fillRect(x * size - 0.5, y * size - 0.5, size + 1, size + 1);
+                  const rx = x * size - 0.5;
+                  const ry = y * size - 0.5;
+                  const rw = size + 1;
+                  const rh = size + 1;
+
+                  // 1. Draw new background square
+                  transCtx.fillStyle = newBgColor;
+                  transCtx.fillRect(rx, ry, rw, rh);
+
+                  // 2. Draw new theme bottom border line inside this flipped pixel if it crosses the header bottom
+                  if (borderBottom >= ry && borderTop <= ry + rh) {
+                    transCtx.fillStyle = targetRuleColor;
+                    transCtx.fillRect(rx, borderTop, rw, 2);
+                  }
                 }
               }
             }
@@ -136,13 +163,10 @@
               if (!flip.el.matches('.callout, .callout-header, .callout-title, .callout-icon')) {
                 flip.el.style.color = targetTextColor;
               }
-              if (flip.el.matches('.blog-bar, .post-header, h2, hr, .code-block, .code-header, blockquote, .table-wrap, table, th, td')) {
+              if (flip.el.matches('.post-header, h2, hr, .code-block, .code-header, blockquote, .table-wrap, table, th, td')) {
                 flip.el.style.borderColor = targetRuleColor;
               } else if (flip.el.matches('.tag, .post-card')) {
                 flip.el.style.borderColor = targetTextColor;
-              }
-              if (flip.el.matches('.blog-bar')) {
-                flip.el.style.backgroundColor = newBgColor;
               }
               flip.flipped = true;
             }
@@ -156,13 +180,11 @@
               flip.el.removeAttribute("data-theme");
               flip.el.style.color = "";
               flip.el.style.borderColor = "";
-              if (flip.el.matches('.blog-bar')) {
-                flip.el.style.backgroundColor = "";
-              }
             }
             transCanvas.classList.remove("active");
             transCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
             document.body.classList.remove("is-transitioning");
+            document.body.classList.remove("is-scrolled");
             isTransitioning = false;
           }
         }

@@ -234,6 +234,7 @@ ${JSON.stringify(jsonLd, null, 2)}
   </head>
   <body class="${bodyClass}">
     <canvas id="pixel-transition"></canvas>
+    <div class="blog-bar-backdrop" aria-hidden="true"></div>
     <header class="blog-bar">
       <nav class="blog-nav-brand">
         <a class="blog-brand-link" href="/" title="Voltar para cotoo.dev">&lt; cotoo.dev</a>
@@ -546,7 +547,7 @@ async function handler(req, res) {
     const forceRefresh = refresh === '1' || refresh === 'true';
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v9';
+    const TEMPLATE_VERSION = 'v11';
 
     if (slug) {
       const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');

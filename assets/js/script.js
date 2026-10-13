@@ -461,7 +461,7 @@ themeToggle.addEventListener("click", (e) => {
   document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, .top-nav, .nav-blog-btn, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects'
+    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects'
   );
   
   const flips = Array.from(elementsToFlip).map(el => {

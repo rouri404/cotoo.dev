@@ -1,7 +1,14 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { Marked } = require('marked');
+
+let MarkedClass = null;
+async function getMarkedClass() {
+  if (MarkedClass) return MarkedClass;
+  const markedModule = await import('marked');
+  MarkedClass = markedModule.Marked;
+  return MarkedClass;
+}
 
 const SITE = 'https://www.cotoo.dev';
 const AUTHOR = 'Gabriel Couto';
@@ -109,7 +116,8 @@ function createSlugger() {
   };
 }
 
-function renderMarkdownWith(body) {
+async function renderMarkdownWith(body) {
+  const Marked = await getMarkedClass();
   const slug = createSlugger();
   const marked = new Marked({
     gfm: true,
@@ -364,8 +372,21 @@ function getFileHashAndMtime(filePath) {
   }
 }
 
+function getBlogDir() {
+  const candidates = [
+    path.join(process.cwd(), 'blog'),
+    path.join(__dirname, '..', 'blog'),
+    path.join(__dirname, 'blog'),
+    path.resolve('blog'),
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(dir)) return dir;
+  }
+  return path.join(process.cwd(), 'blog');
+}
+
 function getBlogDirSignature() {
-  const blogDir = path.join(process.cwd(), 'blog');
+  const blogDir = getBlogDir();
   if (!fs.existsSync(blogDir)) return { signature: '', files: [] };
   try {
     const files = fs
@@ -389,7 +410,7 @@ function getBlogDirSignature() {
 
 // Read markdown files dynamically from the blog folder
 function getLocalPosts() {
-  const blogDir = path.join(process.cwd(), 'blog');
+  const blogDir = getBlogDir();
   if (!fs.existsSync(blogDir)) return [];
 
   const files = fs
@@ -428,7 +449,7 @@ function getLocalPosts() {
 let redisClient = null;
 let redisInitialized = false;
 
-function getRedisClient() {
+async function getRedisClient() {
   if (redisInitialized) return redisClient;
   redisInitialized = true;
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_KV_REST_API_URL;
@@ -436,7 +457,7 @@ function getRedisClient() {
   if (!url || !token) return null;
 
   try {
-    const { Redis } = require('@upstash/redis');
+    const { Redis } = await import('@upstash/redis');
     redisClient = new Redis({ url, token });
     return redisClient;
   } catch (err) {
@@ -473,7 +494,7 @@ async function safeRedisSet(redis, key, value, ttlSeconds = TTL_SECONDS) {
 
 // Resolve blog post file path by slug or filename
 function resolvePostFilePath(cleanSlug) {
-  const blogDir = path.join(process.cwd(), 'blog');
+  const blogDir = getBlogDir();
   if (!fs.existsSync(blogDir)) return null;
 
   // 1. Exact filename match: blog/${cleanSlug}.md
@@ -502,175 +523,201 @@ function resolvePostFilePath(cleanSlug) {
 }
 
 async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  try {
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
 
-  const { slug, format, refresh } = req.query;
-  const isJson = format === 'json' || (req.headers['accept'] && req.headers['accept'].includes('application/json') && !req.headers['accept'].includes('text/html'));
-  const forceRefresh = refresh === '1' || refresh === 'true';
+    const query = req.query || {};
+    let slug = query.slug;
+    let format = query.format;
+    let refresh = query.refresh;
 
-  const redis = getRedisClient();
-  const TEMPLATE_VERSION = 'v8';
+    if (!slug && req.url) {
+      try {
+        const parsedUrl = new URL(req.url, 'http://localhost');
+        slug = slug || parsedUrl.searchParams.get('slug');
+        format = format || parsedUrl.searchParams.get('format');
+        refresh = refresh || parsedUrl.searchParams.get('refresh');
+      } catch (_) {}
+    }
 
-  if (slug) {
-    const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');
-    const cacheKey = `cotoo:blog:post:${cleanSlug}`;
-    const filePath = resolvePostFilePath(cleanSlug);
-    const fileInfo = filePath ? getFileHashAndMtime(filePath) : { exists: false, mtime: 0, hash: '', raw: '' };
+    const isJson = format === 'json' || (req.headers && req.headers['accept'] && req.headers['accept'].includes('application/json') && !req.headers['accept'].includes('text/html'));
+    const forceRefresh = refresh === '1' || refresh === 'true';
 
-    // Tier 1: Fast in-memory cache check (<0.1ms)
-    if (!forceRefresh && fileInfo.exists) {
-      const memCached = memCache.get(cleanSlug);
-      if (memCached && memCached.hash === fileInfo.hash && memCached.version === TEMPLATE_VERSION) {
+    const redis = await getRedisClient();
+    const TEMPLATE_VERSION = 'v9';
+
+    if (slug) {
+      const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');
+      const cacheKey = `cotoo:blog:post:${cleanSlug}`;
+      const filePath = resolvePostFilePath(cleanSlug);
+      const fileInfo = filePath ? getFileHashAndMtime(filePath) : { exists: false, mtime: 0, hash: '', raw: '' };
+
+      // Tier 1: Fast in-memory cache check (<0.1ms)
+      if (!forceRefresh && fileInfo.exists) {
+        const memCached = memCache.get(cleanSlug);
+        if (memCached && memCached.hash === fileInfo.hash && memCached.version === TEMPLATE_VERSION) {
+          if (isJson) {
+            res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+            return res.status(200).json(memCached.post);
+          }
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+          res.setHeader('X-Cache', 'HIT-MEM');
+          return res.status(200).send(memCached.html);
+        }
+      }
+
+      let redisCached = null;
+      if (redis && !forceRefresh) {
+        redisCached = await safeRedisGet(redis, cacheKey);
+        if (redisCached && typeof redisCached === 'object' && redisCached.html) {
+          const isUpToDate = fileInfo.exists ? (redisCached.hash === fileInfo.hash && redisCached.version === TEMPLATE_VERSION) : true;
+          if (isUpToDate) {
+            memCache.set(cleanSlug, redisCached);
+            if (isJson) {
+              res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+              return res.status(200).json(redisCached.post);
+            }
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+            res.setHeader('X-Cache', 'HIT-REDIS');
+            return res.status(200).send(redisCached.html);
+          }
+        }
+      }
+
+      if (!fileInfo.exists) {
+        if (isJson) return res.status(404).json({ error: 'Post not found' });
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.status(404).send(render404Html());
+      }
+
+      const { meta, body } = parseFrontMatter(fileInfo.raw);
+      const words = body.replace(/```[\s\S]*?```/g, ' ').split(/\s+/).filter(Boolean).length;
+      const htmlContent = await renderMarkdownWith(body);
+      const post = {
+        meta,
+        slug: cleanSlug,
+        body,
+        readingMinutes: Math.max(1, Math.round(words / 200)),
+        html: htmlContent,
+      };
+      const postHtml = renderPostHtml(post);
+
+      const cacheEntry = {
+        version: TEMPLATE_VERSION,
+        hash: fileInfo.hash,
+        mtime: fileInfo.mtime,
+        html: postHtml,
+        post: {
+          slug: cleanSlug,
+          meta: post.meta,
+          readingMinutes: post.readingMinutes,
+        },
+        updatedAt: new Date().toISOString(),
+      };
+
+      memCache.set(cleanSlug, cacheEntry);
+
+      if (redis) {
+        await safeRedisSet(redis, cacheKey, cacheEntry);
+      }
+
+      if (isJson) {
+        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+        return res.status(200).json(cacheEntry.post);
+      }
+
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+      res.setHeader('X-Cache', redisCached ? 'REFRESHED' : 'MISS');
+      return res.status(200).send(postHtml);
+    }
+
+    const indexCacheKey = 'cotoo:blog:index';
+    const latestCacheKey = 'cotoo:blog:latest';
+    const dirSig = getBlogDirSignature();
+
+    if (!forceRefresh) {
+      const memIndex = memCache.get('__index__');
+      if (memIndex && memIndex.signature === dirSig.signature && memIndex.version === TEMPLATE_VERSION) {
         if (isJson) {
           res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-          return res.status(200).json(memCached.post);
+          return res.status(200).json(memIndex.json);
         }
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
         res.setHeader('X-Cache', 'HIT-MEM');
-        return res.status(200).send(memCached.html);
+        return res.status(200).send(memIndex.html);
       }
     }
 
-    let redisCached = null;
+    let redisIndex = null;
     if (redis && !forceRefresh) {
-      redisCached = await safeRedisGet(redis, cacheKey);
-      if (redisCached && typeof redisCached === 'object' && redisCached.html) {
-        const isUpToDate = fileInfo.exists ? (redisCached.hash === fileInfo.hash && redisCached.version === TEMPLATE_VERSION) : true;
-        if (isUpToDate) {
-          memCache.set(cleanSlug, redisCached);
-          if (isJson) {
-            res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-            return res.status(200).json(redisCached.post);
-          }
-          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      redisIndex = await safeRedisGet(redis, indexCacheKey);
+      if (redisIndex && typeof redisIndex === 'object' && redisIndex.signature === dirSig.signature && redisIndex.version === TEMPLATE_VERSION && redisIndex.html) {
+        memCache.set('__index__', redisIndex);
+        if (isJson) {
           res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-          res.setHeader('X-Cache', 'HIT-REDIS');
-          return res.status(200).send(redisCached.html);
+          return res.status(200).json(redisIndex.json);
         }
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+        res.setHeader('X-Cache', 'HIT-REDIS');
+        return res.status(200).send(redisIndex.html);
       }
     }
 
-    if (!fileInfo.exists) {
-      if (isJson) return res.status(404).json({ error: 'Post not found' });
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.status(404).send(render404Html());
-    }
-
-    const { meta, body } = parseFrontMatter(fileInfo.raw);
-    const words = body.replace(/```[\s\S]*?```/g, ' ').split(/\s+/).filter(Boolean).length;
-    const post = {
-      meta,
-      slug: cleanSlug,
-      body,
-      readingMinutes: Math.max(1, Math.round(words / 200)),
-      html: renderMarkdownWith(body),
+    const posts = getLocalPosts();
+    const indexHtml = renderIndexHtml(posts);
+    const indexJson = {
+      posts: posts.map((p) => ({
+        slug: p.slug,
+        meta: p.meta,
+        readingMinutes: p.readingMinutes,
+      })),
+      latest: posts[0] || null,
     };
-    const postHtml = renderPostHtml(post);
 
-    const cacheEntry = {
+    const indexEntry = {
       version: TEMPLATE_VERSION,
-      hash: fileInfo.hash,
-      mtime: fileInfo.mtime,
-      html: postHtml,
-      post: {
-        slug: cleanSlug,
-        meta: post.meta,
-        readingMinutes: post.readingMinutes,
-      },
+      signature: dirSig.signature,
+      html: indexHtml,
+      json: indexJson,
       updatedAt: new Date().toISOString(),
     };
 
-    memCache.set(cleanSlug, cacheEntry);
+    memCache.set('__index__', indexEntry);
 
     if (redis) {
-      await safeRedisSet(redis, cacheKey, cacheEntry);
+      await Promise.all([
+        safeRedisSet(redis, indexCacheKey, indexEntry),
+        posts[0] ? safeRedisSet(redis, latestCacheKey, posts[0].meta) : Promise.resolve(),
+      ]);
     }
 
     if (isJson) {
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-      return res.status(200).json(cacheEntry.post);
+      return res.status(200).json(indexJson);
     }
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-    res.setHeader('X-Cache', redisCached ? 'REFRESHED' : 'MISS');
-    return res.status(200).send(postHtml);
-  }
-
-  const indexCacheKey = 'cotoo:blog:index';
-  const latestCacheKey = 'cotoo:blog:latest';
-  const dirSig = getBlogDirSignature();
-
-  if (!forceRefresh) {
-    const memIndex = memCache.get('__index__');
-    if (memIndex && memIndex.signature === dirSig.signature && memIndex.version === TEMPLATE_VERSION) {
+    res.setHeader('X-Cache', redisIndex ? 'REFRESHED' : 'MISS');
+    return res.status(200).send(indexHtml);
+  } catch (err) {
+    console.error('Blog handler unexpected error:', err);
+    if (!res.headersSent) {
+      const isJson = (req.query && req.query.format === 'json') || (req.headers && req.headers['accept'] && req.headers['accept'].includes('application/json'));
       if (isJson) {
-        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-        return res.status(200).json(memIndex.json);
+        return res.status(500).json({ error: 'Internal Server Error' });
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-      res.setHeader('X-Cache', 'HIT-MEM');
-      return res.status(200).send(memIndex.html);
+      return res.status(500).send('<!doctype html><html><head><meta charset="utf-8"><title>Erro no Blog</title></head><body style="background:#121212;color:#8fbc8b;font-family:sans-serif;padding:2rem;"><h1 style="font-family:monospace;">500 - Erro no Blog</h1><p>Ocorreu uma falha temporária ao carregar a página. Tente novamente em instantes.</p><p><a href="/" style="color:#8fbc8b;">&lt; Voltar para a home</a></p></body></html>');
     }
   }
-
-  let redisIndex = null;
-  if (redis && !forceRefresh) {
-    redisIndex = await safeRedisGet(redis, indexCacheKey);
-    if (redisIndex && typeof redisIndex === 'object' && redisIndex.signature === dirSig.signature && redisIndex.version === TEMPLATE_VERSION && redisIndex.html) {
-      memCache.set('__index__', redisIndex);
-      if (isJson) {
-        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-        return res.status(200).json(redisIndex.json);
-      }
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-      res.setHeader('X-Cache', 'HIT-REDIS');
-      return res.status(200).send(redisIndex.html);
-    }
-  }
-
-  const posts = getLocalPosts();
-  const indexHtml = renderIndexHtml(posts);
-  const indexJson = {
-    posts: posts.map((p) => ({
-      slug: p.slug,
-      meta: p.meta,
-      readingMinutes: p.readingMinutes,
-    })),
-    latest: posts[0] || null,
-  };
-
-  const indexEntry = {
-    version: TEMPLATE_VERSION,
-    signature: dirSig.signature,
-    html: indexHtml,
-    json: indexJson,
-    updatedAt: new Date().toISOString(),
-  };
-
-  memCache.set('__index__', indexEntry);
-
-  if (redis) {
-    await Promise.all([
-      safeRedisSet(redis, indexCacheKey, indexEntry),
-      posts[0] ? safeRedisSet(redis, latestCacheKey, posts[0].meta) : Promise.resolve(),
-    ]);
-  }
-
-  if (isJson) {
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-    return res.status(200).json(indexJson);
-  }
-
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-  res.setHeader('X-Cache', redisIndex ? 'REFRESHED' : 'MISS');
-  return res.status(200).send(indexHtml);
 }
 
 module.exports = handler;

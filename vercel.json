@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/blog.js": {
-      "includeFiles": "blog/*.md"
+      "includeFiles": "blog/**"
     }
   },
   "rewrites": [

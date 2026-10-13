@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/blog.js": {
+      "includeFiles": "blog/*.md"
+    }
+  },
+  "rewrites": [
+    { "source": "/blog", "destination": "/api/blog" },
+    { "source": "/blog/", "destination": "/api/blog" },
+    { "source": "/blog/:slug", "destination": "/api/blog?slug=:slug" },
+    { "source": "/blog/:slug/", "destination": "/api/blog?slug=:slug" }
+  ]
+}

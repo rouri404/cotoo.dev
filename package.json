@@ -23,6 +23,8 @@
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.39.0",
     "@vercel/og": "^1.0.3",
+    "marked": "^18.1.1",
     "satori": "^0.47.1"
-  }
+  },
+  "devDependencies": {}
 }

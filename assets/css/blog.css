@@ -5,6 +5,9 @@
   --prose-color: #121212;
   --code-bg: rgba(0, 0, 0, 0.15);
   --rule-color: rgba(18, 18, 18, 0.35);
+  --inline-code-bg: rgba(0, 0, 0, 0.12);
+  --code-header-bg: rgba(0, 0, 0, 0.15);
+  --code-comment-color: rgba(255, 255, 255, 0.75);
 
   --callout-note-color: #0e325b;
   --callout-note-border: #1a4a7d;
@@ -38,6 +41,9 @@
   --prose-color: #8fbc8b;
   --code-bg: rgba(255, 255, 255, 0.07);
   --rule-color: rgba(143, 188, 139, 0.3);
+  --inline-code-bg: rgba(255, 255, 255, 0.1);
+  --code-header-bg: rgba(255, 255, 255, 0.04);
+  --code-comment-color: #8fbc8b;
 
   --callout-note-color: #58a6ff;
   --callout-note-border: #388bfd;
@@ -52,7 +58,7 @@
   --callout-important-color: #bc8cff;
   --callout-important-border: #a371f7;
   --callout-important-bg: rgba(163, 113, 247, 0.1);
-  --callout-header-bg: rgba(163, 113, 247, 0.2);
+  --callout-important-header-bg: rgba(163, 113, 247, 0.2);
 
   --callout-warning-color: #e3b341;
   --callout-warning-border: #d29922;
@@ -125,10 +131,6 @@ body.is-transitioning *::after {
 body.is-transitioning .blog-bar {
   background: transparent !important;
   border-bottom-color: transparent !important;
-}
-
-body.is-transitioning.is-scrolled .blog-main {
-  clip-path: inset(var(--bar-height, 58px) 0 0 0);
 }
 
 #pixel-transition {
@@ -447,21 +449,12 @@ body.reading-mode .prose {
 .prose :not(pre) > code {
   font-family: inherit;
   font-size: 0.92em;
-  background: rgba(128, 128, 128, 0.18);
+  background: var(--inline-code-bg);
+  color: var(--text-color);
   border: none !important;
   padding: 0.05em 0.35em;
   margin: 0 0.15em;
   border-radius: 0;
-}
-
-[data-theme="dark"] .prose :not(pre) > code {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-color);
-}
-
-[data-theme="light"] .prose :not(pre) > code {
-  background: rgba(0, 0, 0, 0.12);
-  color: var(--text-color);
 }
 
 /* Inline code in Reading Mode */
@@ -482,14 +475,10 @@ body.reading-mode .prose :not(pre) > code {
   align-items: center;
   justify-content: space-between;
   padding: 0.4rem 0.85rem;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--code-header-bg);
   border-bottom: 2px solid var(--rule-color);
   font-family: "Tiny5", sans-serif;
   font-size: 0.95rem;
-}
-
-[data-theme="dark"] .code-header {
-  background: rgba(255, 255, 255, 0.04);
 }
 
 .code-lang {
@@ -619,15 +608,10 @@ body.reading-mode .code-block pre code {
 
 .code-comment {
   opacity: 0.6;
+  color: var(--code-comment-color);
 }
 
-[data-theme="dark"] .code-comment {
-  color: #8fbc8b;
-}
 
-[data-theme="light"] .code-comment {
-  color: rgba(255, 255, 255, 0.75);
-}
 
 .prose blockquote {
   margin: 0 0 1.2rem;

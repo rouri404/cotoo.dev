@@ -86,12 +86,19 @@
         transCanvas.height = window.innerHeight;
         transCanvas.classList.add("active");
         document.body.classList.add("is-transitioning");
-        if (window.scrollY > 0) {
-          document.body.classList.add("is-scrolled");
+
+        // Hide scrolled content behind the transparent header, relative to the viewport
+        const blogMain = document.querySelector(".blog-main");
+        function clipMainBelowHeader() {
+          if (!blogMain || !blogBar) return;
+          const top = blogBar.getBoundingClientRect().height - blogMain.getBoundingClientRect().top;
+          blogMain.style.clipPath = top > 0 ? `inset(${top}px 0 0 0)` : "";
         }
+        clipMainBelowHeader();
+        window.addEventListener("scroll", clipMainBelowHeader, { passive: true });
 
         const elementsToFlip = document.querySelectorAll(
-          '.blog-nav-brand, .blog-bar-actions, .blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .code-header, .code-lang, .copy-btn, .copy-text, time, a, pre, code, .table-wrap, table, th, td'
+          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, time, a, .prose :not(pre) > code, .table-wrap, table, th, td'
         );
 
         const flips = Array.from(elementsToFlip).map((el) => {
@@ -99,12 +106,34 @@
           const cx = rect.left + rect.width / 2;
           const cy = rect.top + rect.height / 2;
           const d = Math.sqrt((window.innerWidth - cx) ** 2 + cy ** 2);
-          return { el, d, flipped: false };
+          return { el, d, lag: 1 / 3, flipped: false };
+        });
+
+        // Split header text into letters so each one flips as the wave reaches it
+        const splitEls = [];
+        document.querySelectorAll(".blog-brand-link, .blog-nav-slash, .blog-nav-current, .font-toggle").forEach((el) => {
+          if (el.children.length) return;
+          const text = el.textContent;
+          el.textContent = "";
+          for (const ch of text) {
+            const span = document.createElement("span");
+            span.textContent = ch;
+            el.appendChild(span);
+            const rect = span.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const d = Math.sqrt((window.innerWidth - cx) ** 2 + cy ** 2);
+            flips.push({ el: span, d, cx, cy, letter: true, flipped: false });
+          }
+          splitEls.push({ el, text });
         });
 
         const size = window.innerWidth > 768 ? 30 : 20;
         const cols = Math.ceil(window.innerWidth / size);
-        const rows = Math.ceil(window.innerHeight / size);
+        const rows = Math.ceil(window.innerHeight / size) + 1;
+        // Shift the grid so the header text sits in the middle of a cell row
+        const headerMid = blogBar ? blogBar.getBoundingClientRect().height / 2 : 29;
+        const gridOffsetY = ((headerMid - size / 2) % size) - size;
 
         const bayer = [
           [0, 8, 2, 10],
@@ -120,6 +149,14 @@
         const barHeight = blogBar ? Math.round(blogBar.getBoundingClientRect().height) : 58;
         const borderTop = barHeight - 2;
         const borderBottom = barHeight;
+
+        // A letter flips exactly when the dither paints the cell under it
+        function letterReached(flip, waveR) {
+          const gx = Math.floor(flip.cx / size);
+          const gy = Math.floor((flip.cy - gridOffsetY) / size);
+          const threshold = (waveR - Math.sqrt((cols - gx) ** 2 + gy ** 2)) / ditherBand;
+          return threshold > 0 && (threshold >= 1.0 || threshold > bayer[gy % 4][gx % 4] / 16);
+        }
 
         function animateSweep(timestamp) {
           if (!startTime) startTime = timestamp;
@@ -139,7 +176,7 @@
                 const b = bayer[y % 4][x % 4] / 16;
                 if (threshold >= 1.0 || threshold > b) {
                   const rx = x * size - 0.5;
-                  const ry = y * size - 0.5;
+                  const ry = y * size + gridOffsetY - 0.5;
                   const rw = size + 1;
                   const rh = size + 1;
 
@@ -158,7 +195,7 @@
           }
 
           for (const flip of flips) {
-            if (!flip.flipped && waveR - ditherBand / 1.5 > flip.d / size) {
+            if (!flip.flipped && (flip.letter ? letterReached(flip, waveR) : waveR - ditherBand * flip.lag > flip.d / size)) {
               flip.el.setAttribute("data-theme", newTheme);
               if (!flip.el.matches('.callout, .callout-header, .callout-title, .callout-icon')) {
                 flip.el.style.color = targetTextColor;
@@ -181,10 +218,14 @@
               flip.el.style.color = "";
               flip.el.style.borderColor = "";
             }
+            for (const { el, text } of splitEls) {
+              el.textContent = text;
+            }
             transCanvas.classList.remove("active");
             transCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
             document.body.classList.remove("is-transitioning");
-            document.body.classList.remove("is-scrolled");
+            window.removeEventListener("scroll", clipMainBelowHeader);
+            if (blogMain) blogMain.style.clipPath = "";
             isTransitioning = false;
           }
         }

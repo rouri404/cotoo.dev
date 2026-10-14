@@ -464,13 +464,35 @@ themeToggle.addEventListener("click", (e) => {
     '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects'
   );
   
+  const ditherBandRatio = 1 / 1.5;
   const flips = Array.from(elementsToFlip).map(el => {
     const rect = el.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const d = Math.sqrt((window.innerWidth - cx)**2 + cy**2);
-    return { el, d, flipped: false };
+    return { el, d, lag: ditherBandRatio, flipped: false };
   });
+
+  // Split hero text into letters so each one flips as the wave reaches it
+  const splitEls = [];
+  if (document.getElementById("stage-hero").classList.contains("active")) {
+    document.querySelectorAll("#stage-hero h1, #stage-hero p").forEach((el) => {
+      if (el.querySelector(".letter-3d-wrapper")) return;
+      const text = el.dataset.original || el.textContent;
+      el.textContent = "";
+      for (const ch of text) {
+        const span = document.createElement("span");
+        span.textContent = ch;
+        el.appendChild(span);
+        const rect = span.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const d = Math.sqrt((window.innerWidth - cx)**2 + cy**2);
+        flips.push({ el: span, d, lag: 0.25, flipped: false });
+      }
+      splitEls.push({ el, text });
+    });
+  }
 
   const size = window.innerWidth > 768 ? 30 : 20;
   const cols = Math.ceil(window.innerWidth / size);
@@ -522,7 +544,7 @@ themeToggle.addEventListener("click", (e) => {
     
     // Flip individual elements as wave passes
     for (let flip of flips) {
-      if (!flip.flipped && (waveR - ditherBand / 1.5) > flip.d / size) {
+      if (!flip.flipped && (waveR - ditherBand * flip.lag) > flip.d / size) {
         flip.el.setAttribute("data-theme", newTheme);
         flip.el.style.color = targetTextColor;
         if (flip.el.matches('.education-card, .btn, .modal-content, .contact-form input, .contact-form textarea, .menu-col, .projects li, .blog-all-btn, .visit-digit')) {
@@ -550,6 +572,10 @@ themeToggle.addEventListener("click", (e) => {
         }
       }
       
+      for (const { el, text } of splitEls) {
+        el.textContent = text;
+      }
+
       transCanvas.classList.remove("active");
       transCtx.clearRect(0, 0, transCanvas.width, transCanvas.height);
       document.body.classList.remove("is-transitioning");
@@ -564,6 +590,16 @@ themeToggle.addEventListener("click", (e) => {
 const spotifyWidget = document.getElementById("spotifyWidget");
 const spotifyTrack = document.getElementById("spotifyTrack");
 const spotifyLink = document.getElementById("spotifyLink");
+
+// Grow the mobile bottom fade only by the widget's extra height
+function updateMenuFade() {
+  const extra = spotifyWidget.classList.contains("active")
+    ? Math.max(0, spotifyWidget.offsetHeight - 50)
+    : 0;
+  menuStage.style.setProperty("--fade-bottom", `${extra}px`);
+}
+new ResizeObserver(updateMenuFade).observe(spotifyWidget);
+new MutationObserver(updateMenuFade).observe(spotifyWidget, { attributes: true, attributeFilter: ["class"] });
 
 let localProgressMs = 0;
 let localDurationMs = 0;

@@ -1075,13 +1075,16 @@ body.is-transitioning *::after {
 @media (max-width: 600px) {
   .top-nav {
     position: fixed;
-    top: 0.11rem;
+    top: 0.2rem;
     right: 1.5rem;
     height: 50px;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     z-index: 10000;
+  }
+  body:has(.modal-overlay.active) .top-nav {
+    z-index: 9998;
   }
   .nav-blog-btn {
     display: none !important;
@@ -1111,7 +1114,7 @@ body.is-transitioning *::after {
     transform: none;
     text-align: left;
     width: max-content;
-    height: auto;
+    height: 1.5rem;
     display: flex;
     align-items: center;
     font-size: 0.68rem;
@@ -1121,6 +1124,7 @@ body.is-transitioning *::after {
     top: 3.2rem;
     right: 1.5rem;
     left: auto;
+    height: 1.5rem;
     transform: none;
     animation: none;
     display: flex;
@@ -1142,6 +1146,11 @@ body.is-transitioning *::after {
   }
   .projects {
     gap: 1.8rem; /* Melhor para tocar no celular */
+  }
+  #stage-menu {
+    --fade-bottom: 0px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0px, transparent 80px, black 130px, black calc(100% - 140px - var(--fade-bottom)), transparent calc(100% - 90px - var(--fade-bottom)), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0px, transparent 80px, black 130px, black calc(100% - 140px - var(--fade-bottom)), transparent calc(100% - 90px - var(--fade-bottom)), transparent 100%);
   }
   .scroll-wrapper {
     padding-bottom: 25vh; /* Evita que a nav bar do iOS/Android coma o final */
@@ -1439,13 +1448,6 @@ body.is-transitioning *::after {
   align-self: flex-start;
   text-align: left;
   box-sizing: border-box;
-}
-
-@media (max-width: 900px) {
-  .blog-more-wrap {
-    padding-left: 0;
-    justify-content: flex-start;
-  }
 }
 
 .blog-all-btn {

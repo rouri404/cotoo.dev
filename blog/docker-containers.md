@@ -480,7 +480,7 @@ docker image prune
 # Remover todas as imagens
 docker rmi $(docker image ls -aq) --force
 
-# Limpeza completa (containers, imagens, volumes, redes)
+# Limpeza completa (containers parados, imagens sem uso, redes e cache; use --volumes para incluir volumes)
 docker system prune -a
 ```
 
@@ -747,7 +747,7 @@ docker run -it --tmpfs=/app ubuntu bash
 cd /app
 ls  # pasta "app" aparece destacada (temporária)
 touch um-arquivo-qualquer
-ls app  # arquivo está lá
+ls  # arquivo está lá
 
 # Sair e criar novo container
 exit
@@ -1044,7 +1044,7 @@ docker run -d \
 - Sempre use redes customizadas em produção
 - Nomeie containers de forma descritiva para facilitar DNS
 - Crie redes separadas para diferentes aplicações
-- Use `--network` ao criar containers, não conecte depois
+- Prefira `--network` ao criar containers, em vez de conectar depois
 - Documente as redes utilizadas no seu projeto
 
 **Entendendo os tipos de rede do Docker:**
@@ -1235,7 +1235,7 @@ docker-compose --version
 
 **Passo 1: Baixar o binário**
 ```bash
-# Baixar a versão mais recente (substitua pela versão atual se necessário)
+# Baixa a versão 1.29.2 (substitua pela versão desejada se necessário)
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 ```
 
@@ -1395,8 +1395,6 @@ services:
       - 3000:3000
     networks:
       - compose-bridge
-    depends_on:
-      - mongodb
 
 networks:
   compose-bridge:
@@ -1442,7 +1440,7 @@ docker-compose up
 
 **Otimizando com depends_on:**
 
-Quando executamos `docker-compose up`, os serviços são iniciados de forma indefinida, o que pode causar logs misturados. Podemos melhorar isso definindo dependências entre serviços.
+Quando executamos `docker-compose up`, os serviços são iniciados sem uma ordem definida, o que pode causar logs misturados. Podemos melhorar isso definindo dependências entre serviços.
 
 **Problema:** Logs misturados e ordem de inicialização não controlada
 
@@ -1482,7 +1480,7 @@ networks:
 - Melhora organização da saída
 
 > [!WARNING]
-> O `depends_on` aguarda apenas que o **container** esteja pronto, não que a **aplicação** dentro do container esteja preparada para receber requisições. Para garantir que a aplicação esteja pronta, são necessárias outras estratégias (health checks, wait-for scripts, etc.).
+> O `depends_on` aguarda apenas que o **container** tenha sido iniciado, não que a **aplicação** dentro do container esteja preparada para receber requisições. Para garantir que a aplicação esteja pronta, são necessárias outras estratégias (health checks, wait-for scripts, etc.).
 
 **Executando em modo detached:**
 
@@ -1512,7 +1510,7 @@ docker-compose ps
 **Parando e removendo tudo:**
 
 ```bash
-# Para e remove containers, redes e volumes
+# Para e remove containers e redes (volumes só com -v)
 docker-compose down
 
 # Saída:
@@ -1527,10 +1525,10 @@ docker-compose down
 
 **1. Version:**
 ```yaml
-version: '3.8'
+version: "3.9"
 ```
 - Define a versão do formato do Docker Compose
-- Versão 3.8 é compatível com Docker Engine 19.03.0+
+- Versão 3.9 é compatível com Docker Engine 19.03.0+
 - Cada versão suporta diferentes recursos
 
 **2. Services (Serviços):**
@@ -1556,7 +1554,7 @@ ports:
 **4. Networks (Redes):**
 ```yaml
 networks:
-  - minha-bridge  # Container conectado a esta rede
+  - compose-bridge  # Container conectado a esta rede
 ```
 - Define em quais redes o container estará
 - Permite comunicação entre containers
@@ -1573,7 +1571,7 @@ depends_on:
 **6. Networks (Definição de redes):**
 ```yaml
 networks:
-  minha-bridge:
+  compose-bridge:
     driver: bridge
 ```
 - Define as redes que serão criadas

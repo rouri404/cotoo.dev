@@ -98,7 +98,7 @@
         window.addEventListener("scroll", clipMainBelowHeader, { passive: true });
 
         const elementsToFlip = document.querySelectorAll(
-          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a'
+          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty'
         );
 
         const flips = Array.from(elementsToFlip).map((el) => {
@@ -200,7 +200,7 @@
               if (!flip.el.matches('.callout, .callout-header, .callout-title, .callout-icon, .post-toc a')) {
                 flip.el.style.color = targetTextColor;
               }
-              if (flip.el.matches('.post-header, h2, .post-subsection > h3, hr, .code-block, .code-header, .mermaid-block, .mermaid-header, blockquote, .table-wrap, table, th, td')) {
+              if (flip.el.matches('.post-header, h2, .post-subsection > h3, .post-search-input, hr, .code-block, .code-header, .mermaid-block, .mermaid-header, blockquote, .table-wrap, table, th, td')) {
                 flip.el.style.borderColor = targetRuleColor;
               } else if (flip.el.matches('.tag, .post-card')) {
                 flip.el.style.borderColor = targetTextColor;

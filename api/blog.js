@@ -315,7 +315,7 @@ ${html}
 function renderIndexHtml(posts) {
   const items = posts
     .map(
-      ({ meta, slug, readingMinutes }) => `        <li>
+      ({ meta, slug, readingMinutes }) => `        <li data-search="${escapeHtml([meta.title, meta.description, ...meta.tags].join(' '))}">
           <a class="post-card" href="/blog/${slug}/">
             <span class="post-card-title">${escapeHtml(meta.title)}</span>
             <span class="post-card-desc">${escapeHtml(meta.description)}</span>
@@ -329,6 +329,11 @@ function renderIndexHtml(posts) {
         <h1>blog</h1>
         <p class="post-meta">Guias e anotações sobre back-end, infraestrutura e sistemas.</p>
       </header>
+      <div class="post-search" hidden>
+        <label class="post-search-label" for="postSearch">// buscar</label>
+        <input class="post-search-input" id="postSearch" type="search" placeholder="título, tag ou assunto" autocomplete="off" spellcheck="false" />
+      </div>
+      <p class="post-search-empty" id="postSearchEmpty" hidden>nenhum post encontrado</p>
       <ul class="post-list">
 ${items}
       </ul>
@@ -341,6 +346,7 @@ ${items}
     bodyClass: 'page-index',
     ogType: 'website',
     content,
+    extraScripts: '\n    <script src="/assets/js/post-search.js" defer></script>',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'Blog',
@@ -566,7 +572,7 @@ async function handler(req, res) {
     const forceRefresh = refresh === '1' || refresh === 'true';
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v13';
+    const TEMPLATE_VERSION = 'v14';
 
     if (slug) {
       const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');

@@ -113,6 +113,13 @@ Tudo é montado no navegador a partir do HTML do post (o HTML servido aos bots n
 
 Arquivos envolvidos: [assets/js/post-toc.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/post-toc.js) e as seções "Stacking sticky headings" e "Table of contents" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
 
+### 3.6. Busca no Índice
+A página `/blog/` tem um campo `// buscar` que filtra os cards enquanto você digita. A busca ignora acentos e maiúsculas e exige que todas as palavras apareçam no **título, descrição ou tags** do post (o corpo não entra). O termo vai para a URL (`/blog/?q=docker`), a tecla `/` foca o campo e `Esc` limpa.
+
+Cada `<li>` do índice carrega o texto pesquisável em `data-search`, então não há API nem índice extra. O campo nasce oculto e só aparece quando o script carrega, para não mostrar um campo que não funciona sem JavaScript.
+
+Arquivos envolvidos: `renderIndexHtml` em [api/blog.js](file:///var/home/gabrielcoto/cotoo.dev/api/blog.js), [assets/js/post-search.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/post-search.js) e a seção "Index search" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
+
 ---
 
 ## 4. Arquitetura e Funcionamento

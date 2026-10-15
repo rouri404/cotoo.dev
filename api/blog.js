@@ -294,7 +294,7 @@ ${html}
     bodyClass: 'page-post',
     ogType: 'article',
     content,
-    extraScripts: '\n    <script src="/assets/js/post-toc.js" defer></script>' + (html.includes('class="mermaid-block"') ? '\n    <script src="/assets/js/mermaid-block.js" defer></script>' : ''),
+    extraScripts: '\n    <script src="/assets/js/post-toc.js" defer></script>\n    <script src="/assets/js/post-motion.js" defer></script>' + (html.includes('class="mermaid-block"') ? '\n    <script src="/assets/js/mermaid-block.js" defer></script>' : ''),
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'TechArticle',
@@ -572,7 +572,7 @@ async function handler(req, res) {
     const forceRefresh = refresh === '1' || refresh === 'true';
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v14';
+    const TEMPLATE_VERSION = 'v15';
 
     if (slug) {
       const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');

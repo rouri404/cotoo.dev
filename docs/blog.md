@@ -118,7 +118,17 @@ A página `/blog/` tem um campo `// buscar` que filtra os cards enquanto você d
 
 Cada `<li>` do índice carrega o texto pesquisável em `data-search`, então não há API nem índice extra. O campo nasce oculto e só aparece quando o script carrega, para não mostrar um campo que não funciona sem JavaScript.
 
+Animações (desligadas com `prefers-reduced-motion`): os cards entram em cascata ao abrir o índice; ao filtrar, os que ficam deslizam para a nova posição e os que reaparecem entram com fade; a mensagem de vazio surge suavemente e o campo ganha uma sombra ao focar.
+
 Arquivos envolvidos: `renderIndexHtml` em [api/blog.js](file:///var/home/gabrielcoto/cotoo.dev/api/blog.js), [assets/js/post-search.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/post-search.js) e a seção "Index search" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
+
+### 3.7. Animações dos Posts
+Os posts têm duas animações suaves, ambas com `opacity`/`transform` e desligadas com `prefers-reduced-motion`:
+
+- **Barra de progresso de leitura:** linha fina sobre a borda do header (`.reading-progress`).
+- **Sumário:** entra deslizando e o item ativo muda de cor com transição.
+
+Arquivos envolvidos: [assets/js/post-motion.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/post-motion.js) e a seção "Reading progress bar" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
 
 ---
 

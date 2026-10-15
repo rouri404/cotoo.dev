@@ -9,6 +9,8 @@
   --code-header-bg: rgba(28, 46, 28, 0.06);
   --code-comment-color: #1c2e1c;
   --mermaid-surface: #d5dfca;
+  --bg-rgb: 227, 236, 215;
+  --toc-active: #2d7a2d;
   --table-head-bg: #b7d3a6;
   --table-first-bg: rgba(77, 154, 77, 0.16);
   --table-stripe-bg: rgba(77, 154, 77, 0.07);
@@ -50,6 +52,8 @@
   --code-header-bg: rgba(255, 255, 255, 0.04);
   --code-comment-color: #8fbc8b;
   --mermaid-surface: #232323;
+  --bg-rgb: 18, 18, 18;
+  --toc-active: #b9e4b4;
   --table-head-bg: rgba(143, 188, 139, 0.24);
   --table-first-bg: rgba(143, 188, 139, 0.1);
   --table-stripe-bg: rgba(143, 188, 139, 0.07);
@@ -141,6 +145,14 @@ body.is-transitioning *::after {
 body.is-transitioning .blog-bar {
   background: transparent !important;
   border-bottom-color: transparent !important;
+}
+
+/* Opaque backgrounds above the canvas would show the new theme before the dither wave arrives */
+body.is-transitioning .post-section > h2,
+body.is-transitioning .post-subsection > h3 {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 #pixel-transition {
@@ -428,6 +440,138 @@ body.reading-mode .prose {
 .prose h4 {
   font-size: 1.3rem;
   margin: 2rem 0 0.5rem;
+}
+
+/* Stacking sticky headings: each heading is bounded by the section wrapped around it */
+.post-section {
+  padding-bottom: 3.5rem;
+}
+
+.post-section:last-child {
+  padding-bottom: 0;
+}
+
+.prose > :not(.post-section) + .post-section {
+  margin-top: 3.5rem;
+}
+
+.post-subsection {
+  padding-bottom: 2.5rem;
+}
+
+.post-subsection:last-child {
+  padding-bottom: 0;
+}
+
+.post-section > :not(.post-subsection) + .post-subsection {
+  margin-top: 2.5rem;
+}
+
+.post-section > hr:last-child,
+.post-subsection > hr:last-child {
+  margin-bottom: 0;
+}
+
+.post-section > h2,
+.post-subsection > h3 {
+  position: sticky;
+  margin-top: 0;
+  padding-top: 0.5rem;
+  background: rgba(var(--bg-rgb), 0.95);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.post-section > h2 {
+  top: var(--bar-height, 58px);
+  z-index: 5;
+  scroll-margin-top: var(--bar-height, 58px);
+}
+
+.post-subsection > h3 {
+  top: calc(var(--bar-height, 58px) + var(--h2-h, 0px));
+  z-index: 4;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule-color);
+  scroll-margin-top: calc(var(--bar-height, 58px) + var(--h2-h, 0px));
+}
+
+/* Table of contents (desktop only) */
+.post-toc {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .post-toc {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 100%;
+    width: clamp(150px, calc((100vw - 760px) / 2 - 4rem), 240px);
+    margin-left: 1.5rem;
+    padding-top: 3rem;
+  }
+
+  .post-toc-inner {
+    position: sticky;
+    top: calc(var(--bar-height, 58px) + 2rem);
+    max-height: calc(100vh - var(--bar-height, 58px) - 4rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-color) transparent;
+  }
+}
+
+.toc-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  opacity: 0.55;
+}
+
+.toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 2px solid var(--rule-color);
+}
+
+.toc-item {
+  margin: 0;
+}
+
+.toc-item a {
+  display: block;
+  margin-left: -2px;
+  padding: 0.25rem 0.5rem 0.25rem 0.9rem;
+  border-left: 2px solid transparent;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  text-decoration: none;
+  opacity: 0.6;
+  transition: opacity 0.15s steps(3), color 0.15s steps(3), border-color 0.15s steps(3);
+}
+
+.toc-item-h3 a {
+  padding-left: 1.7rem;
+  font-size: 0.85rem;
+}
+
+.toc-item a:hover,
+.toc-item a:focus-visible {
+  opacity: 1;
+}
+
+.toc-item a.is-active {
+  opacity: 1;
+  color: var(--toc-active);
+  border-left-color: var(--toc-active);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 .prose p,
@@ -997,5 +1141,12 @@ body.reading-mode .mermaid-source code {
 
   .prose h2 {
     font-size: 1.7rem;
+  }
+
+  .post-subsection > h3 {
+    position: static;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }

@@ -53,7 +53,7 @@
     const blogBar = document.querySelector(".blog-bar");
     function updateBarHeight() {
       if (blogBar) {
-        document.documentElement.style.setProperty("--bar-height", blogBar.offsetHeight + "px");
+        document.documentElement.style.setProperty("--bar-height", Math.ceil(blogBar.getBoundingClientRect().height) + "px");
       }
     }
     updateBarHeight();
@@ -98,7 +98,7 @@
         window.addEventListener("scroll", clipMainBelowHeader, { passive: true });
 
         const elementsToFlip = document.querySelectorAll(
-          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .reading-progress'
+          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .reading-progress, .mascot, .mascot-bubble, .mascot-bubble a'
         );
 
         const flips = Array.from(elementsToFlip).map((el) => {
@@ -146,6 +146,10 @@
         let startTime = null;
         const targetTextColor = newTheme === "dark" ? "#8fbc8b" : "#1c2e1c";
         const targetRuleColor = newTheme === "dark" ? "rgba(143, 188, 139, 0.3)" : "rgba(28, 46, 28, 0.3)";
+        // Sticky headings paint their background from these (see blog.css), so it follows the wave
+        const stickies = Array.from(document.querySelectorAll(".post-section > h2, .post-subsection > h3"));
+        root.style.setProperty("--tr-old-bg", newTheme === "dark" ? "#e3ecd7" : "#121212");
+        root.style.setProperty("--tr-new-bg", newBgColor);
         const barHeight = blogBar ? Math.round(blogBar.getBoundingClientRect().height) : 58;
         const borderTop = barHeight - 2;
         const borderBottom = barHeight;
@@ -194,6 +198,14 @@
             }
           }
 
+          const sweptR = Math.max(0, waveR - ditherBand * 0.5) * size;
+          for (const el of stickies) {
+            const r = el.getBoundingClientRect();
+            el.style.setProperty("--wave-r", sweptR + "px");
+            el.style.setProperty("--wave-x", window.innerWidth - r.left + "px");
+            el.style.setProperty("--wave-y", -r.top - gridOffsetY + "px");
+          }
+
           for (const flip of flips) {
             if (!flip.flipped && (flip.letter ? letterReached(flip, waveR) : waveR - ditherBand * flip.lag > flip.d / size)) {
               flip.el.setAttribute("data-theme", newTheme);
@@ -202,7 +214,7 @@
               }
               if (flip.el.matches('.post-header, h2, .post-subsection > h3, .post-search-input, hr, .code-block, .code-header, .mermaid-block, .mermaid-header, blockquote, .table-wrap, table, th, td')) {
                 flip.el.style.borderColor = targetRuleColor;
-              } else if (flip.el.matches('.tag, .post-card')) {
+              } else if (flip.el.matches('.tag, .post-card, .mascot-bubble')) {
                 flip.el.style.borderColor = targetTextColor;
               }
               flip.flipped = true;
@@ -213,6 +225,13 @@
             requestAnimationFrame(animateSweep);
           } else {
             root.setAttribute("data-theme", newTheme);
+            for (const el of stickies) {
+              el.style.removeProperty("--wave-r");
+              el.style.removeProperty("--wave-x");
+              el.style.removeProperty("--wave-y");
+            }
+            root.style.removeProperty("--tr-old-bg");
+            root.style.removeProperty("--tr-new-bg");
             for (const flip of flips) {
               flip.el.removeAttribute("data-theme");
               flip.el.style.color = "";

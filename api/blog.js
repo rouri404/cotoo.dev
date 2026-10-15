@@ -248,7 +248,9 @@ ${JSON.stringify(jsonLd, null, 2)}
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/blog.css" />
-    <script src="/assets/js/blog.js"></script>${extraScripts}
+    <link rel="stylesheet" href="/assets/css/mascot.css" />
+    <script src="/assets/js/blog.js"></script>
+    <script src="/assets/js/mascot.js" defer></script>${extraScripts}
   </head>
   <body class="${bodyClass}">
     <canvas id="pixel-transition"></canvas>
@@ -572,7 +574,7 @@ async function handler(req, res) {
     const forceRefresh = refresh === '1' || refresh === 'true';
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v15';
+    const TEMPLATE_VERSION = 'v16';
 
     if (slug) {
       const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');

@@ -6,14 +6,15 @@
   const bar = document.createElement("div");
   bar.className = "reading-progress";
   bar.setAttribute("aria-hidden", "true");
-  document.body.appendChild(bar);
+  (document.querySelector(".blog-bar") || document.body).appendChild(bar);
 
   let ticking = false;
   function updateProgress() {
     ticking = false;
     const max = document.documentElement.scrollHeight - window.innerHeight;
     const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-    bar.style.transform = `scaleX(${p})`;
+    // Width, not a transform: a transformed layer is rastered apart and drifts a pixel from the border at fractional zoom
+    bar.style.width = p * 100 + "%";
   }
   function requestProgress() {
     if (ticking) return;

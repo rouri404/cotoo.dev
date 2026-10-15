@@ -142,17 +142,48 @@ body.is-transitioning *::after {
   transition: none !important;
 }
 
-body.is-transitioning .blog-bar {
-  background: transparent !important;
-  border-bottom-color: transparent !important;
-}
-
-/* Opaque backgrounds above the canvas would show the new theme before the dither wave arrives */
+/* Sticky headings have post text sliding beneath them, so they cannot go see-through while the theme changes.
+   Their background is painted in two layers instead: the old colour, and the new colour clipped to the
+   circle the dither wave has swept so far (blog.js sets --wave-r/x/y on them every frame) */
 body.is-transitioning .post-section > h2,
 body.is-transitioning .post-subsection > h3 {
   background: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.post-section > h2::before,
+.post-section > h2::after,
+.post-subsection > h3::before,
+.post-subsection > h3::after {
+  content: "";
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+body.is-transitioning .post-section > h2::before,
+body.is-transitioning .post-section > h2::after,
+body.is-transitioning .post-subsection > h3::before,
+body.is-transitioning .post-subsection > h3::after {
+  display: block;
+}
+
+.post-section > h2::before,
+.post-subsection > h3::before {
+  background: var(--tr-old-bg);
+}
+
+.post-section > h2::after,
+.post-subsection > h3::after {
+  background: var(--tr-new-bg);
+  clip-path: circle(var(--wave-r, 0px) at var(--wave-x, 0px) var(--wave-y, 0px));
+}
+
+body.is-transitioning .blog-bar {
+  background: transparent !important;
+  border-bottom-color: transparent !important;
 }
 
 #pixel-transition {
@@ -555,20 +586,27 @@ body.reading-mode .prose {
   position: sticky;
   margin-top: 0;
   padding-top: 0.5rem;
-  background: rgba(var(--bg-rgb), 0.95);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  /* A gradient paints the same solid colour, but the browser does not treat it as an opaque layer,
+     which would turn on subpixel text smoothing and fringe the pixel font with colour */
+  background: linear-gradient(var(--bg-color), var(--bg-color));
+  /* At fractional zoom (125%) the edges land between device pixels and let a hairline of the text beneath show;
+     the 1px ring paints over it */
+  box-shadow: 0 0 0 1px var(--bg-color);
 }
 
+/* Each sticky heading reaches 1px past its edges, so no sliver of the content shows through the seams */
 .post-section > h2 {
-  top: var(--bar-height, 58px);
+  padding-top: calc(0.5rem + 1px);
+  padding-bottom: calc(0.5rem + 1px);
+  top: calc(var(--bar-height, 58px) - 1px);
   z-index: 5;
   scroll-margin-top: var(--bar-height, 58px);
 }
 
 .post-subsection > h3 {
-  top: calc(var(--bar-height, 58px) + var(--h2-h, 0px));
+  top: calc(var(--bar-height, 58px) + var(--h2-h, 0px) - 1px);
   z-index: 4;
+  padding-top: calc(0.5rem + 1px);
   padding-bottom: 0.4rem;
   border-bottom: 1px solid var(--rule-color);
   scroll-margin-top: calc(var(--bar-height, 58px) + var(--h2-h, 0px));
@@ -648,15 +686,13 @@ body.reading-mode .prose {
 
 /* Reading progress bar, drawn over the header's bottom border */
 .reading-progress {
-  position: fixed;
-  top: calc(var(--bar-height, 58px) - 2px);
+  /* Sits on the header's own bottom border, so it lines up with it at any zoom */
+  position: absolute;
   left: 0;
-  right: 0;
+  width: 0;
+  bottom: -2px;
   height: 2px;
-  background: var(--text-color);
-  transform: scaleX(0);
-  transform-origin: left;
-  z-index: 101;
+  background: var(--toc-active);
   pointer-events: none;
 }
 

@@ -8,6 +8,7 @@
   --inline-code-bg: rgba(0, 0, 0, 0.12);
   --code-header-bg: rgba(0, 0, 0, 0.15);
   --code-comment-color: rgba(255, 255, 255, 0.75);
+  --mermaid-surface: #7aa076;
 
   --callout-note-color: #0e325b;
   --callout-note-border: #1a4a7d;
@@ -44,6 +45,7 @@
   --inline-code-bg: rgba(255, 255, 255, 0.1);
   --code-header-bg: rgba(255, 255, 255, 0.04);
   --code-comment-color: #8fbc8b;
+  --mermaid-surface: #232323;
 
   --callout-note-color: #58a6ff;
   --callout-note-border: #388bfd;
@@ -487,7 +489,8 @@ body.reading-mode .prose :not(pre) > code {
   letter-spacing: 0.06em;
 }
 
-.copy-btn {
+.copy-btn,
+.mermaid-toggle {
   background: transparent;
   border: 1px solid var(--rule-color);
   padding: 0.2rem 0.55rem;
@@ -505,7 +508,8 @@ body.reading-mode .prose :not(pre) > code {
   transition: transform 0.08s steps(2), background-color 0.08s, color 0.08s, border-color 0.08s, opacity 0.15s;
 }
 
-.copy-btn::after {
+.copy-btn::after,
+.mermaid-toggle::after {
   content: "";
   position: absolute;
   inset: -5px;
@@ -513,7 +517,9 @@ body.reading-mode .prose :not(pre) > code {
 }
 
 .copy-btn:hover,
-.copy-btn:focus-visible {
+.copy-btn:focus-visible,
+.mermaid-toggle:hover,
+.mermaid-toggle:focus-visible {
   opacity: 1;
   transform: translateY(-2px);
   border-color: var(--text-color);
@@ -522,7 +528,9 @@ body.reading-mode .prose :not(pre) > code {
 }
 
 .copy-btn:hover::after,
-.copy-btn:focus-visible::after {
+.copy-btn:focus-visible::after,
+.mermaid-toggle:hover::after,
+.mermaid-toggle:focus-visible::after {
   transform: translateY(2px);
 }
 
@@ -728,6 +736,219 @@ body.reading-mode .prose table {
   height: auto;
   display: block;
   margin: 1.5rem auto;
+}
+
+/* Mermaid diagrams (rendered by mermaid-block.js) */
+.mermaid-block {
+  margin: 1.6rem 0;
+  border: 2px solid var(--rule-color);
+  background: var(--code-bg);
+}
+
+.mermaid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.85rem;
+  background: var(--code-header-bg);
+  border-bottom: 2px solid var(--rule-color);
+  font-family: "Tiny5", sans-serif;
+  font-size: 0.95rem;
+}
+
+.mermaid-label {
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mermaid-toggle {
+  background: transparent;
+  border: 1px solid var(--rule-color);
+  padding: 0.2rem 0.55rem;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  position: relative;
+  transition: transform 0.08s steps(2), background-color 0.08s, color 0.08s, border-color 0.08s, opacity 0.15s;
+}
+
+.mermaid-toggle::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+}
+
+.mermaid-block[data-state="idle"] .mermaid-toggle,
+.mermaid-block[data-state="loading"]:not([data-view]) .mermaid-toggle,
+.mermaid-block[data-state="error"] .mermaid-toggle {
+  display: none;
+}
+
+.mermaid-stage {
+  padding: 1.1rem 1.25rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-color) rgba(0, 0, 0, 0.15);
+}
+
+.mermaid-stage::-webkit-scrollbar {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.mermaid-stage::-webkit-scrollbar-thumb {
+  background: var(--text-color);
+  border-radius: 0;
+}
+
+.mermaid-stage::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Source is the fallback: visible without JS, on errors and in the "código" view */
+.mermaid-canvas {
+  display: none;
+}
+
+.mermaid-source {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none !important;
+  overflow: visible;
+}
+
+.mermaid-source code {
+  border: none !important;
+  background: none !important;
+  padding: 0 !important;
+  font-family: "Tiny5", monospace;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  white-space: pre;
+  color: var(--text-color);
+}
+
+body.reading-mode .mermaid-source code {
+  font-family: ui-monospace, SFMono-Regular, "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+}
+
+.mermaid-block[data-state="ready"]:not([data-view="code"]) .mermaid-canvas,
+.mermaid-block[data-state="loading"]:not([data-view="code"]) .mermaid-canvas {
+  display: block;
+  min-height: 4rem;
+}
+
+.mermaid-block[data-state="ready"]:not([data-view="code"]) .mermaid-source,
+.mermaid-block[data-state="loading"]:not([data-view="code"]) .mermaid-source {
+  display: none;
+}
+
+.mermaid-block[data-state="loading"] .mermaid-canvas:empty::before {
+  content: "renderizando...";
+  font-family: "Tiny5", sans-serif;
+  opacity: 0.6;
+}
+
+.mermaid-canvas svg {
+  display: block;
+  margin: 0 auto;
+  min-width: 520px;
+  height: auto;
+  shape-rendering: crispEdges;
+}
+
+/* Theme colors are painted via CSS so diagrams follow the dithered theme switch */
+.mermaid-canvas svg text,
+.mermaid-canvas svg tspan,
+.mermaid-canvas svg .nodeLabel,
+.mermaid-canvas svg .edgeLabel {
+  fill: var(--text-color) !important;
+  color: var(--text-color) !important;
+  stroke: none !important;
+}
+
+.mermaid-canvas svg .node rect,
+.mermaid-canvas svg .node polygon,
+.mermaid-canvas svg .node circle,
+.mermaid-canvas svg .node ellipse,
+.mermaid-canvas svg .node path,
+.mermaid-canvas svg rect.actor,
+.mermaid-canvas svg .labelBox,
+.mermaid-canvas svg .note {
+  fill: var(--code-header-bg) !important;
+  stroke: var(--text-color) !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid-canvas svg .cluster rect {
+  fill: transparent !important;
+  stroke: var(--rule-color) !important;
+  stroke-width: 2px !important;
+  stroke-dasharray: 6 4;
+}
+
+.mermaid-canvas svg .edgeLabel rect,
+.mermaid-canvas svg .labelBkg {
+  fill: var(--mermaid-surface) !important;
+  stroke: none !important;
+  opacity: 1 !important;
+  background-color: var(--mermaid-surface) !important;
+}
+
+.mermaid-canvas svg .edgePaths path,
+.mermaid-canvas svg path.flowchart-link,
+.mermaid-canvas svg .messageLine0,
+.mermaid-canvas svg .messageLine1,
+.mermaid-canvas svg .actor-line,
+.mermaid-canvas svg .loopLine {
+  stroke: var(--text-color) !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid-canvas svg .actor-line {
+  stroke-dasharray: 4 4;
+  opacity: 0.6;
+}
+
+.mermaid-canvas svg marker path,
+.mermaid-canvas svg .arrowMarkerPath {
+  fill: var(--text-color) !important;
+  stroke: var(--text-color) !important;
+}
+
+.mermaid-canvas svg .activation0,
+.mermaid-canvas svg .activation1,
+.mermaid-canvas svg .activation2 {
+  fill: var(--code-bg) !important;
+  stroke: var(--text-color) !important;
+}
+
+.mermaid-canvas svg .actor-man circle {
+  fill: var(--code-header-bg) !important;
+  stroke: var(--text-color) !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid-canvas svg .actor-man line {
+  stroke: var(--text-color) !important;
+  stroke-width: 2px !important;
+}
+
+.mermaid-canvas svg .noteText,
+.mermaid-canvas svg .messageText,
+.mermaid-canvas svg .actor,
+.mermaid-canvas svg .loopText {
+  fill: var(--text-color) !important;
+  stroke: none !important;
 }
 
 @media (max-width: 600px) {

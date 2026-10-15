@@ -52,6 +52,12 @@ Você pode usar as tags de alerta nativas do GitHub Flavored Markdown (com supor
 
 ---
 
+## Diagramas Mermaid
+
+Use um bloco ```` ```mermaid ```` para inserir diagramas. Veja os detalhes em [`docs/blog.md`](../docs/blog.md#34-diagramas-mermaid).
+
+---
+
 ## Como Publicar
 
 Os posts são renderizados dinamicamente via serverless (`api/blog.js`) e cacheados em memória / Edge. Basta criar ou editar o arquivo `.md` nesta pasta e fazer o commit/push.

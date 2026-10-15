@@ -86,6 +86,24 @@ Tabelas GFM são renderizadas dentro de contêineres responsivos com barras de r
 | `docker stop` | Interrompe um container |
 ```
 
+### 3.4. Diagramas Mermaid
+Blocos ```` ```mermaid ```` são renderizados como diagramas no navegador (flowchart, sequence, etc.). A biblioteca é carregada do CDN apenas nos posts que têm diagramas, e cada diagrama só é desenhado quando se aproxima da viewport. As cores seguem o tema (dark/light) via variáveis CSS e a fonte segue o modo Pixel/Leitura.
+
+Uma linha `%% title: Texto` define o título exibido no cabeçalho (ela também é um comentário válido em Mermaid). O botão **código** alterna entre o diagrama e o texto-fonte, que também serve de fallback sem JavaScript ou se a renderização falhar.
+
+````markdown
+```mermaid
+%% title: Fluxo de cache
+flowchart LR
+    A["Edge CDN"] -->|"miss"| B["Redis"]
+    B -->|"miss"| C["MongoDB"]
+```
+````
+
+> Dica: coloque os textos dos nós entre aspas (`A["texto (com parênteses)"]`) para evitar erros de sintaxe.
+
+Arquivos envolvidos: `renderMermaidBlock` em [api/blog.js](file:///var/home/gabrielcoto/cotoo.dev/api/blog.js), [assets/js/mermaid-block.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/mermaid-block.js) e a seção "Mermaid" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
+
 ---
 
 ## 4. Arquitetura e Funcionamento

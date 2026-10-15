@@ -35,6 +35,23 @@ function highlightCode(rawText) {
     .join('\n');
 }
 
+// Diagram placeholder: the source stays in the HTML (SEO, no-JS fallback) and mermaid-block.js renders it
+function renderMermaidBlock(source) {
+  const title = (source.match(/^\s*%%\s*title:\s*(.+)$/m) || [])[1];
+  const code = source.replace(/^\s*%%\s*title:.*$/m, '').trim();
+  const label = title ? title.trim() : 'diagrama';
+  return `<figure class="mermaid-block" data-state="idle">
+  <div class="mermaid-header">
+    <span class="mermaid-label">${escapeHtml(label)}</span>
+    <button class="mermaid-toggle" type="button" aria-pressed="false" title="Alternar entre diagrama e código">código</button>
+  </div>
+  <div class="mermaid-stage">
+    <div class="mermaid-canvas" role="img" aria-label="${escapeHtml(label)}" aria-live="polite"></div>
+    <pre class="mermaid-source"><code class="language-mermaid">${escapeHtml(code)}</code></pre>
+  </div>
+</figure>\n`;
+}
+
 const ALERT_CONFIG = {
   NOTE: {
     label: 'Nota',
@@ -141,6 +158,7 @@ async function renderMarkdownWith(body) {
       },
       code(token) {
         const lang = (token.lang || 'terminal').trim().split(/\s+/)[0];
+        if (lang === 'mermaid') return renderMermaidBlock(token.text);
         const highlighted = highlightCode(token.text);
         return `<div class="code-block">
   <div class="code-header">
@@ -195,7 +213,7 @@ async function renderMarkdownWith(body) {
 const formatDate = (iso) =>
   new Date(`${iso}T12:00:00-03:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
 
-function layout({ title, description, canonical, bodyClass, content, jsonLd, ogType }) {
+function layout({ title, description, canonical, bodyClass, content, jsonLd, ogType, extraScripts = '' }) {
   return `<!doctype html>
 <html lang="pt-BR">
   <head>
@@ -230,7 +248,7 @@ ${JSON.stringify(jsonLd, null, 2)}
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/assets/css/blog.css" />
-    <script src="/assets/js/blog.js"></script>
+    <script src="/assets/js/blog.js"></script>${extraScripts}
   </head>
   <body class="${bodyClass}">
     <canvas id="pixel-transition"></canvas>
@@ -276,6 +294,7 @@ ${html}
     bodyClass: 'page-post',
     ogType: 'article',
     content,
+    extraScripts: html.includes('class="mermaid-block"') ? '\n    <script src="/assets/js/mermaid-block.js" defer></script>' : '',
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'TechArticle',
@@ -547,7 +566,7 @@ async function handler(req, res) {
     const forceRefresh = refresh === '1' || refresh === 'true';
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v11';
+    const TEMPLATE_VERSION = 'v12';
 
     if (slug) {
       const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');

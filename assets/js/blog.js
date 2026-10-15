@@ -45,7 +45,7 @@
         themeToggle.innerHTML = currentTheme === "light" ? svgMoon : svgSun;
       }
       if (metaTheme) {
-        metaTheme.setAttribute("content", currentTheme === "dark" ? "#121212" : "#8fbc8b");
+        metaTheme.setAttribute("content", currentTheme === "dark" ? "#121212" : "#e3ecd7");
       }
     }
     updateThemeIcon();
@@ -74,7 +74,7 @@
         } catch (_) {}
         updateThemeIcon();
 
-        const newBgColor = newTheme === "dark" ? "#121212" : "#8fbc8b";
+        const newBgColor = newTheme === "dark" ? "#121212" : "#e3ecd7";
 
         if (!transCanvas || !transCtx) {
           root.setAttribute("data-theme", newTheme);
@@ -144,8 +144,8 @@
         const ditherBand = 12;
         const duration = 800;
         let startTime = null;
-        const targetTextColor = newTheme === "dark" ? "#8fbc8b" : "#121212";
-        const targetRuleColor = newTheme === "dark" ? "rgba(143, 188, 139, 0.3)" : "rgba(18, 18, 18, 0.35)";
+        const targetTextColor = newTheme === "dark" ? "#8fbc8b" : "#1c2e1c";
+        const targetRuleColor = newTheme === "dark" ? "rgba(143, 188, 139, 0.3)" : "rgba(28, 46, 28, 0.3)";
         const barHeight = blogBar ? Math.round(blogBar.getBoundingClientRect().height) : 58;
         const borderTop = barHeight - 2;
         const borderBottom = barHeight;

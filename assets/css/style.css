@@ -1,11 +1,12 @@
 :root,
 [data-theme="light"] {
-  --bg-color: #8fbc8b;
-  --text-color: #121212;
-  --logo-filter: none;
-  --label-opacity: 0.9;
-  --time-opacity: 0.8;
-  --progress-bg-opacity: 0.45;
+  --bg-color: #e3ecd7;
+  --text-color: #1c2e1c;
+  --logo-filter: brightness(0) invert(10%) sepia(100%) saturate(150%) hue-rotate(72deg) brightness(130%);
+  --label-opacity: 0.7;
+  --time-opacity: 0.6;
+  --progress-bg-opacity: 0.15;
+  --shimmer-color: #4d9a4d;
 }
 
 [data-theme="dark"] {
@@ -15,6 +16,7 @@
   --label-opacity: 0.55;
   --time-opacity: 0.4;
   --progress-bg-opacity: 0.25;
+  --shimmer-color: #fff;
 }
 
 html,
@@ -125,6 +127,10 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+}
+
+.experience-col .eyebrow {
+  align-self: stretch;
 }
 
 @media (max-width: 900px) {
@@ -322,7 +328,7 @@ code {
     110deg,
     var(--text-color) 0%,
     var(--text-color) 35%,
-    #fff 50%,
+    var(--shimmer-color) 50%,
     var(--text-color) 65%,
     var(--text-color) 100%
   );
@@ -352,34 +358,15 @@ code {
 .shimmer::before {
   top: 1px;
   right: -1px;
-  color: #fff;
+  color: var(--shimmer-color);
   animation: sparklePos1 5s ease-in-out infinite;
 }
 
 .shimmer::after {
   bottom: 2px;
   left: 0px;
-  color: #fff;
+  color: var(--shimmer-color);
   animation: sparklePos2 5s ease-in-out infinite;
-}
-
-[data-theme="light"] .shimmer::before,
-[data-theme="light"] .shimmer::after {
-  color: #ffeb3b;
-}
-
-[data-theme="light"] .shimmer {
-  background: linear-gradient(
-    110deg,
-    var(--text-color) 0%,
-    var(--text-color) 35%,
-    #ffeb3b 50%,
-    var(--text-color) 65%,
-    var(--text-color) 100%
-  );
-  background-size: 400% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
 }
 
 @keyframes shimmerLight {

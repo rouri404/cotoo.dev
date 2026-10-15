@@ -26,7 +26,7 @@ function resize() {
 
 function draw(now) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = trailTheme === "dark" ? "#8FBC8B" : "#121212";
+  ctx.fillStyle = trailTheme === "dark" ? "#8FBC8B" : "#1C2E1C";
   for (const [key, startTime] of activePixels) {
     const elapsed = now - startTime;
     if (elapsed >= FADE_DURATION) {
@@ -451,7 +451,7 @@ themeToggle.addEventListener("click", (e) => {
   } catch (_) {}
   updateThemeIcon();
   
-  const newBgColor = newTheme === "dark" ? "#121212" : "#8fbc8b";
+  const newBgColor = newTheme === "dark" ? "#121212" : "#e3ecd7";
   const metaTheme = document.getElementById("meta-theme-color");
   if (metaTheme) metaTheme.setAttribute("content", newBgColor);
   
@@ -509,10 +509,10 @@ themeToggle.addEventListener("click", (e) => {
   
   const duration = 800;
   let startTime = null;
-  const targetTextColor = newTheme === "dark" ? "#8fbc8b" : "#121212";
+  const targetTextColor = newTheme === "dark" ? "#8fbc8b" : "#1c2e1c";
   const targetLogoFilter = newTheme === "dark"
     ? "brightness(0) invert(81%) sepia(23%) saturate(440%) hue-rotate(68deg) brightness(82%) contrast(91%)"
-    : "none";
+    : "brightness(0) invert(10%) sepia(100%) saturate(150%) hue-rotate(72deg) brightness(130%)";
   
   function animateSweep(timestamp) {
     if (!startTime) startTime = timestamp;
@@ -1021,7 +1021,7 @@ fetchGithubActivity();
 
 // Confetti Effect
 function firePixelConfetti() {
-  const colors = ["#8FBC8B", "#ffffff", "#444444"];
+  const colors = currentTheme === "dark" ? ["#8FBC8B", "#ffffff", "#444444"] : ["#4D9A4D", "#1C2E1C", "#8FBC8B"];
   const isMobile = window.innerWidth < 600;
   const count = isMobile ? 80 : 150;
   

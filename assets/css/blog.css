@@ -1,14 +1,18 @@
 :root,
 [data-theme="light"] {
-  --bg-color: #8fbc8b;
-  --text-color: #121212;
-  --prose-color: #121212;
-  --code-bg: rgba(0, 0, 0, 0.15);
-  --rule-color: rgba(18, 18, 18, 0.35);
-  --inline-code-bg: rgba(0, 0, 0, 0.12);
-  --code-header-bg: rgba(0, 0, 0, 0.15);
-  --code-comment-color: rgba(255, 255, 255, 0.75);
-  --mermaid-surface: #7aa076;
+  --bg-color: #e3ecd7;
+  --text-color: #1c2e1c;
+  --prose-color: #1c2e1c;
+  --code-bg: rgba(28, 46, 28, 0.07);
+  --rule-color: rgba(28, 46, 28, 0.3);
+  --inline-code-bg: rgba(28, 46, 28, 0.09);
+  --code-header-bg: rgba(28, 46, 28, 0.06);
+  --code-comment-color: #1c2e1c;
+  --mermaid-surface: #d5dfca;
+  --table-head-bg: #b7d3a6;
+  --table-first-bg: rgba(77, 154, 77, 0.16);
+  --table-stripe-bg: rgba(77, 154, 77, 0.07);
+  --table-hover-bg: rgba(77, 154, 77, 0.22);
 
   --callout-note-color: #0e325b;
   --callout-note-border: #1a4a7d;
@@ -46,6 +50,10 @@
   --code-header-bg: rgba(255, 255, 255, 0.04);
   --code-comment-color: #8fbc8b;
   --mermaid-surface: #232323;
+  --table-head-bg: rgba(143, 188, 139, 0.24);
+  --table-first-bg: rgba(143, 188, 139, 0.1);
+  --table-stripe-bg: rgba(143, 188, 139, 0.07);
+  --table-hover-bg: rgba(143, 188, 139, 0.16);
 
   --callout-note-color: #58a6ff;
   --callout-note-border: #388bfd;
@@ -729,6 +737,25 @@ body.reading-mode .prose table {
   font-family: "Tiny5", sans-serif;
   font-weight: 400;
   color: var(--text-color);
+  background: var(--table-head-bg);
+  border-bottom-color: var(--text-color);
+}
+
+body.reading-mode .prose th {
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.prose tbody tr:nth-child(even) td {
+  background: var(--table-stripe-bg);
+}
+
+.prose tbody td:first-child {
+  background: var(--table-first-bg);
+}
+
+.prose tbody tr:hover td {
+  background: var(--table-hover-bg);
 }
 
 .prose img {

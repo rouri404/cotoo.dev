@@ -24,7 +24,7 @@
   font-size: 0.8rem;
   line-height: 1.5;
   text-align: left;
-  /* terminal.js moves it with transform: translate; the pop-in uses the separate scale property */
+  /* terminal.js moves it with the translate property; the pop-in uses the scale property, which is applied after it */
   transform-origin: var(--ox, 50%) var(--oy, 100%);
   /* Closing is a quick fade; only opening grows out of Tux (see termIn) */
   opacity: 0;

@@ -130,16 +130,23 @@
   // Size and screen position
   let vw = 0, vh = 0, W = 0, H = 0;
 
+  // During the party the real size grows (so the ASCII stays sharp); only the transition between sizes is a CSS scale
+  let boosted = false;
+  let baseW = 0;
+
   function measure() {
     vw = window.innerWidth;
     vh = window.innerHeight;
     // Sized so that he fits under the hero text
     const hMax = Math.min(0.27 * vh, vh / 2 - 170, 260);
-    W = Math.max(110, Math.min((hMax * 300) / 340, vw * 0.42));
-    H = (W * 340) / 300;
+    baseW = Math.max(110, Math.min((hMax * 300) / 340, vw * 0.42));
+    const baseH = (baseW * 340) / 300;
+    const boost = boosted ? Math.max(1, Math.min((vh * 0.85) / baseH, (vw * 0.6) / baseW)) : 1;
+    W = baseW * boost;
+    H = baseH * boost;
     box.style.width = W + "px";
     box.style.height = H + "px";
-    if (spot) spot.style.height = Math.round(H + 134 + 44) + "px";
+    if (spot) spot.style.height = Math.round(baseH + 134 + 44) + "px";
   }
 
   const heroActive = () => hero.classList.contains("active");
@@ -151,6 +158,25 @@
   }
 
   function targetFor() {
+    // During the party he dances in the middle of the screen
+    if (partyStart >= 0 && !partyLeaving) return { mode: "fixed", x: (vw - W) / 2, y: (vh - H) / 2 + vh * 0.03 };
+    if (!boosted) return homeTarget();
+
+    // Walking home while still big: aim where the small box will be, shifted so the two boxes share a centre
+    // (the CSS scale shrinks him around it), so nothing slides when the real size comes back
+    const bigW = W;
+    const bigH = H;
+    W = baseW;
+    H = (baseW * 340) / 300;
+    const t = homeTarget();
+    t.x -= (bigW - W) / 2;
+    t.y -= (bigH - H) / 2;
+    W = bigW;
+    H = bigH;
+    return t;
+  }
+
+  function homeTarget() {
     if (isHome) {
       if (heroActive()) {
         if (vh < 560) return { mode: "away", x: (vw - W) / 2, y: vh + 40 };
@@ -185,7 +211,8 @@
       pos.x += (t.x - pos.x) * k;
       pos.y += (t.y - pos.y) * k;
     }
-    box.style.transform = `translate3d(${pos.x.toFixed(1)}px, ${pos.y.toFixed(1)}px, 0)`;
+    // The translate property, not transform: the CSS scale applies after it, so it scales around the box and leaves its position alone
+    box.style.translate = `${pos.x.toFixed(1)}px ${pos.y.toFixed(1)}px`;
     onScreen = pos.y + H > 0 && pos.y < vh && pos.x + W > 0 && pos.x < vw;
   }
 
@@ -361,7 +388,8 @@
   function updateBubble(now) {
     if (!bubble) return;
     if (speech && now >= speech.until) speech = null;
-    const text = speech ? speech.text : BUBBLE_TEXT;
+    // His own text stays quiet during the party
+    const text = speech ? speech.text : partyStart >= 0 ? "" : BUBBLE_TEXT;
     const rel = parseFloat(bubble.style.top);
     const top = pos.y + (isNaN(rel) ? -90 : rel);
     // His own text waits until he has settled; a comment shows wherever he is
@@ -410,14 +438,17 @@
   let zbuf, lbuf, mbuf, hbuf;
 
   function layout() {
-    const rect = canvas.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
+    // Layout size, not getBoundingClientRect: the party's CSS scale must not shrink the bitmap
+    const w = canvas.offsetWidth;
+    const h = canvas.offsetHeight;
+    if (!w || !h) return;
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    cssW = rect.width;
-    cssH = rect.height;
+    cssW = w;
+    cssH = h;
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
-    cellW = Math.max(5, Math.round(cssW / PAD / 56));
+    // The party's big Tux gets more characters rather than bigger ones: about 140 columns instead of 56
+    cellW = Math.max(5, Math.round(cssW / PAD / (boosted ? 140 : 56)));
     cellH = Math.round(cellW * 1.7);
     cols = Math.floor(cssW / cellW);
     rows = Math.floor(cssH / cellH);
@@ -439,7 +470,8 @@
       style.getPropertyValue("--mascot-accent").trim() || textColor,
     ];
     const theme = canvas.getAttribute("data-theme") || document.documentElement.getAttribute("data-theme") || "light";
-    const isDark = theme === "dark";
+    // The party happens on a darkened screen, so he is drawn light on dark whatever the theme
+    const isDark = theme === "dark" || partyLook;
 
     const cy = Math.cos(yaw), sy = Math.sin(yaw);
     const cp = Math.cos(pitch), sp = Math.sin(pitch);
@@ -469,7 +501,7 @@
       const r = 1 - Math.max(0, nz2);
       const m = mats[i];
       // A black body would vanish on a dark page, so it gets a little more ink there
-      const albedo = isDark && m === 0 ? 0.3 : ALBEDO[m];
+      const albedo = isDark && m === 0 ? (partyLook ? 0.7 : 0.3) : ALBEDO[m];
       lum[i] = albedo * (0.22 + diff * 0.85) + r * r * r * 0.28;
     }
 
@@ -569,7 +601,27 @@
 
   const SPIN_MS = 1200;
   const FLIP_MS = 650;
-  const PARTY_MS = 2400;
+  // The party: Tux goes to the middle of the screen and dances to a 126 bpm beat, while party.js runs the lights
+  const PARTY_MS = 8000;
+  const BEAT_MS = 476;
+  // The way out overlaps the lights fading: he shrinks and walks home over the last 900 ms, and the party look
+  // (light on dark, neon) is dropped 400 ms before the end, while the screen is still half dark
+  const LEAVE_MS = 900;
+  const LOOK_END_MS = 400;
+  let partyLeaving = false;
+  let partyLook = false;
+  // On the darkened screen he keeps to his own colours, only lighter: pale body, white belly, yellow beak and feet
+  function partyColors(on) {
+    if (!on) {
+      canvas.style.color = "";
+      canvas.style.removeProperty("--mascot-white");
+      canvas.style.removeProperty("--mascot-accent");
+      return;
+    }
+    canvas.style.color = "#d6d9e8";
+    canvas.style.setProperty("--mascot-white", "#ffffff");
+    canvas.style.setProperty("--mascot-accent", "#ffd21f");
+  }
   let partyStart = -1;
 
   // After a while without any input he dozes off (head down, "zzz"), and wakes with a spin when you come back
@@ -582,7 +634,7 @@
     if (!sleeping) return;
     sleeping = false;
     if (!reduceMotion.matches) spin(performance.now());
-    say("ué, voltou? :)", 2800);
+    say("opa, voltou amigao? o.O", 2800);
   }
 
   // Capture phase, so keys typed in the terminal (which stops them) still count
@@ -615,7 +667,7 @@
     });
   }
 
-  // Konami code easter egg (also reachable with a "mascot:party" event): three spins, three hops and confetti
+  // Konami code easter egg (also reachable with a "mascot:party" event)
   const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
   let konamiAt = 0;
 
@@ -647,10 +699,49 @@
     }
   }
 
+  // He grows to most of the screen, keeping his centre where it was, and shrinks back when the party ends
+  function growTux() {
+    const oldW = W;
+    const oldH = H;
+    boosted = true;
+    measure();
+    pos.x -= (W - oldW) / 2;
+    pos.y -= (H - oldH) / 2;
+    box.style.scale = String(oldW / W);
+    const anim = box.animate([{ scale: oldW / W }, { scale: 1 }], { duration: 900, easing: "cubic-bezier(0.2, 0.9, 0.3, 1.15)", fill: "both" });
+    anim.onfinish = () => {
+      anim.cancel();
+      box.style.scale = "";
+    };
+  }
+
+  function shrinkTux() {
+    box.style.scale = "1";
+    const anim = box.animate([{ scale: 1 }, { scale: baseW / W }], { duration: LEAVE_MS, easing: "ease-in-out", fill: "forwards" });
+    anim.onfinish = () => {
+      const oldW = W;
+      const oldH = H;
+      boosted = false;
+      measure();
+      pos.x += (oldW - W) / 2;
+      pos.y += (oldH - H) / 2;
+      anim.cancel();
+      box.style.scale = "";
+    };
+  }
+
   function party() {
-    if (reduceMotion.matches) return;
+    if (reduceMotion.matches || partyStart >= 0 || !pos || box.hidden) return;
     partyStart = performance.now();
+    partyLeaving = false;
+    partyLook = true;
+    partyColors(true);
+    // Dancing counts as being awake
+    lastActive = partyStart;
+    sleeping = false;
     confetti();
+    growTux();
+    window.dispatchEvent(new CustomEvent("party:start", { detail: { ms: PARTY_MS } }));
   }
 
   window.addEventListener("mascot:party", party);
@@ -796,12 +887,31 @@
       }
 
       if (partyStart >= 0) {
-        const p = (now - partyStart) / PARTY_MS;
-        if (p >= 1) {
+        const t = now - partyStart;
+        if (!partyLeaving && t >= PARTY_MS - LEAVE_MS) {
+          partyLeaving = true;
+          shrinkTux();
+        }
+        if (partyLook && t >= PARTY_MS - LOOK_END_MS) {
+          partyLook = false;
+          partyColors(false);
+        }
+        if (t >= PARTY_MS) {
           partyStart = -1;
+          partyLeaving = false;
+          say("festinha boa slk", 3500);
         } else {
-          spinYaw += ease(p) * Math.PI * 6;
-          lift = Math.max(lift, Math.abs(Math.sin(p * Math.PI * 3)) * 0.35);
+          // He needs a moment to get to the middle, and calms down on the way out
+          const k = clamp(t / 900, 0, 1) * clamp((PARTY_MS - t) / LEAVE_MS, 0, 1);
+          const beat = t / BEAT_MS;
+          // Hop on every beat and sway between them
+          lift = Math.max(lift, Math.abs(Math.sin(Math.PI * (beat % 1))) * 0.22 * k);
+          spinYaw += Math.sin((beat * Math.PI) / 2) * 0.7 * k;
+          // A full turn every 8 beats and a somersault every 16
+          const turn = beat % 8;
+          if (turn >= 6 && beat > 2) spinYaw += ease((turn - 6) / 2) * Math.PI * 2;
+          const roll = beat % 16;
+          if (roll >= 10 && roll < 12 && beat > 2) flipPitch += ease((roll - 10) / 2) * Math.PI * 2;
         }
       }
 

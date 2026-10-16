@@ -328,7 +328,8 @@ ${JSON.stringify(jsonLd, null, 2)}
     <link rel="stylesheet" href="/assets/css/terminal.css" />
     <script src="/assets/js/blog.js"></script>
     <script src="/assets/js/mascot.js" defer></script>
-    <script src="/assets/js/terminal.js" defer></script>${extraScripts}
+    <script src="/assets/js/terminal.js" defer></script>
+    <script src="/assets/js/party.js" defer></script>${extraScripts}
   </head>
   <body class="${bodyClass}">
     <canvas id="pixel-transition"></canvas>
@@ -691,11 +692,11 @@ async function handler(req, res) {
       const file = getFileHashAndMtime(path.join(getBlogDir(), '_now.md'));
       if (!file.exists) return res.status(404).send(render404Html());
       const cached = memCache.get('__now__');
-      let nowHtml = cached && cached.hash === file.hash && cached.version === 'v2' ? cached.html : null;
+      let nowHtml = cached && cached.hash === file.hash && cached.version === 'v3' ? cached.html : null;
       if (!nowHtml) {
         const { meta, body } = parseFrontMatter(file.raw);
         nowHtml = renderNowHtml({ meta, html: await renderMarkdownWith(body) });
-        memCache.set('__now__', { hash: file.hash, version: 'v2', html: nowHtml });
+        memCache.set('__now__', { hash: file.hash, version: 'v3', html: nowHtml });
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
@@ -709,7 +710,7 @@ async function handler(req, res) {
     }
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v18';
+    const TEMPLATE_VERSION = 'v19';
     // Related posts depend on the whole folder, so post caches are tied to its signature too
     const dirSig = getBlogDirSignature();
 

@@ -37,8 +37,17 @@ Um comentário curto toma o balão por alguns segundos (`say(texto, ms)` em `mas
 
 As reações de leitura valem só nos posts (não em `/now`) e disparam uma vez por visita. Com `prefers-reduced-motion` ele não gira ao acordar. Os textos ficam em `mascot.js`.
 
-### Easter egg (Konami)
-Digitar `↑ ↑ ↓ ↓ ← → ← → B A` (fora de campos de texto) faz o Tux girar três vezes, dar três pulinhos e soltar confete. O mesmo efeito dispara com `window.dispatchEvent(new Event("mascot:party"))`. O confete são 36 quadrados de 6 px (`.mascot-confetti`) cujas cores são copiadas do tema no início da explosão; eles somem em menos de 2 s, então não entram no `elementsToFlip`. Com `prefers-reduced-motion` nada acontece.
+### Party (Konami e `party`)
+Digitar `↑ ↑ ↓ ↓ ← → ← → B A` (fora de campos de texto) ou rodar `party` no [terminal](terminal.md) (também vale `window.dispatchEvent(new Event("mascot:party"))`) dispara uma festa de 8 s, ao ritmo de 126 bpm (`BEAT_MS` em `mascot.js`). Com `prefers-reduced-motion` nada acontece, e só roda uma por vez.
+
+- **Tux:** vai para o meio da tela e cresce até ~85% da altura. Como o canvas é ASCII, o tamanho real muda (o ASCII fica nítido) e só a transição entre os tamanhos é um `scale` de CSS (`growTux`/`shrinkTux`, mantendo o centro). Por isso o `layout()` mede o canvas com `offsetWidth`/`offsetHeight` e não com `getBoundingClientRect`, que incluiria o `scale` e criaria um bitmap pequeno, depois esticado. Na festa ele ganha caracteres em vez de letras maiores: o tamanho da célula é o mesmo do Tux normal (mínimo de 5 px), então a grade passa de ~56 para ~140 colunas. Ele é desenhado claro sobre escuro, mesmo no tema claro, com as cores dele só mais claras (corpo claro, barriga branca, bico e pés amarelos). Pula no tempo, balança, dá um giro a cada 8 batidas e uma cambalhota a cada 16.
+- **Saída:** nos últimos 900 ms (`LEAVE_MS`) ele encolhe e volta ao lugar dele enquanto as luzes se apagam; 400 ms antes do fim (`LOOK_END_MS`) a aparência da festa é desfeita, com a tela ainda meio escura, e só então o tamanho real volta ao normal. Enquanto ainda está grande, o alvo é calculado como se ele já fosse pequeno, com o mesmo centro, para nada deslizar.
+- **Luzes:** [assets/js/party.js](../assets/js/party.js) desenha, num canvas de baixa resolução (cada pixel vira ~3-5 px da tela), a tela escurecida, 6 raios que giram mirando o Tux, a pista de dança xadrez que inverte a cada batida, um anel que sai dele, equalizadores nas laterais, strobe a cada 8 batidas, confete e o letreiro "PARTY TIME". O canvas (`.party-lights`) fica acima da página, abaixo do Tux (40) e do terminal (500). As cores são neon fixos, então nada ali depende do tema.
+- **Resto da página:** some com um fade de 0,5 s (`body.party-on`, e `party-ending` na volta): cabeçalho, contador, widgets, texto e o terminal (`is-party-hidden`, sem perder o histórico), que volta crescendo do Tux no fim. Só ficam o Tux, as luzes e o confete. O Tux não fala durante a festa; no fim ele diz "valeu a festa!".
+- **Eventos:** `party:start` (com `detail.ms`) e `party:end` no `window`.
+
+### Posição e escala
+O Tux é posicionado com a propriedade CSS `translate` (e não com `transform`), e o terminal também. As propriedades individuais se aplicam na ordem `translate`, `rotate`, `scale` e só então `transform`, então um `scale` junto de `transform: translate()` escalaria também a posição, fazendo o elemento deslizar enquanto cresce ou encolhe.
 
 ## Tema
 O canvas lê a cor do texto e as variáveis `--mascot-white` e `--mascot-accent` (bico e pés, em verde-limão) a cada quadro. O `.mascot` e o balão estão no `elementsToFlip` de `script.js` e de `blog.js`, e o fundo do balão fica transparente durante a transição (ver a seção 4 do `AGENTS.md`).

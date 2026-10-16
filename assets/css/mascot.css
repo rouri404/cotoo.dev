@@ -18,7 +18,7 @@
   z-index: 40;
   pointer-events: none;
   color: var(--text-color);
-  will-change: transform;
+  will-change: translate, scale;
 }
 
 .mascot {
@@ -147,4 +147,35 @@ body.is-transitioning .mascot-bubble-art .f {
   height: 6px;
   margin: -3px 0 0 -3px;
   pointer-events: none;
+}
+
+/* Party light show (assets/js/party.js): above the page, below Tux (40) and the terminal (500) */
+.party-lights {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 38;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+
+/* While the party runs, the page steps out of the way: everything but Tux, the lights and the confetti fades out.
+   "party-ending" keeps the fade for the way back, after "party-on" is gone */
+body.party-on > *:not(.mascot-box):not(.party-lights):not(.mascot-confetti) {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+body.party-on > *:not(.mascot-box):not(.party-lights):not(.mascot-confetti),
+body.party-ending > *:not(.mascot-box):not(.party-lights):not(.mascot-confetti) {
+  transition: opacity 0.5s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.party-on > *,
+  body.party-ending > * {
+    transition: none !important;
+  }
 }

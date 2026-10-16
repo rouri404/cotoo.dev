@@ -695,7 +695,8 @@ code {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.5rem;
-  z-index: 100;
+  /* Same level as the pixel trail but later in the DOM, so the trail passes behind the commit status; modals share it and come later still */
+  z-index: 9999;
 }
 
 .social-icons {

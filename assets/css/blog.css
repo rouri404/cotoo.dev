@@ -542,6 +542,24 @@ body.reading-mode .font-toggle {
   font-size: 1.35rem;
 }
 
+/* Live status on the /now page */
+.now-live-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.now-live-list li {
+  margin: 0;
+}
+
+.now-live-list li[hidden] {
+  display: none;
+}
+
 /* Prose: Default authentic retro pixel font (Tiny5) */
 .prose {
   color: var(--prose-color);

@@ -135,6 +135,11 @@ As tags no topo do post são links para `/blog/?q=<tag>`, que abre o índice já
 
 Como os relacionados dependem da pasta inteira, o cache de cada post guarda também a assinatura de `/blog/` e é refeito quando qualquer post muda. Arquivos envolvidos: `pickRelated` e `renderRelatedHtml` em [api/blog.js](file:///var/home/gabrielcoto/cotoo.dev/api/blog.js) e a seção "Related posts" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
 
+### 3.9. Página /now
+`/now/` mostra o que o Gabriel está fazendo agora. O texto vem de [blog/_now.md](file:///var/home/gabrielcoto/cotoo.dev/blog/_now.md) (o prefixo `_` o tira da lista de posts): edite o Markdown e atualize o campo `date`, que aparece como "atualizado em". Abaixo do texto, o bloco `// ao vivo` é preenchido no navegador por [assets/js/now.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/now.js) com a música tocando (`/api/spotify`) e o último commit (`/api/github`); cada linha só aparece se a API responder.
+
+A rota é reescrita para `/api/blog?page=now` e a página reaproveita o layout do blog, incluindo a troca de tema.
+
 ---
 
 ## 4. Arquitetura e Funcionamento

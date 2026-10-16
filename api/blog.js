@@ -246,6 +246,48 @@ ${items}
 `;
 }
 
+function renderNowHtml({ meta, html }) {
+  const content = `    <main class="blog-main">
+      <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / now</nav>
+      <article class="post">
+        <header class="post-header">
+          <h1>now</h1>
+          <p class="post-meta">atualizado em <time datetime="${meta.date}">${formatDate(meta.date)}</time></p>
+        </header>
+        <div class="prose">
+${html}
+        </div>
+      </article>
+      <section class="post-related now-live" aria-labelledby="nowLiveTitle">
+        <hr />
+        <p class="related-title" id="nowLiveTitle">// ao vivo</p>
+        <ul class="now-live-list">
+          <li id="nowMusic" hidden></li>
+          <li id="nowCommit" hidden></li>
+        </ul>
+      </section>
+    </main>`;
+  return layout({
+    title: 'Now | Gabriel Couto',
+    description: meta.description,
+    canonical: `${SITE}/now/`,
+    bodyClass: 'page-post page-now',
+    ogType: 'website',
+    content,
+    extraScripts: '\n    <script src="/assets/js/now.js" defer></script>',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Now | Gabriel Couto',
+      description: meta.description,
+      url: `${SITE}/now/`,
+      inLanguage: 'pt-BR',
+      dateModified: meta.date,
+      author: { '@type': 'Person', name: AUTHOR, url: `${SITE}/` },
+    },
+  });
+}
+
 function layout({ title, description, canonical, bodyClass, content, jsonLd, ogType, extraScripts = '' }) {
   return `<!doctype html>
 <html lang="pt-BR">
@@ -642,6 +684,21 @@ async function handler(req, res) {
 
     const isJson = format === 'json' || (req.headers && req.headers['accept'] && req.headers['accept'].includes('application/json') && !req.headers['accept'].includes('text/html'));
     const forceRefresh = refresh === '1' || refresh === 'true';
+
+    if (query.page === 'now' || (req.url && /[?&]page=now\b/.test(req.url))) {
+      const file = getFileHashAndMtime(path.join(getBlogDir(), '_now.md'));
+      if (!file.exists) return res.status(404).send(render404Html());
+      const cached = memCache.get('__now__');
+      let nowHtml = cached && cached.hash === file.hash && cached.version === 'v1' ? cached.html : null;
+      if (!nowHtml) {
+        const { meta, body } = parseFrontMatter(file.raw);
+        nowHtml = renderNowHtml({ meta, html: await renderMarkdownWith(body) });
+        memCache.set('__now__', { hash: file.hash, version: 'v1', html: nowHtml });
+      }
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+      return res.status(200).send(nowHtml);
+    }
 
     if (format === 'rss') {
       res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');

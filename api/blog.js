@@ -213,6 +213,39 @@ async function renderMarkdownWith(body) {
 const formatDate = (iso) =>
   new Date(`${iso}T12:00:00-03:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
 
+const xmlEscape = (s) =>
+  String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]);
+
+function renderRss(posts) {
+  const items = posts
+    .map(({ meta, slug }) => {
+      const url = `${SITE}/blog/${slug}/`;
+      const categories = meta.tags.map((t) => `      <category>${xmlEscape(t)}</category>`).join('\n');
+      return `    <item>
+      <title>${xmlEscape(meta.title)}</title>
+      <link>${url}</link>
+      <guid isPermaLink="true">${url}</guid>
+      <pubDate>${new Date(`${meta.date}T12:00:00-03:00`).toUTCString()}</pubDate>
+      <description>${xmlEscape(meta.description)}</description>${categories ? `\n${categories}` : ''}
+    </item>`;
+    })
+    .join('\n');
+  const lastBuild = posts[0] ? new Date(`${posts[0].meta.date}T12:00:00-03:00`).toUTCString() : new Date().toUTCString();
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blog | Gabriel Couto</title>
+    <link>${SITE}/blog/</link>
+    <description>Guias e anotações de Gabriel Couto sobre back-end, infraestrutura e sistemas.</description>
+    <language>pt-BR</language>
+    <lastBuildDate>${lastBuild}</lastBuildDate>
+    <atom:link href="${SITE}/blog/rss.xml" rel="self" type="application/rss+xml" />
+${items}
+  </channel>
+</rss>
+`;
+}
+
 function layout({ title, description, canonical, bodyClass, content, jsonLd, ogType, extraScripts = '' }) {
   return `<!doctype html>
 <html lang="pt-BR">
@@ -225,6 +258,7 @@ function layout({ title, description, canonical, bodyClass, content, jsonLd, ogT
     <meta name="author" content="${AUTHOR}" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="${canonical}" />
+    <link rel="alternate" type="application/rss+xml" title="Blog | Gabriel Couto" href="${SITE}/blog/rss.xml" />
 
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
@@ -573,8 +607,14 @@ async function handler(req, res) {
     const isJson = format === 'json' || (req.headers && req.headers['accept'] && req.headers['accept'].includes('application/json') && !req.headers['accept'].includes('text/html'));
     const forceRefresh = refresh === '1' || refresh === 'true';
 
+    if (format === 'rss') {
+      res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
+      res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+      return res.status(200).send(renderRss(getLocalPosts()));
+    }
+
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v16';
+    const TEMPLATE_VERSION = 'v17';
 
     if (slug) {
       const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');

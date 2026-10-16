@@ -145,5 +145,7 @@ Arquivos envolvidos: [assets/js/post-motion.js](file:///var/home/gabrielcoto/cot
     - **Fallback:** Releitura do disco se o arquivo for modificado.
 - **Forçar Atualização de Cache:**
   - Adicione o parâmetro `?refresh=1` na URL para invalidar o cache e forçar a releitura imediata do disco (ex: `/blog/meu-post/?refresh=1`).
+- **Feed RSS:**
+  - `/blog/rss.xml` é reescrito para `/api/blog?format=rss` e lista todos os posts (título, descrição, data e tags). Cada página do blog anuncia o feed com `<link rel="alternate">`.
 - **Sitemap:**
   - Lembre-se de adicionar a nova rota em `sitemap.xml` para indexação em motores de busca.

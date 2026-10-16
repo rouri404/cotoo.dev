@@ -5,6 +5,7 @@
     }
   },
   "rewrites": [
+    { "source": "/blog/rss.xml", "destination": "/api/blog?format=rss" },
     { "source": "/blog", "destination": "/api/blog" },
     { "source": "/blog/", "destination": "/api/blog" },
     { "source": "/blog/:slug", "destination": "/api/blog?slug=:slug" },

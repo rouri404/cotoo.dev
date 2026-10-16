@@ -53,7 +53,7 @@ A janela também pode ser arrastada pela barra de título (`tux@cotoo.dev: ~`): 
 Cliques, rolagem e teclas dentro do terminal não chegam à página (na home, um clique avançaria do hero para o menu).
 
 ## Comandos
-`help`, `whoami`, `projects`, `stack`, `blog` (busca `/blog/?format=json`), `now`, `contact`, `open <home|blog|now|rss|github|linkedin>`, `theme [dark|light]`, `neofetch`, `party` (dispara o confete do Tux), `clear` e `exit`. Também existem `ls`, `pwd`, `sudo` e `rm`, fora do `help`. `Tab` completa comandos e argumentos, `↑`/`↓` percorrem o histórico e `Ctrl+L` limpa.
+`help`, `whoami`, `projects`, `stack`, `activity` (calendário de contribuições do GitHub em ASCII), `blog` (busca `/blog/?format=json`), `now`, `contact`, `open <home|blog|now|rss|github|linkedin>`, `theme [dark|light]`, `neofetch`, `party` (dispara o confete do Tux), `clear` e `exit`. Também existem `ls`, `pwd`, `sudo` e `rm`, fora do `help`. `Tab` completa comandos e argumentos, `↑`/`↓` percorrem o histórico e `Ctrl+L` limpa.
 
 Para adicionar um comando, inclua uma entrada em `commands` no `terminal.js` (`desc`, `args` opcional e `run`). Os projetos e a stack ficam nas constantes `PROJECTS` e `STACK` no topo do arquivo.
 

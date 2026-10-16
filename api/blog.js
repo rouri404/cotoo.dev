@@ -306,10 +306,46 @@ ${content}
 `;
 }
 
-function renderPostHtml(post) {
+// Posts sharing tags come first, then the newest ones fill the remaining slots
+function pickRelated(current, posts, limit = 2) {
+  const tagSet = new Set(current.meta.tags.map((t) => t.toLowerCase()));
+  return posts
+    .filter((p) => p.slug !== current.slug)
+    .map((p) => ({ p, shared: p.meta.tags.filter((t) => tagSet.has(t.toLowerCase())).length }))
+    .sort((a, b) => b.shared - a.shared || b.p.meta.date.localeCompare(a.p.meta.date))
+    .slice(0, limit)
+    .map(({ p }) => p);
+}
+
+function renderRelatedHtml(related) {
+  if (!related.length) return '';
+  const items = related
+    .map(
+      ({ meta, slug, readingMinutes }) => `          <li>
+            <a class="post-card" href="/blog/${slug}/">
+              <span class="post-card-title">${escapeHtml(meta.title)}</span>
+              <span class="post-card-desc">${escapeHtml(meta.description)}</span>
+              <span class="post-card-meta"><time datetime="${meta.date}">${formatDate(meta.date)}</time> · ${readingMinutes} min de leitura</span>
+            </a>
+          </li>`,
+    )
+    .join('\n');
+  return `
+      <aside class="post-related" aria-labelledby="relatedTitle">
+        <hr />
+        <p class="related-title" id="relatedTitle">// continue lendo</p>
+        <ul class="related-list">
+${items}
+        </ul>
+      </aside>`;
+}
+
+function renderPostHtml(post, related = []) {
   const { meta, html, slug, readingMinutes } = post;
   const url = `${SITE}/blog/${slug}/`;
-  const tags = meta.tags.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+  const tags = meta.tags
+    .map((t) => `<a class="tag" href="/blog/?q=${encodeURIComponent(t)}" title="Ver posts com a tag ${escapeHtml(t)}">${escapeHtml(t)}</a>`)
+    .join('');
   const content = `    <main class="blog-main">
       <nav class="crumbs" aria-label="Navegação"><a href="/blog/">blog</a> / ${escapeHtml(slug)}</nav>
       <article class="post">
@@ -321,7 +357,7 @@ function renderPostHtml(post) {
         <div class="prose">
 ${html}
         </div>
-      </article>
+      </article>${renderRelatedHtml(related)}
     </main>`;
   return layout({
     title: `${meta.title} | Gabriel Couto`,
@@ -615,6 +651,8 @@ async function handler(req, res) {
 
     const redis = await getRedisClient();
     const TEMPLATE_VERSION = 'v17';
+    // Related posts depend on the whole folder, so post caches are tied to its signature too
+    const dirSig = getBlogDirSignature();
 
     if (slug) {
       const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');
@@ -625,7 +663,7 @@ async function handler(req, res) {
       // Tier 1: Fast in-memory cache check (<0.1ms)
       if (!forceRefresh && fileInfo.exists) {
         const memCached = memCache.get(cleanSlug);
-        if (memCached && memCached.hash === fileInfo.hash && memCached.version === TEMPLATE_VERSION) {
+        if (memCached && memCached.hash === fileInfo.hash && memCached.signature === dirSig.signature && memCached.version === TEMPLATE_VERSION) {
           if (isJson) {
             res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
             return res.status(200).json(memCached.post);
@@ -641,7 +679,7 @@ async function handler(req, res) {
       if (redis && !forceRefresh) {
         redisCached = await safeRedisGet(redis, cacheKey);
         if (redisCached && typeof redisCached === 'object' && redisCached.html) {
-          const isUpToDate = fileInfo.exists ? (redisCached.hash === fileInfo.hash && redisCached.version === TEMPLATE_VERSION) : true;
+          const isUpToDate = fileInfo.exists ? (redisCached.hash === fileInfo.hash && redisCached.signature === dirSig.signature && redisCached.version === TEMPLATE_VERSION) : true;
           if (isUpToDate) {
             memCache.set(cleanSlug, redisCached);
             if (isJson) {
@@ -672,11 +710,12 @@ async function handler(req, res) {
         readingMinutes: Math.max(1, Math.round(words / 200)),
         html: htmlContent,
       };
-      const postHtml = renderPostHtml(post);
+      const postHtml = renderPostHtml(post, pickRelated(post, getLocalPosts()));
 
       const cacheEntry = {
         version: TEMPLATE_VERSION,
         hash: fileInfo.hash,
+        signature: dirSig.signature,
         mtime: fileInfo.mtime,
         html: postHtml,
         post: {
@@ -706,7 +745,6 @@ async function handler(req, res) {
 
     const indexCacheKey = 'cotoo:blog:index';
     const latestCacheKey = 'cotoo:blog:latest';
-    const dirSig = getBlogDirSignature();
 
     if (!forceRefresh) {
       const memIndex = memCache.get('__index__');

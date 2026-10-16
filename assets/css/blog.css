@@ -363,6 +363,13 @@ body.reading-mode .font-toggle {
   border: 2px solid var(--text-color);
   padding: 0.15rem 0.55rem;
   font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.tag:hover,
+.tag:focus-visible {
+  background: var(--text-color);
+  color: var(--bg-color);
 }
 
 .post-header {
@@ -503,6 +510,36 @@ body.reading-mode .font-toggle {
   margin-top: 0.75rem;
   font-size: 0.9rem;
   opacity: 0.7;
+}
+
+/* Related posts at the end of an article */
+.post-related {
+  margin-top: 4rem;
+}
+
+.post-related > hr {
+  border: none;
+  border-top: 2px solid var(--rule-color);
+  margin: 0 0 2rem;
+}
+
+.related-title {
+  margin: 0 0 1.25rem;
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+.related-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.related-list .post-card-title {
+  font-size: 1.35rem;
 }
 
 /* Prose: Default authentic retro pixel font (Tiny5) */

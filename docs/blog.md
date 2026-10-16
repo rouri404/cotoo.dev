@@ -130,6 +130,11 @@ Os posts têm duas animações suaves, ambas com `opacity`/`transform` e desliga
 
 Arquivos envolvidos: [assets/js/post-motion.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/post-motion.js) e a seção "Reading progress bar" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
 
+### 3.8. Tags e Posts Relacionados
+As tags no topo do post são links para `/blog/?q=<tag>`, que abre o índice já filtrado. No fim de cada post, o bloco `// continue lendo` mostra até 2 outros posts: primeiro os que têm mais tags em comum e, se faltar, os mais recentes. O tempo de leitura (palavras ÷ 200, sem contar blocos de código) aparece no cabeçalho do post e nos cards.
+
+Como os relacionados dependem da pasta inteira, o cache de cada post guarda também a assinatura de `/blog/` e é refeito quando qualquer post muda. Arquivos envolvidos: `pickRelated` e `renderRelatedHtml` em [api/blog.js](file:///var/home/gabrielcoto/cotoo.dev/api/blog.js) e a seção "Related posts" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
+
 ---
 
 ## 4. Arquitetura e Funcionamento

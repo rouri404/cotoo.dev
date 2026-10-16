@@ -1361,3 +1361,191 @@ body.reading-mode .mermaid-source code {
     backdrop-filter: none;
   }
 }
+
+/* Mermaid: header actions and hover highlight */
+.mermaid-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mermaid-block[data-view="code"] .mermaid-expand {
+  display: none;
+}
+
+.mermaid-canvas svg .node,
+.mermaid-canvas svg .edgeLabel,
+.mermaid-canvas svg path.flowchart-link {
+  transition: opacity 0.15s;
+}
+
+.mermaid-canvas svg.is-focus .node:not(.is-lit),
+.mermaid-canvas svg.is-focus path.flowchart-link:not(.is-lit),
+.mermaid-canvas svg.is-focus .edgeLabel:not(.is-lit) {
+  opacity: 0.2;
+}
+
+/* Mermaid zoom window: opened by "expandir", a copy of the diagram that can be dragged and zoomed */
+.mermaid-zoom-backdrop {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: var(--bar-height, 58px);
+  z-index: 440;
+  /* Neutral on purpose: it dims both themes alike, so it never needs to flip */
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.mermaid-zoom-backdrop.is-open {
+  opacity: 1;
+}
+
+.mermaid-zoom {
+  position: fixed;
+  left: 50%;
+  top: calc(50% + var(--bar-height, 58px) / 2);
+  z-index: 450;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(1100px, calc(100vw - 32px));
+  height: min(760px, calc(100vh - var(--bar-height, 58px) - 32px));
+  border: 2px solid var(--text-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: "Tiny5", sans-serif;
+  outline: none;
+  translate: -50% -50%;
+  scale: 0.94;
+  opacity: 0;
+  transition: scale 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease-out;
+}
+
+.mermaid-zoom.is-open {
+  scale: 1;
+  opacity: 1;
+}
+
+.mermaid-zoom-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.mermaid-zoom-title {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+  font-size: 0.95rem;
+}
+
+.mermaid-zoom-tools {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.mermaid-zoom-btn {
+  min-width: 1.9rem;
+  height: 1.9rem;
+  padding: 0 0.4rem;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mermaid-zoom-btn:hover,
+.mermaid-zoom-btn:focus-visible {
+  background: var(--text-color);
+  color: var(--bg-color);
+}
+
+.mermaid-zoom-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.mermaid-zoom-stage.is-grabbing {
+  cursor: grabbing;
+}
+
+/* The layer is the same .mermaid-canvas the post uses, so the diagram keeps its theme painting; the script moves and scales it */
+.mermaid-zoom .mermaid-canvas {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.mermaid-zoom .mermaid-canvas svg {
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+}
+
+/* While the dither wave runs, the window paints its background and border in two layers: the old colours,
+   and the new colours clipped to the circle swept so far (blog.js sets --wave-r/x/y on it every frame) */
+body.is-transitioning .mermaid-zoom {
+  background: transparent;
+  border-color: transparent;
+}
+
+.mermaid-zoom::before,
+.mermaid-zoom::after {
+  content: "";
+  display: none;
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  box-sizing: border-box;
+  border: 2px solid;
+  pointer-events: none;
+}
+
+body.is-transitioning .mermaid-zoom::before,
+body.is-transitioning .mermaid-zoom::after {
+  display: block;
+}
+
+.mermaid-zoom::before {
+  background: var(--tr-old-bg);
+  border-color: var(--tr-old-fg);
+}
+
+.mermaid-zoom::after {
+  background: var(--tr-new-bg);
+  border-color: var(--tr-new-fg);
+  clip-path: circle(var(--wave-r, 0px) at var(--wave-x, 0px) var(--wave-y, 0px));
+}
+
+@media (max-width: 600px) {
+  .mermaid-zoom {
+    width: calc(100vw - 16px);
+    height: min(70vh, calc(100vh - var(--bar-height, 58px) - 16px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mermaid-zoom,
+  .mermaid-zoom-backdrop,
+  .mermaid-canvas svg .node,
+  .mermaid-canvas svg .edgeLabel,
+  .mermaid-canvas svg path.flowchart-link {
+    transition: none;
+  }
+}

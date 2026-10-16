@@ -100,6 +100,10 @@ flowchart LR
 ```
 ````
 
+**Interações.** Com o diagrama desenhado, o cabeçalho ganha o botão **expandir**. Ele abre uma janela com uma cópia do diagrama: roda do mouse ou pinça para ampliar, arrastar para mover, botões `-`, `+` e `1:1` (ajustar), teclas `+`, `-`, `0` e `Esc`, e duplo clique para ajustar. Nos fluxogramas, passar o mouse (ou tocar) num nó acende o nó, suas setas, os nós vizinhos e os rótulos das setas, e escurece o resto (o Mermaid 11 nomeia as arestas `L_<origem>_<destino>_<n>`, e é por isso que o script as liga aos nós; diagramas de sequência não têm esse destaque).
+
+A janela entra na troca de tema como o terminal: fundo e borda em duas camadas recortadas pela onda (`.mermaid-zoom` está na lista `stickies` de `blog.js`). O diagrama dentro dela é uma folha só (`.mermaid-zoom-stage`), então vira de uma vez quando a onda passa pelo centro da janela, como os blocos de diagrama do post. A tela escurecida atrás é neutra (preto translúcido) e não precisa virar.
+
 > Dica: coloque os textos dos nós entre aspas (`A["texto (com parênteses)"]`) para evitar erros de sintaxe.
 
 Arquivos envolvidos: `renderMermaidBlock` em [api/blog.js](file:///var/home/gabrielcoto/cotoo.dev/api/blog.js), [assets/js/mermaid-block.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/mermaid-block.js) e a seção "Mermaid" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).

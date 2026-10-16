@@ -16,7 +16,8 @@
   const STORE_KEY = "mascot-pos";
   const MODEL_URL = "/assets/models/tux.bin";
   const REPO_URL = "https://github.com/rouri404/cotoo.dev";
-  const BUBBLE_TEXT = isHome ? "curtiu o site? da uma estrelinha lá :p" : "bora ler um post? escolhe um aí :)";
+  // The text he shows by himself; posts have none, only the short comments from say()
+  const BUBBLE_TEXT = isHome ? "curtiu o site? da uma estrelinha lá :p" : isIndex ? "bora ler um post? escolhe um aí :)" : "";
   const CREDIT_GAP = 24;
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -37,13 +38,11 @@
   box.className = "mascot-box";
   box.hidden = true;
   box.innerHTML =
-    (isHome || isIndex
-      ? `<div class="mascot-bubble"><svg class="mascot-bubble-art" aria-hidden="true"></svg>${
-          isHome
-            ? `<a class="mascot-bubble-text" href="${REPO_URL}" target="_blank" rel="noopener noreferrer">`
-            : '<span class="mascot-bubble-text">'
-        }<span class="on"></span><span class="off">${BUBBLE_TEXT}</span>${isHome ? "</a>" : "</span>"}</div>`
-      : "") +
+    `<div class="mascot-bubble"><svg class="mascot-bubble-art" aria-hidden="true"></svg>${
+      isHome
+        ? `<a class="mascot-bubble-text" href="${REPO_URL}" target="_blank" rel="noopener noreferrer">`
+        : '<span class="mascot-bubble-text">'
+    }<span class="on"></span><span class="off">${BUBBLE_TEXT}</span>${isHome ? "</a>" : "</span>"}</div>` +
     '<canvas id="mascot" class="mascot" aria-hidden="true"></canvas>' +
     '<button class="mascot-hit" type="button" aria-label="Tux, o mascote do Linux. Clique para abrir ou fechar o terminal"></button>';
   document.body.appendChild(box);
@@ -351,13 +350,40 @@
     if (pos && bubble.classList.contains("is-on")) placeBubble();
   }
 
+  // A short comment that takes the bubble over for a while (sleeping, reading milestones, copying code)
+  let speech = null;
+  let shownText = null;
+
+  function say(text, ms = 4500) {
+    speech = { text, until: performance.now() + ms };
+  }
+
   function updateBubble(now) {
     if (!bubble) return;
+    if (speech && now >= speech.until) speech = null;
+    const text = speech ? speech.text : BUBBLE_TEXT;
     const rel = parseFloat(bubble.style.top);
     const top = pos.y + (isNaN(rel) ? -90 : rel);
-    const placed = isHome ? mode === "follow" && now - modeSince > 900 : isIndex && now - modeSince > 1800;
-    const want = placed && !leaving && onScreen && top > 8 && fitsBeside();
+    // His own text waits until he has settled; a comment shows wherever he is
+    const placed = speech ? true : isHome ? mode === "follow" && now - modeSince > 900 : isIndex && now - modeSince > 1800;
+    const want = !!text && placed && !leaving && onScreen && top > 8 && fitsBeside();
     const isOn = bubble.classList.contains("is-on");
+
+    // New text: the cloud is sized again, and the home link only makes sense for his own text
+    if (text !== shownText) {
+      shownText = text;
+      typedAt = now;
+      typedLen = -1;
+      bubbleOn.textContent = "";
+      bubbleOff.textContent = text;
+      bw = 0;
+      if (isHome) {
+        if (speech) bubbleText.removeAttribute("href");
+        else bubbleText.setAttribute("href", REPO_URL);
+      }
+      if (want && isOn) placeBubble();
+    }
+
     if (want && !isOn) {
       placeBubble();
       bubble.classList.add("is-on");
@@ -368,14 +394,14 @@
     }
     if (!want) return;
 
-    // He types only the first time: opening the contact form moves the page, and the bubble must not start over
-    const total = BUBBLE_TEXT.length;
-    const n = typingDone || reduceMotion.matches ? total : clamp(Math.floor((now - typedAt - 250) / 38), 0, total);
-    if (n === total) typingDone = true;
+    // His own text is typed only the first time: opening the contact form moves the page, and the bubble must not start over
+    const total = text.length;
+    const n = (!speech && typingDone) || reduceMotion.matches ? total : clamp(Math.floor((now - typedAt - 250) / 38), 0, total);
+    if (!speech && n === total) typingDone = true;
     if (n !== typedLen) {
       typedLen = n;
-      bubbleOn.textContent = BUBBLE_TEXT.slice(0, n);
-      bubbleOff.textContent = BUBBLE_TEXT.slice(n);
+      bubbleOn.textContent = text.slice(0, n);
+      bubbleOff.textContent = text.slice(n);
     }
   }
 
@@ -546,6 +572,49 @@
   const PARTY_MS = 2400;
   let partyStart = -1;
 
+  // After a while without any input he dozes off (head down, "zzz"), and wakes with a spin when you come back
+  const IDLE_MS = 45000;
+  let lastActive = performance.now();
+  let sleeping = false;
+
+  function wake() {
+    lastActive = performance.now();
+    if (!sleeping) return;
+    sleeping = false;
+    if (!reduceMotion.matches) spin(performance.now());
+    say("ué, voltou? :)", 2800);
+  }
+
+  // Capture phase, so keys typed in the terminal (which stops them) still count
+  for (const type of ["pointermove", "pointerdown", "keydown", "wheel", "scroll", "touchstart"]) {
+    window.addEventListener(type, wake, { passive: true, capture: true });
+  }
+  document.addEventListener("visibilitychange", wake);
+
+  // Comments while reading a post: halfway through, at the end, and when code is copied
+  if (isPost && !document.body.classList.contains("page-now")) {
+    const said = { half: false, end: false };
+    window.addEventListener(
+      "scroll",
+      () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        if (max < window.innerHeight * 2) return;
+        const p = window.scrollY / max;
+        if (!said.half && p >= 0.5) {
+          said.half = true;
+          say("metade do post, segura aí :)");
+        } else if (!said.end && p >= 0.985) {
+          said.end = true;
+          say("acabou! bora pro próximo?");
+        }
+      },
+      { passive: true }
+    );
+    document.addEventListener("click", (e) => {
+      if (e.target.closest && e.target.closest(".copy-btn")) say("copiou! confere antes de rodar ;)", 3500);
+    });
+  }
+
   // Konami code easter egg (also reachable with a "mascot:party" event): three spins, three hops and confetti
   const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
   let konamiAt = 0;
@@ -680,6 +749,10 @@
     if (!pos) return;
 
     updatePosition(now, dt);
+    if (!sleeping && onScreen && !document.hidden && now - lastActive > IDLE_MS) {
+      sleeping = true;
+      say("zzz...", 1e9);
+    }
     updateBubble(now);
 
     if (!model || document.hidden || !onScreen) return;
@@ -698,7 +771,10 @@
       let targetYaw = 0.45 * Math.sin(t * 0.7) - 0.15;
       let targetPitch = 0.04 * Math.sin(t * 1.3);
 
-      if (pointer && now - lastMove < 4000) {
+      if (sleeping) {
+        targetYaw = -0.15;
+        targetPitch = 0.38 + 0.03 * Math.sin(t * 1.1);
+      } else if (pointer && now - lastMove < 4000) {
         const rect = canvas.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
         const cyy = rect.top + rect.height / 2;

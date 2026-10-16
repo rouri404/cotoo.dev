@@ -24,5 +24,8 @@ No índice do blog (`/blog/`) há um segundo balão, sem link: "bora ler um post
 ## Interações
 Segue o cursor, gira ao clicar (ou com Enter/Espaço) e dá uma cambalhota ao trocar o tema. O canvas é 60% maior que a caixa dele (margem transparente em volta), para o pulo e a cambalhota caberem inteiros sem encolher o Tux; a área clicável (`.mascot-hit`) tem só o tamanho da caixa, então a margem não bloqueia cliques no conteúdo ao redor. Com `prefers-reduced-motion` fica parado e o balão aparece sem digitar. Se o arquivo do modelo não carregar, a camada é removida.
 
+### Easter egg (Konami)
+Digitar `↑ ↑ ↓ ↓ ← → ← → B A` (fora de campos de texto) faz o Tux girar três vezes, dar três pulinhos e soltar confete. O mesmo efeito dispara com `window.dispatchEvent(new Event("mascot:party"))`. O confete são 36 quadrados de 6 px (`.mascot-confetti`) cujas cores são copiadas do tema no início da explosão; eles somem em menos de 2 s, então não entram no `elementsToFlip`. Com `prefers-reduced-motion` nada acontece.
+
 ## Tema
 O canvas lê a cor do texto e as variáveis `--mascot-white` e `--mascot-accent` (bico e pés, em verde-limão) a cada quadro. O `.mascot` e o balão estão no `elementsToFlip` de `script.js` e de `blog.js`, e o fundo do balão fica transparente durante a transição (ver a seção 4 do `AGENTS.md`).

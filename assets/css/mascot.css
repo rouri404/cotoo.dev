@@ -138,3 +138,13 @@ body.is-transitioning .mascot-bubble-art .f {
     transition: none;
   }
 }
+
+/* Konami confetti: colors are copied from the theme when the burst starts, and the squares live under 2 s */
+.mascot-confetti {
+  position: fixed;
+  z-index: 60;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  pointer-events: none;
+}

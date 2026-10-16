@@ -543,6 +543,57 @@
 
   const SPIN_MS = 1200;
   const FLIP_MS = 650;
+  const PARTY_MS = 2400;
+  let partyStart = -1;
+
+  // Konami code easter egg (also reachable with a "mascot:party" event): three spins, three hops and confetti
+  const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
+  let konamiAt = 0;
+
+  function confetti() {
+    if (!pos) return;
+    const style = getComputedStyle(box);
+    const palette = [style.color, style.getPropertyValue("--mascot-accent").trim(), style.getPropertyValue("--mascot-white").trim()].filter(Boolean);
+    const ox = pos.x + W / 2;
+    const oy = pos.y + H * 0.35;
+    for (let i = 0; i < 36; i++) {
+      const dot = document.createElement("i");
+      dot.className = "mascot-confetti";
+      dot.style.background = palette[i % palette.length];
+      dot.style.left = ox + "px";
+      dot.style.top = oy + "px";
+      document.body.appendChild(dot);
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+      const speed = 160 + Math.random() * 260;
+      const dx = Math.cos(angle) * speed;
+      const dy = Math.sin(angle) * speed;
+      dot.animate(
+        [
+          { transform: "translate(0, 0)", opacity: 1 },
+          { transform: `translate(${dx * 0.6}px, ${dy * 0.6}px)`, opacity: 1, offset: 0.45 },
+          { transform: `translate(${dx}px, ${dy + 380}px)`, opacity: 0 },
+        ],
+        { duration: 1300 + Math.random() * 600, easing: "cubic-bezier(0.2, 0.6, 0.4, 1)", delay: Math.random() * 120 }
+      ).onfinish = () => dot.remove();
+    }
+  }
+
+  function party() {
+    if (reduceMotion.matches) return;
+    partyStart = performance.now();
+    confetti();
+  }
+
+  window.addEventListener("mascot:party", party);
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    konamiAt = key === KONAMI[konamiAt] ? konamiAt + 1 : key === KONAMI[0] ? 1 : 0;
+    if (konamiAt === KONAMI.length) {
+      konamiAt = 0;
+      party();
+    }
+  });
 
   function spin(now) {
     if (spinStart < 0 || now - spinStart > SPIN_MS) spinStart = now;
@@ -656,6 +707,16 @@
         } else {
           spinYaw = ease(p) * Math.PI * 2;
           lift = Math.max(lift, Math.sin(Math.PI * Math.min(1, p * 1.4)) * 0.3);
+        }
+      }
+
+      if (partyStart >= 0) {
+        const p = (now - partyStart) / PARTY_MS;
+        if (p >= 1) {
+          partyStart = -1;
+        } else {
+          spinYaw += ease(p) * Math.PI * 6;
+          lift = Math.max(lift, Math.abs(Math.sin(p * Math.PI * 3)) * 0.35);
         }
       }
 

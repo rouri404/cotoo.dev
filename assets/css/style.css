@@ -182,7 +182,6 @@ body {
   outline-offset: 1px;
 }
 
-/* Squares fill in week by week, like a pixel scan */
 .heat-cell {
   animation: heatIn 0.35s steps(3) calc(var(--w, 0) * 14ms) backwards;
 }

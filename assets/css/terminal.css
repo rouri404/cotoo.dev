@@ -66,7 +66,6 @@
   animation: termIn 0.55s cubic-bezier(0.2, 0.8, 0.25, 1);
 }
 
-/* Hidden while the party runs (see terminal.js), without losing its state */
 .term.is-party-hidden {
   opacity: 0;
   visibility: hidden;
@@ -92,7 +91,6 @@
   }
 }
 
-/* Lines of output step in one after another (the delay comes from terminal.js) */
 .term-line {
   animation: termLine 0.24s steps(4) var(--d, 0ms) backwards;
 }
@@ -103,7 +101,6 @@
     transform: translateX(-8px);
   }
 }
-
 
 .term-bar,
 .term-body,
@@ -121,7 +118,6 @@
   padding-bottom: 0.3rem;
 }
 
-/* The bar is the window's handle */
 .term-bar {
   cursor: grab;
   touch-action: none;
@@ -177,7 +173,7 @@
   opacity: 0.7;
 }
 
-/* Keys and the last swatch: the accent colour comes from the theme variable, so it follows the wave with the line */
+/* The accent comes from the theme variable, so it follows the wave with its line */
 .term-accent {
   color: var(--mascot-accent);
 }

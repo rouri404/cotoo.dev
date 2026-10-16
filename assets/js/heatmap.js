@@ -19,7 +19,6 @@
   };
 
   function render() {
-    // Fit as many weeks as the column allows, keeping the most recent ones
     const room = grid.parentElement.clientWidth;
     const fit = Math.max(8, Math.min(data.weeks.length, Math.floor((room + GAP) / (CELL + GAP))));
     if (fit === shown) return;

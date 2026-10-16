@@ -48,7 +48,6 @@
     }
     if (!byId.size) return;
 
-    // Which two nodes each edge joins, found by trying every pair against the edge id
     const labels = svg.querySelectorAll(".edgeLabel");
     const links = [];
     svg.querySelectorAll("path.flowchart-link").forEach((edge, i) => {
@@ -91,7 +90,6 @@
 
   const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  // Zoom window: a copy of the diagram that can be dragged, pinched and wheel-zoomed
   let zoom = null;
 
   function closeZoom() {
@@ -159,7 +157,6 @@
       apply();
     }
 
-    // Zoom keeping the point under (px, py) in place
     function zoomAt(px, py, factor) {
       const s = clamp(view.s * factor, fitScale * 0.4, Math.max(6, fitScale * 4));
       view.x = px - (px - view.x) * (s / view.s);
@@ -180,7 +177,6 @@
       { passive: false }
     );
 
-    // One pointer drags, two pointers pinch
     const pointers = new Map();
     let pinch = 0;
     stage.addEventListener("pointerdown", (e) => {
@@ -289,7 +285,6 @@
         : null;
 
     for (const block of blocks) {
-      // The header gets an "expandir" button next to "código"
       const header = block.querySelector(".mermaid-header");
       const toggle = block.querySelector(".mermaid-toggle");
       if (header && toggle) {

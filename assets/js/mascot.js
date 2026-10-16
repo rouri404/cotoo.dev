@@ -158,7 +158,6 @@
   }
 
   function targetFor() {
-    // During the party he dances in the middle of the screen
     if (partyStart >= 0 && !partyLeaving) return { mode: "fixed", x: (vw - W) / 2, y: (vh - H) / 2 + vh * 0.03 };
     if (!boosted) return homeTarget();
 
@@ -388,11 +387,9 @@
   function updateBubble(now) {
     if (!bubble) return;
     if (speech && now >= speech.until) speech = null;
-    // His own text stays quiet during the party
     const text = speech ? speech.text : partyStart >= 0 ? "" : BUBBLE_TEXT;
     const rel = parseFloat(bubble.style.top);
     const top = pos.y + (isNaN(rel) ? -90 : rel);
-    // His own text waits until he has settled; a comment shows wherever he is
     const placed = speech ? true : isHome ? mode === "follow" && now - modeSince > 900 : isIndex && now - modeSince > 1800;
     const want = !!text && placed && !leaving && onScreen && top > 8 && fitsBeside();
     const isOn = bubble.classList.contains("is-on");
@@ -605,7 +602,7 @@
   const PARTY_MS = 8000;
   const BEAT_MS = 476;
   // The way out overlaps the lights fading: he shrinks and walks home over the last 900 ms, and the party look
-  // (light on dark, neon) is dropped 400 ms before the end, while the screen is still half dark
+  // (light on dark) is dropped 400 ms before the end, while the screen is still half dark
   const LEAVE_MS = 900;
   const LOOK_END_MS = 400;
   let partyLeaving = false;
@@ -643,7 +640,6 @@
   }
   document.addEventListener("visibilitychange", wake);
 
-  // Comments while reading a post: halfway through, at the end, and when code is copied
   if (isPost && !document.body.classList.contains("page-now")) {
     const said = { half: false, end: false };
     window.addEventListener(
@@ -699,7 +695,6 @@
     }
   }
 
-  // He grows to most of the screen, keeping his centre where it was, and shrinks back when the party ends
   function growTux() {
     const oldW = W;
     const oldH = H;
@@ -736,7 +731,6 @@
     partyLeaving = false;
     partyLook = true;
     partyColors(true);
-    // Dancing counts as being awake
     lastActive = partyStart;
     sleeping = false;
     confetti();
@@ -901,13 +895,10 @@
           partyLeaving = false;
           say("festinha boa slk", 3500);
         } else {
-          // He needs a moment to get to the middle, and calms down on the way out
           const k = clamp(t / 900, 0, 1) * clamp((PARTY_MS - t) / LEAVE_MS, 0, 1);
           const beat = t / BEAT_MS;
-          // Hop on every beat and sway between them
           lift = Math.max(lift, Math.abs(Math.sin(Math.PI * (beat % 1))) * 0.22 * k);
           spinYaw += Math.sin((beat * Math.PI) / 2) * 0.7 * k;
-          // A full turn every 8 beats and a somersault every 16
           const turn = beat % 8;
           if (turn >= 6 && beat > 2) spinYaw += ease((turn - 6) / 2) * Math.PI * 2;
           const roll = beat % 16;

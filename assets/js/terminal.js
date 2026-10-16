@@ -47,7 +47,6 @@
     signout: "\uf08b", server: "\uf233", code: "\uf121", desktop: "\uf108", prompt: "\u276f", folderOpen: "\uf07c", sitemap: "\uf0e8",
   };
 
-  // Markup
   const term = document.createElement("section");
   term.className = "term";
   term.id = "term";
@@ -78,8 +77,6 @@
   const history = [];
   let historyAt = 0;
 
-  // Output
-  // Lines added in the same tick step in with a small stagger
   let burst = 0;
   let burstTimer = 0;
 
@@ -108,7 +105,6 @@
   };
 
   const ico = (glyph, className = "") => span(glyph, "ico" + (className ? " " + className : ""));
-  // Keeps the columns aligned on a row that has no icon of its own
   const blankIco = () => ico("\u00a0");
 
   function link(href, label) {
@@ -122,20 +118,17 @@
     return a;
   }
 
-  // A command name or label in a fixed-width column, followed by its description
   function row(label, rest, width = 11) {
     const left = typeof label === "string" ? span(label.padEnd(width), "term-key") : label;
     return line([left, typeof rest === "string" ? span(rest, "term-dim") : rest]);
   }
 
-  // A row whose label is an icon plus a fixed-width name
   function iconRow(glyph, name, rest, width = 11) {
     const label = document.createElement("span");
     label.append(ico(glyph), span(name.padEnd(width), "term-key"));
     return row(label, rest, width);
   }
 
-  // Long outputs start at their first line instead of scrolling to the end
   function scrollToStart(el) {
     body.scrollTop = Math.max(0, el.offsetTop - body.offsetTop - 4);
   }
@@ -150,7 +143,7 @@
 
   // A small make-believe file system: ~ holds projects/ and blog/ plus a few text files
   let cwd = []; // path segments below ~
-  let posts = null; // blog posts, fetched once
+  let posts = null;
 
   const slugify = (name) =>
     name
@@ -182,7 +175,6 @@
     return null;
   }
 
-  // Segments for a path typed by the user, relative to the current directory
   function resolvePath(arg) {
     let rest = (arg || "").trim();
     let segs = cwd.slice();
@@ -200,7 +192,6 @@
     return segs;
   }
 
-  // What lives at a path: a directory, a file (with how to print it), or nothing
   function statPath(segs) {
     if (!segs.length || (segs.length === 1 && (segs[0] === "projects" || segs[0] === "blog"))) return { kind: "dir" };
     const [first, second] = segs;
@@ -228,7 +219,6 @@
   const entryNodes = (entries) =>
     entries.flatMap((e, i) => [i ? span("  ") : "", e.dir ? span(e.name + "/", "term-accent") : span(e.name)]);
 
-  // Commands
   const commands = {
     help: {
       icon: NF.help,
@@ -300,7 +290,6 @@
           const data = await res.json();
           wait.remove();
 
-          // As many weeks as fit in the window (most recent ones), one square per day
           const probe = span("MMMMMMMMMM");
           probe.style.visibility = "hidden";
           body.appendChild(probe);
@@ -311,7 +300,6 @@
           const fit = Math.max(8, Math.min(data.weeks.length, Math.floor((body.clientWidth - padding) / (charW * 1.22)) - 5));
           const weeks = data.weeks.slice(-fit);
 
-          // Same five shades as the heatmap on the home page: one glyph, five opacities
           const glyph = term.classList.contains("term-nf") ? "\u25a0" : "#";
           const opacity = [0.14, 0.38, 0.6, 0.8, 1];
           const square = (level) => {
@@ -320,7 +308,6 @@
             return el;
           };
 
-          // Month names over the week where each month starts, when there is room for them
           const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
           const header = new Array(fit).fill(" ");
           let lastMonth = -1;
@@ -411,7 +398,6 @@
       desc: "informações do sistema",
       run() {
         const mins = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
-        // Colour palette row, like the real neofetch
         const swatch = document.createElement("span");
         for (const level of [0.2, 0.4, 0.6, 0.8, 1]) {
           const block = span("\u2588\u2588");
@@ -420,7 +406,6 @@
         }
         swatch.append(span("\u2588\u2588", "term-accent"));
 
-        // Each row is [icon, key, value]; keys use the theme's accent colour
         const info = [
           [null, "tux@cotoo.dev", null],
           [NF.linux, "os", "cotoo.dev"],
@@ -432,7 +417,6 @@
           [NF.clock, "uptime", mins + (mins === 1 ? " min" : " mins")],
           [null, "", swatch],
         ];
-        // Beside the penguin, who sits in the middle of the rows, or under him on narrow screens
         const narrow = window.innerWidth < 600;
         const offset = narrow ? TUX.length + 1 : Math.floor((info.length - TUX.length) / 2);
         const rows = narrow ? offset + info.length : info.length;
@@ -479,7 +463,6 @@
       args: "[pasta]",
       async run(args) {
         const target = args.filter((x) => !x.startsWith("-"))[0];
-        // Without an argument it lists the current folder (only cd goes home)
         const segs = target ? resolvePath(target) : cwd.slice();
         if (segs[0] === "blog") await loadPosts();
         const found = statPath(segs);
@@ -587,7 +570,6 @@
   // Tab completion and the grey suggestion shown after the cursor (accepted with Tab or the right arrow)
   const visibleCommands = () => Object.keys(commands).filter((name) => !commands[name].hidden);
 
-  // What can be completed at the end of the current input: the word being typed and the words that could replace it
   function candidates() {
     const parts = input.value.trimStart().split(/\s+/);
     const word = parts[parts.length - 1].toLowerCase();
@@ -605,7 +587,6 @@
     return { parts, word, pool: pool.filter((c) => c.startsWith(word)) };
   }
 
-  // A previous command that starts like the input wins, then the first matching command or argument
   function historySuggestion() {
     const value = input.value;
     if (!value) return "";
@@ -642,16 +623,13 @@
   }
 
   function complete() {
-    // A suggestion from the history is taken as it is
     if (historySuggestion() && acceptSuggestion()) return;
     const { parts, word, pool } = candidates();
     if (!pool.length) return;
     if (pool.length === 1) {
       parts[parts.length - 1] = pool[0];
-      // A directory keeps the cursor next to its slash, ready for what comes inside
       input.value = parts.join(" ") + (pool[0].endsWith("/") ? "" : " ");
     } else {
-      // The longest start the candidates share; when that adds nothing, show them all
       let prefix = pool[0];
       for (const c of pool) while (!c.startsWith(prefix)) prefix = prefix.slice(0, -1);
       if (prefix.length > word.length) {
@@ -664,7 +642,6 @@
     renderGhost();
   }
 
-  // Keeps the pop-up above Tux's head, following him while he moves, and inside the visible viewport
   const GAP = 10;
   let placing = false;
   let closedAt = 0;
@@ -713,7 +690,6 @@
     else placing = false;
   }
 
-  // The font file is only fetched the first time the terminal opens; the glyphs show once it is in
   function loadNerdFont() {
     if (!document.fonts || !document.fonts.load) return;
     document.fonts
@@ -724,7 +700,6 @@
       .catch(() => {});
   }
 
-  // Open and close
   function open() {
     if (isOpen) return;
     isOpen = true;
@@ -766,7 +741,6 @@
     if (result && typeof result.then === "function") result.then(() => (body.scrollTop = body.scrollHeight));
   });
 
-  // Keys typed in the terminal never reach the page's own shortcuts
   input.addEventListener("keydown", (e) => {
     e.stopPropagation();
     if (e.key === "Escape") {
@@ -791,7 +765,6 @@
     }
   });
 
-  // Dragging the title bar turns it into a free window; a double click sends it back to Tux
   const bar = term.querySelector(".term-bar");
   let drag = null;
   bar.addEventListener("pointerdown", (e) => {

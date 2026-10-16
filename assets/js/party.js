@@ -58,7 +58,6 @@
       const dt = Math.min(50, now - last);
       last = now;
 
-      // Everything fades in and out, so the screen comes back gently
       const fade = Math.min(1, t / 600, (duration - t) / 700);
       const beat = t / BEAT_MS;
       const phase = beat % 1;
@@ -120,7 +119,6 @@
         ctx.fillRect(Math.round(cx + Math.cos(ang) * radius), Math.round(cy + Math.sin(ang) * radius * 0.8), 2, 2);
       }
 
-      // Equalizers on both edges
       const bars = 9;
       const barW = 4;
       const seg = 3;
@@ -137,13 +135,11 @@
         }
       }
 
-      // Strobe on every eighth beat
       if (bi % 8 === 0 && phase < 0.35) {
         ctx.fillStyle = `rgba(255,255,255,${(1 - phase / 0.35) * 0.45 * fade})`;
         ctx.fillRect(0, 0, w, h);
       }
 
-      // Confetti
       for (const b of bits) {
         b.y += b.vy * (dt / 16);
         if (b.y > h + 2) b.y = -2;
@@ -152,7 +148,6 @@
         ctx.fillRect(Math.round(b.x + Math.sin(t / 400 + b.phase) * b.sway), Math.round(b.y), 2, 2);
       }
 
-      // Title, in a colour that changes on the beat
       ctx.globalCompositeOperation = "source-over";
       const size = Math.max(10, Math.round(h * 0.1 * (1 + 0.12 * pulse)));
       ctx.font = `${size}px Tiny5, monospace`;

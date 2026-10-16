@@ -351,7 +351,6 @@ ${content}
 `;
 }
 
-// Posts sharing tags come first, then the newest ones fill the remaining slots
 function pickRelated(current, posts, limit = 2) {
   const tagSet = new Set(current.meta.tags.map((t) => t.toLowerCase()));
   return posts

@@ -1,0 +1,291 @@
+/* Terminal pop-up that comes out of Tux, shared by the home page and the blog. Built by assets/js/terminal.js */
+
+/* Subset of Agave Nerd Font Mono (Latin, blocks, Powerline, Devicons, Font Awesome). Only fetched once the terminal is first opened */
+@font-face {
+  font-family: "Agave NF";
+  src: url("../fonts/AgaveNerdFontMono-subset.woff2") format("woff2");
+  font-display: swap;
+}
+
+.term {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(560px, calc(100vw - 16px));
+  height: min(400px, 70vh);
+  border: 2px solid var(--text-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: left;
+  /* terminal.js moves it with transform: translate; the pop-in uses the separate scale property */
+  transform-origin: var(--ox, 50%) var(--oy, 100%);
+  /* Closing is a quick fade; only opening grows out of Tux (see termIn) */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease-out, visibility 0s linear 0.12s;
+}
+
+.term.term-nf {
+  font-family: "Agave NF", ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace;
+  font-size: 1rem;
+}
+
+/* Glyphs only appear with the Nerd Font; without it the plain text stands alone */
+.ico {
+  display: none;
+  width: 1.2ch;
+  margin-right: 0.5ch;
+  text-align: center;
+}
+
+.term-nf .ico {
+  display: inline-block;
+  font-size: 1.15em;
+  vertical-align: -0.08em;
+}
+
+.term-nf .nf-off {
+  display: none;
+}
+
+.term-prompt .ico {
+  margin-right: 0;
+}
+
+.term.is-open {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+  animation: termIn 0.55s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+/* Hidden while the party runs (see terminal.js), without losing its state */
+.term.is-party-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Opens like an old CRT: a thin line shoots out of Tux, then opens up (a little too far) and settles */
+@keyframes termIn {
+  0% {
+    scale: 0.25 0.03;
+    opacity: 0;
+  }
+  28% {
+    scale: 1.02 0.04;
+    opacity: 1;
+  }
+  72% {
+    scale: 1 1.04;
+  }
+  100% {
+    scale: 1 1;
+    opacity: 1;
+  }
+}
+
+/* Lines of output step in one after another (the delay comes from terminal.js) */
+.term-line {
+  animation: termLine 0.24s steps(4) var(--d, 0ms) backwards;
+}
+
+@keyframes termLine {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}
+
+
+.term-bar,
+.term-body,
+.term-form {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.term-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.45rem;
+  padding-bottom: 0.3rem;
+}
+
+/* The bar is the window's handle */
+.term-bar {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.term-bar.is-dragging {
+  cursor: grabbing;
+}
+
+.term-title {
+  opacity: 0.7;
+}
+
+.term-close {
+  width: 1.3rem;
+  height: 1.3rem;
+  padding: 0;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.term-close:hover,
+.term-close:focus-visible {
+  background: var(--text-color);
+  color: var(--bg-color);
+}
+
+.term-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-color) transparent;
+}
+
+.term-line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.term-line a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.term-dim {
+  opacity: 0.7;
+}
+
+/* Keys and the last swatch: the accent colour comes from the theme variable, so it follows the wave with the line */
+.term-accent {
+  color: var(--mascot-accent);
+}
+
+.term-art {
+  white-space: pre;
+  overflow-x: auto;
+  margin: 0.3rem 0;
+}
+
+/* The activity chart: a gap between squares and tight rows, so each day reads as its own square */
+.term-chart {
+  line-height: 1.05;
+  letter-spacing: 0.22ch;
+}
+
+.term-echo {
+  margin-top: 0.4rem;
+}
+
+.term-form {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.35rem;
+  padding-bottom: 0.6rem;
+}
+
+/* The suggestion sits under the input in the same grid cell, so both share one baseline */
+.term-field {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.term-ghost {
+  grid-area: 1 / 1;
+  white-space: pre;
+  overflow: hidden;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.term-input {
+  grid-area: 1 / 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  caret-color: currentColor;
+  font: inherit;
+}
+
+/* While the dither wave runs, the pop-up paints its background and border in two layers: the old colours,
+   and the new colours clipped to the circle swept so far (the transition scripts set --wave-r/x/y on .term
+   every frame, plus --tr-old-* and --tr-new-* on the root) */
+body.is-transitioning .term {
+  background: transparent;
+  border-color: transparent;
+}
+
+.term::before,
+.term::after {
+  content: "";
+  display: none;
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  box-sizing: border-box;
+  border: 2px solid;
+  pointer-events: none;
+}
+
+body.is-transitioning .term::before,
+body.is-transitioning .term::after {
+  display: block;
+}
+
+.term::before {
+  background: var(--tr-old-bg);
+  border-color: var(--tr-old-fg);
+}
+
+.term::after {
+  background: var(--tr-new-bg);
+  border-color: var(--tr-new-fg);
+  clip-path: circle(var(--wave-r, 0px) at var(--wave-x, 0px) var(--wave-y, 0px));
+}
+
+@media (max-width: 600px) {
+  .term {
+    height: min(380px, 60vh);
+  }
+
+  /* 16px keeps iOS from zooming the page when the input gets focus */
+  .term-input {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .term,
+  .term.is-open,
+  .term-line {
+    transition: none;
+    animation: none;
+  }
+}

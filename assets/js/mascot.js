@@ -45,7 +45,7 @@
         }<span class="on"></span><span class="off">${BUBBLE_TEXT}</span>${isHome ? "</a>" : "</span>"}</div>`
       : "") +
     '<canvas id="mascot" class="mascot" aria-hidden="true"></canvas>' +
-    '<button class="mascot-hit" type="button" aria-label="Tux, o mascote do Linux. Clique para fazê-lo girar"></button>';
+    '<button class="mascot-hit" type="button" aria-label="Tux, o mascote do Linux. Clique para abrir ou fechar o terminal"></button>';
   document.body.appendChild(box);
 
   const canvas = box.querySelector("canvas");
@@ -608,10 +608,18 @@
     { passive: true }
   );
 
+  // The spin plays first, then the terminal pops out of him (terminal.js listens for this event)
+  function openTerminal() {
+    setTimeout(() => window.dispatchEvent(new Event("terminal:toggle")), reduceMotion.matches ? 0 : 350);
+  }
+
   hit.addEventListener("click", (e) => {
     e.stopPropagation();
     // Keyboard presses are handled on keydown
-    if (e.detail > 0 && !reduceMotion.matches) spin(performance.now());
+    if (e.detail > 0) {
+      if (!reduceMotion.matches) spin(performance.now());
+      openTerminal();
+    }
   });
   hit.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -619,6 +627,7 @@
       e.preventDefault();
       e.stopPropagation();
       if (!reduceMotion.matches) spin(performance.now());
+      openTerminal();
     }
   });
 

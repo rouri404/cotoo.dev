@@ -45,6 +45,8 @@ function draw(now) {
 
 function handlePointerMove(e) {
   if (e.pointerType === "touch") return;
+  // No trail over the terminal (or while dragging it): the squares would be left behind as the window moves
+  if (e.target.closest && e.target.closest(".term")) return;
   const col = Math.floor(e.clientX / pixelSize);
   const row = Math.floor(e.clientY / pixelSize);
   const key = `${col},${row}`;
@@ -105,7 +107,7 @@ window.addEventListener("click", (e) => {
   const sel = window.getSelection ? window.getSelection().toString() : "";
   if (sel && sel.trim().length > 0) return;
 
-  if (e.target.closest("a, button, input, textarea, .top-nav, .theme-toggle, .nav-blog-btn, .modal-content, .custom-notification, .spotify-widget, .mascot, .mascot-bubble")) {
+  if (e.target.closest("a, button, input, textarea, .top-nav, .theme-toggle, .nav-blog-btn, .modal-content, .custom-notification, .spotify-widget, .mascot, .mascot-bubble, .term, .activity-section")) {
     return;
   }
 
@@ -461,7 +463,7 @@ themeToggle.addEventListener("click", (e) => {
   document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a'
+    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a, .heat-cell, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost'
   );
   
   const ditherBandRatio = 1 / 1.5;
@@ -514,6 +516,13 @@ themeToggle.addEventListener("click", (e) => {
     ? "brightness(0) invert(81%) sepia(23%) saturate(440%) hue-rotate(68deg) brightness(82%) contrast(91%)"
     : "brightness(0) invert(10%) sepia(100%) saturate(150%) hue-rotate(72deg) brightness(130%)";
   
+  // The terminal pop-up has an opaque background, so it paints the old and new colours in two layers (see terminal.css)
+  const termDrawer = document.getElementById("term");
+  document.documentElement.style.setProperty("--tr-old-bg", newTheme === "dark" ? "#e3ecd7" : "#121212");
+  document.documentElement.style.setProperty("--tr-new-bg", newBgColor);
+  document.documentElement.style.setProperty("--tr-old-fg", newTheme === "dark" ? "#1c2e1c" : "#8fbc8b");
+  document.documentElement.style.setProperty("--tr-new-fg", targetTextColor);
+
   function animateSweep(timestamp) {
     if (!startTime) startTime = timestamp;
     const progress = Math.min((timestamp - startTime) / duration, 1.0);
@@ -542,6 +551,13 @@ themeToggle.addEventListener("click", (e) => {
       }
     }
     
+    if (termDrawer) {
+      const r = termDrawer.getBoundingClientRect();
+      termDrawer.style.setProperty("--wave-r", Math.max(0, waveR - ditherBand * 0.5) * size + "px");
+      termDrawer.style.setProperty("--wave-x", cols * size - r.left + "px");
+      termDrawer.style.setProperty("--wave-y", -r.top + "px");
+    }
+
     // Flip individual elements as wave passes
     for (let flip of flips) {
       if (!flip.flipped && (waveR - ditherBand * flip.lag) > flip.d / size) {
@@ -563,6 +579,13 @@ themeToggle.addEventListener("click", (e) => {
       document.documentElement.setAttribute("data-theme", newTheme);
       
       // Cleanup
+      document.documentElement.style.removeProperty("--tr-old-bg");
+      document.documentElement.style.removeProperty("--tr-new-bg");
+      document.documentElement.style.removeProperty("--tr-old-fg");
+      document.documentElement.style.removeProperty("--tr-new-fg");
+      if (termDrawer) {
+        for (const name of ["--wave-r", "--wave-x", "--wave-y"]) termDrawer.style.removeProperty(name);
+      }
       for (let flip of flips) {
         flip.el.removeAttribute("data-theme");
         flip.el.style.color = "";

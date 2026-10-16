@@ -98,7 +98,7 @@
         window.addEventListener("scroll", clipMainBelowHeader, { passive: true });
 
         const elementsToFlip = document.querySelectorAll(
-          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .reading-progress, .mascot, .mascot-bubble, .mascot-bubble a'
+          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .reading-progress, .mascot, .mascot-bubble, .mascot-bubble a, .mermaid-zoom-title, .mermaid-zoom-btn, .mermaid-zoom-stage, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost'
         );
 
         const flips = Array.from(elementsToFlip).map((el) => {
@@ -147,9 +147,11 @@
         const targetTextColor = newTheme === "dark" ? "#8fbc8b" : "#1c2e1c";
         const targetRuleColor = newTheme === "dark" ? "rgba(143, 188, 139, 0.3)" : "rgba(28, 46, 28, 0.3)";
         // Sticky headings paint their background from these (see blog.css), so it follows the wave
-        const stickies = Array.from(document.querySelectorAll(".post-section > h2, .post-subsection > h3"));
+        const stickies = Array.from(document.querySelectorAll(".post-section > h2, .post-subsection > h3, .term, .mermaid-zoom"));
         root.style.setProperty("--tr-old-bg", newTheme === "dark" ? "#e3ecd7" : "#121212");
         root.style.setProperty("--tr-new-bg", newBgColor);
+        root.style.setProperty("--tr-old-fg", newTheme === "dark" ? "#1c2e1c" : "#8fbc8b");
+        root.style.setProperty("--tr-new-fg", targetTextColor);
         const barHeight = blogBar ? Math.round(blogBar.getBoundingClientRect().height) : 58;
         const borderTop = barHeight - 2;
         const borderBottom = barHeight;
@@ -232,6 +234,8 @@
             }
             root.style.removeProperty("--tr-old-bg");
             root.style.removeProperty("--tr-new-bg");
+            root.style.removeProperty("--tr-old-fg");
+            root.style.removeProperty("--tr-new-fg");
             for (const flip of flips) {
               flip.el.removeAttribute("data-theme");
               flip.el.style.color = "";

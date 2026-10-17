@@ -190,6 +190,20 @@
   letter-spacing: 0.22ch;
 }
 
+/* Snake: tight rows so the blocks touch, and the board takes swipes instead of scrolling */
+.term-game {
+  line-height: 1.05;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+
+.term-game-field {
+  display: inline-block;
+  border: 2px solid currentColor;
+}
+
 .term-echo {
   margin-top: 0.4rem;
 }

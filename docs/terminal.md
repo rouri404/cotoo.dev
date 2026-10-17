@@ -19,7 +19,14 @@ A janela também pode ser arrastada pela barra de título (`tux@cotoo.dev: ~`): 
 Cliques, rolagem e teclas dentro do terminal não chegam à página (na home, um clique avançaria do hero para o menu).
 
 ## Comandos
-`help`, `whoami`, `projects`, `stack`, `activity` (calendário de contribuições do GitHub, com quadrados em 5 tons como o heatmap da home), `blog`, `now`, `contact`, `open <home|blog|now|rss|github|linkedin>`, `theme [dark|light]`, `neofetch`, `party` (a [festa do Tux](mascot.md#party-konami-e-party)), `clear` e `exit`. Também existem `sudo` e `rm`, fora do `help`.
+`help`, `whoami`, `projects`, `stack`, `activity` (calendário de contribuições do GitHub, com quadrados em 5 tons como o heatmap da home), `blog`, `now` (mostra as seções de `/now` buscadas em `/now/?format=json`, com o link da página), `contact`, `open <home|blog|now|rss|github|linkedin|slug-do-post>` (o Tab também completa os slugs dos posts), `theme [dark|light]` (dispara a mesma onda de dither do botão), `neofetch`, `party` (a [festa do Tux](mascot.md#party-konami-e-party)), `snake` (ver abaixo), `clear` e `exit`. Também existem `sudo` e `rm`, fora do `help`.
+
+### snake
+`snake` abre o jogo da cobrinha numa linha do terminal: cada célula tem dois caracteres de largura (fica quadrada), o tamanho do tabuleiro se ajusta à janela (até 22 × 14) e a moldura é uma borda CSS na cor do texto, então vira com a onda do tema. A velocidade sobe a cada ponto e o recorde fica no `localStorage` (`snake-best`).
+
+- **Teclado:** setas ou WASD viram, espaço (ou `P`) pausa, `Esc` sai do jogo sem fechar o terminal e, no fim de jogo, Enter joga de novo (qualquer outra tecla volta ao prompt). As teclas do jogo são tratadas na fase de captura do `window` e param ali, então a página (que usa as setas para trocar de seção na home) e o código Konami não as recebem.
+- **Toque:** deslizar no tabuleiro vira, um toque pausa (ou recomeça no fim de jogo) e tocar no prompt sai do jogo. Só o tabuleiro tem `touch-action: none`; o resto do terminal e a página continuam rolando. O teclado do celular é fechado ao começar, para não cobrir o tabuleiro.
+- Fechar o terminal ou começar a festa encerra o jogo; com a aba escondida ele não anda.
 
 ### Sistema de arquivos de mentira
 `ls [pasta]`, `cd <pasta>`, `cat <arquivo>`, `tree` e `pwd` navegam por uma árvore montada a partir do conteúdo do site:
@@ -43,7 +50,7 @@ Cliques, rolagem e teclas dentro do terminal não chegam à página (na home, um
 Para adicionar um comando, inclua uma entrada em `commands` no `terminal.js` (`icon`, `desc`, `args` opcional e `run`). Os projetos e a stack ficam nas constantes `PROJECTS` e `STACK` no topo do arquivo.
 
 ### neofetch
-Mostra o Tux em ASCII no meio das linhas de informação (ícone, chave em cor de destaque e valor) e a paleta de cores no fim; em telas estreitas as informações vão abaixo do pinguim. A saída começa sempre do topo.
+Mostra o Tux em ASCII no meio das linhas de informação (ícone, chave em cor de destaque e valor) e a paleta de cores no fim; em telas estreitas as informações vão abaixo do pinguim. A saída começa sempre do topo. As linhas `visitas` (`GET /api/visits`, que não conta visita), `commit` (`/api/github`) e `posts` começam com `...` e são preenchidas quando as APIs respondem; as respostas ficam guardadas por 1 min (`getJson`). Se uma API falhar, o valor vira `indisponível`.
 
 ## Posição
 A janela fica acima da cabeça do Tux e o acompanha enquanto ele se move (um `requestAnimationFrame` só roda enquanto ela está aberta), sempre dentro da área visível (`visualViewport`, por causa do teclado do celular). Ao abrir, ela cresce a partir da cabeça dele (`transform-origin` e a propriedade `scale`, na animação `termIn`), e `transform: translate` só posiciona. Ao fechar, é só um fade rápido (120 ms), sem encolher de volta, já que ela pode estar longe do Tux. Sem mascote (404 do blog), ela sai do centro, embaixo.

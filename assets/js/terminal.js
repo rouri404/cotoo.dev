@@ -45,6 +45,7 @@
     file: "\uf0f6", user: "\uf007", clock: "\uf017", moon: "\uf186", sun: "\uf185", warn: "\uf071", lock: "\uf023", rocket: "\uf135",
     chart: "\uf080", book: "\uf02d", cubes: "\uf1b3", help: "\uf059", adjust: "\uf042", link: "\uf08e", eraser: "\uf12d",
     signout: "\uf08b", server: "\uf233", code: "\uf121", desktop: "\uf108", prompt: "\u276f", folderOpen: "\uf07c", sitemap: "\uf0e8",
+    gamepad: "\uf11b",
   };
 
   const term = document.createElement("section");
@@ -204,6 +205,41 @@
     return posts;
   }
 
+  // JSON from the site's own endpoints, kept for a minute so repeated commands do not refetch
+  const fetched = new Map();
+  function getJson(url) {
+    const hit = fetched.get(url);
+    if (hit && Date.now() - hit.at < 60000) return hit.promise;
+    const promise = fetch(url, { headers: { Accept: "application/json" } }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))));
+    promise.catch(() => fetched.delete(url));
+    fetched.set(url, { at: Date.now(), promise });
+    return promise;
+  }
+
+  const ago = (iso) => {
+    const min = Math.floor((Date.now() - new Date(iso)) / 60000);
+    if (min < 1) return "agora mesmo";
+    if (min < 60) return min + "m atrás";
+    if (min < 1440) return Math.floor(min / 60) + "h atrás";
+    return Math.floor(min / 1440) + "d atrás";
+  };
+
+  async function printNow() {
+    const wait = line("buscando /now...", "term-dim");
+    try {
+      const data = await getJson("/now/?format=json");
+      wait.remove();
+      for (const { title, text } of data.sections) {
+        line([ico(NF.clock), span(title.toLowerCase(), "term-accent")]);
+        line("  " + text, "term-dim");
+      }
+      line([span("atualizado em " + data.date + "  ", "term-dim"), link(SITE_LINKS.now, "/now/")]);
+    } catch (_) {
+      wait.textContent = "";
+      wait.append(span("não consegui buscar agora. veja em ", "term-dim"), link(SITE_LINKS.now, "/now/"));
+    }
+  }
+
   // Entries of a directory, as [{ name, dir }]; the blog list is whatever has been fetched so far
   function entriesOf(segs) {
     if (!segs.length) return [{ name: "projects", dir: true }, { name: "blog", dir: true }, ...HOME_FILES.map((name) => ({ name, dir: false }))];
@@ -255,6 +291,205 @@
 
   const entryNodes = (entries) =>
     entries.flatMap((e, i) => [i ? span("  ") : "", e.dir ? span(e.name + "/", "term-accent") : span(e.name)]);
+
+  // Snake, drawn as text in one terminal line. Each cell is two characters wide so it comes out square.
+  // Its keys are taken in the capture phase (see the keydown listener below), so the page and the Konami code never see them
+  let game = null;
+  const SNAKE_BEST = "snake-best";
+  const DIRS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] };
+  const isTouch = window.matchMedia("(pointer: coarse)");
+
+  function readBest() {
+    try {
+      return parseInt(localStorage.getItem(SNAKE_BEST), 10) || 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  function startSnake() {
+    const probe = span("MMMMMMMMMM");
+    probe.style.visibility = "hidden";
+    body.appendChild(probe);
+    const charW = probe.getBoundingClientRect().width / 10 || 8;
+    probe.remove();
+    const lineH = parseFloat(getComputedStyle(term).fontSize) * 1.05;
+    const padding = parseFloat(getComputedStyle(body).paddingLeft) * 2;
+    const cols = Math.max(8, Math.min(22, Math.floor(((body.clientWidth - padding) / charW - 1) / 2)));
+    const rows = Math.max(6, Math.min(14, Math.floor(body.clientHeight / lineH) - 4));
+
+    // The frame is a CSS border in the text colour, so it flips with the line during a theme change
+    const field = span("", "term-game-field");
+    const board = line(field, "term-art term-game");
+    board.setAttribute("role", "img");
+    board.setAttribute("aria-label", "jogo da cobrinha");
+    const status = line("", "term-dim");
+    const mid = Math.floor(rows / 2);
+    const g = {
+      board, status, cols, rows,
+      snake: [[3, mid], [2, mid], [1, mid]],
+      dir: [1, 0],
+      queue: [],
+      food: null,
+      score: 0,
+      best: readBest(),
+      state: "playing",
+      timer: 0,
+    };
+    game = g;
+
+    function placeFood() {
+      const free = [];
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (!g.snake.some(([sx, sy]) => sx === x && sy === y)) free.push([x, y]);
+      g.food = free.length ? free[Math.floor(Math.random() * free.length)] : null;
+    }
+
+    function draw() {
+      const cells = Array.from({ length: rows }, () => new Array(cols).fill("  "));
+      g.snake.forEach(([x, y], i) => (cells[y][x] = i ? "\u2593\u2593" : "\u2588\u2588"));
+      const nodes = [];
+      for (let y = 0; y < rows; y++) {
+        let text = "";
+        for (let x = 0; x < cols; x++) {
+          if (g.food && g.food[0] === x && g.food[1] === y) {
+            nodes.push(text, span("()", "term-accent"));
+            text = "";
+          } else text += cells[y][x];
+        }
+        nodes.push(text + (y < rows - 1 ? "\n" : ""));
+      }
+      field.replaceChildren(...nodes);
+      const touch = isTouch.matches;
+      const hint = touch ? "deslize para virar, toque pausa, o prompt sai" : "setas ou WASD, espaço pausa, Esc sai";
+      const state = g.state === "over" ? "fim de jogo! " + (touch ? "toque no jogo para jogar de novo" : "Enter joga de novo, Esc sai") : g.state === "paused" ? "pausado" : hint;
+      status.textContent = "pontos: " + g.score + "  recorde: " + Math.max(g.best, g.score) + "  " + state;
+    }
+
+    function step() {
+      if (game !== g || g.state !== "playing") return;
+      g.timer = setTimeout(step, Math.max(70, 140 - g.score * 3));
+      if (document.hidden) return;
+      const next = g.queue.shift();
+      if (next) g.dir = next;
+      const [hx, hy] = g.snake[0];
+      const head = [hx + g.dir[0], hy + g.dir[1]];
+      const ate = g.food && head[0] === g.food[0] && head[1] === g.food[1];
+      const rest = ate ? g.snake : g.snake.slice(0, -1);
+      if (head[0] < 0 || head[1] < 0 || head[0] >= cols || head[1] >= rows || rest.some(([x, y]) => x === head[0] && y === head[1])) {
+        g.state = "over";
+        if (g.score > g.best) {
+          g.best = g.score;
+          try {
+            localStorage.setItem(SNAKE_BEST, String(g.best));
+          } catch (_) {}
+        }
+        draw();
+        return;
+      }
+      g.snake = [head, ...rest];
+      if (ate) {
+        g.score++;
+        placeFood();
+      }
+      draw();
+    }
+
+    g.turn = (dir) => {
+      const last = g.queue[g.queue.length - 1] || g.dir;
+      // No turning back onto itself, and at most two turns waiting
+      if ((dir[0] === -last[0] && dir[1] === -last[1]) || (dir[0] === last[0] && dir[1] === last[1]) || g.queue.length > 1) return;
+      g.queue.push(dir);
+    };
+    g.pause = () => {
+      if (g.state === "playing") {
+        g.state = "paused";
+        clearTimeout(g.timer);
+      } else if (g.state === "paused") {
+        g.state = "playing";
+        step();
+      }
+      draw();
+    };
+    g.restart = () => {
+      g.snake = [[3, mid], [2, mid], [1, mid]];
+      g.dir = [1, 0];
+      g.queue = [];
+      g.score = 0;
+      g.state = "playing";
+      placeFood();
+      draw();
+      g.timer = setTimeout(step, 300);
+    };
+
+    // Swipes on the board steer, a tap pauses or starts again; the board alone takes the touch, the rest still scrolls
+    let swipe = null;
+    board.addEventListener("pointerdown", (e) => {
+      if (game !== g) return;
+      swipe = { x: e.clientX, y: e.clientY, turned: false };
+    });
+    board.addEventListener("pointermove", (e) => {
+      if (!swipe || swipe.turned || game !== g) return;
+      const dx = e.clientX - swipe.x;
+      const dy = e.clientY - swipe.y;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+      swipe.turned = true;
+      if (g.state === "playing") g.turn(Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)]);
+    });
+    board.addEventListener("pointerup", () => {
+      if (swipe && !swipe.turned && game === g) g.state === "over" ? g.restart() : g.pause();
+      swipe = null;
+    });
+    board.addEventListener("pointercancel", () => (swipe = null));
+
+    // The phone keyboard would cover the board
+    if (isTouch.matches) input.blur();
+    placeFood();
+    draw();
+    scrollToStart(board);
+    g.timer = setTimeout(step, 400);
+  }
+
+  function stopSnake() {
+    if (!game) return;
+    clearTimeout(game.timer);
+    game.board.removeAttribute("role");
+    // The status line must not keep promising "Enter joga de novo" once the game is gone
+    game.status.textContent =
+      game.state === "over" ? "pontos: " + game.score + "  recorde: " + Math.max(game.best, game.score) + "  fim de jogo!" : "pontos: " + game.score + "  (saiu do jogo)";
+    game = null;
+    if (isOpen) input.focus({ preventScroll: true });
+  }
+
+  // Returns true when the game took the key
+  function snakeKey(e) {
+    if (!game || e.ctrlKey || e.metaKey || e.altKey) return false;
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (key === "Escape") {
+      stopSnake();
+      return true;
+    }
+    if (game.state === "over") {
+      if (key === "Enter" || key === " ") {
+        game.restart();
+        return true;
+      }
+      // The arrow keys a player was mashing when the snake died must not throw them out of the game
+      if (DIRS[key]) return true;
+      // Any other key leaves the game and goes on to the prompt
+      stopSnake();
+      return false;
+    }
+    if (DIRS[key]) {
+      if (game.state === "playing") game.turn(DIRS[key]);
+      return true;
+    }
+    if (key === " " || key === "p") {
+      game.pause();
+      return true;
+    }
+    // Everything else typed while playing is swallowed, so it does not pile up in the prompt
+    return key.length === 1 || key === "Enter" || key === "Tab" || key === "Backspace";
+  }
 
   const commands = {
     help: {
@@ -380,10 +615,7 @@
     now: {
       icon: NF.clock,
       desc: "o que estou fazendo agora",
-      run() {
-        line([span("abrindo ", "term-dim"), link(SITE_LINKS.now, "/now/")]);
-        go(SITE_LINKS.now);
-      },
+      run: printNow,
     },
     contact: {
       icon: NF.mail,
@@ -396,12 +628,19 @@
     },
     open: {
       icon: NF.link,
-      desc: "abre uma página",
+      desc: "abre uma página ou um post",
       args: "<destino>",
-      run(args) {
-        const target = (args[0] || "").toLowerCase();
+      async run(args) {
+        const target = (args[0] || "").toLowerCase().replace(/\.md$/, "");
         if (!SITE_LINKS[target]) {
-          line("uso: open <" + Object.keys(SITE_LINKS).join(" | ") + ">");
+          const post = target && (await loadPosts()).find((p) => p.slug === target);
+          if (post) {
+            line([span("abrindo ", "term-dim"), link(`/blog/${post.slug}/`, post.meta.title)]);
+            go(`/blog/${post.slug}/`);
+            return;
+          }
+          line("uso: open <" + Object.keys(SITE_LINKS).join(" | ") + " | post>");
+          if (posts && posts.length) line("posts: " + posts.map((p) => p.slug).join("  "), "term-dim");
           return;
         }
         line([span("abrindo ", "term-dim"), span(target)]);
@@ -443,6 +682,20 @@
         }
         swatch.append(span("\u2588\u2588", "term-accent"));
 
+        // Live values start as "..." and are filled in when the site's APIs answer
+        const live = (promise, format) => {
+          const el = span("...", "term-dim");
+          promise.then((data) => {
+            const text = format(data);
+            el.textContent = text || "indispon\u00edvel";
+            if (text) el.className = "";
+          }, () => (el.textContent = "indispon\u00edvel"));
+          return el;
+        };
+        const visits = live(getJson("/api/visits"), (d) => (typeof d.visits === "number" && d.visits > 0 ? d.visits.toLocaleString("pt-BR") : ""));
+        const commit = live(getJson("/api/github"), (d) => (d.found ? d.repo + ", " + ago(d.created_at) : ""));
+        const postCount = live(loadPosts(), (list) => (list.length ? String(list.length) : ""));
+
         const info = [
           [null, "tux@cotoo.dev", null],
           [NF.linux, "os", "cotoo.dev"],
@@ -452,6 +705,9 @@
           [NF.adjust, "tema", currentTheme()],
           [NF.desktop, "tela", window.innerWidth + "x" + window.innerHeight],
           [NF.clock, "uptime", mins + (mins === 1 ? " min" : " mins")],
+          [NF.user, "visitas", visits],
+          [NF.github, "commit", commit],
+          [NF.book, "posts", postCount],
           [null, "", swatch],
         ];
         const narrow = window.innerWidth < 600;
@@ -465,7 +721,7 @@
             const [glyph, key, value] = entry;
             nodes.push(glyph ? ico(glyph) : blankIco());
             if (value === null) nodes.push(span(key, "term-accent"));
-            else nodes.push(span(key ? (key + ":").padEnd(8) : "", "term-accent"), value);
+            else nodes.push(span(key ? (key + ":").padEnd(9) : "", "term-accent"), value);
           }
           if (i < rows - 1) nodes.push("\n");
         }
@@ -478,6 +734,14 @@
       run() {
         line("bora comemorar!", "term-dim");
         window.dispatchEvent(new Event("mascot:party"));
+      },
+    },
+    snake: {
+      icon: NF.gamepad,
+      desc: "joga a cobrinha (Esc sai)",
+      run() {
+        stopSnake();
+        startSnake();
       },
     },
     clear: {
@@ -536,10 +800,7 @@
         if (found.home === "about.txt") return commands.whoami.run();
         if (found.home === "stack.txt") return commands.stack.run();
         if (found.home === "contact.txt") return commands.contact.run();
-        if (found.home === "now.md") {
-          line("o que estou fazendo agora, em", "term-dim");
-          return line(link(SITE_LINKS.now, "/now/"));
-        }
+        if (found.home === "now.md") return printNow();
         if (found.project) {
           line([ico(found.project.url.includes("github.com") ? NF.github : NF.folder), link(found.project.url, found.project.title)]);
           return line(found.project.desc, "term-dim");
@@ -613,7 +874,7 @@
     let pool = visibleCommands();
     if (parts.length > 1) {
       const first = parts[0].toLowerCase();
-      if (first === "open") pool = Object.keys(SITE_LINKS);
+      if (first === "open") pool = [...Object.keys(SITE_LINKS), ...(posts || []).map((p) => p.slug)];
       else if (first === "theme") pool = ["dark", "light"];
       else if (["cd", "ls", "cat"].includes(first)) {
         const here = entriesOf(cwd) || [];
@@ -713,7 +974,10 @@
   }
 
   // The party belongs to Tux: the window disappears while it runs and grows back out of him afterwards
-  window.addEventListener("party:start", () => term.classList.add("is-party-hidden"));
+  window.addEventListener("party:start", () => {
+    stopSnake();
+    term.classList.add("is-party-hidden");
+  });
   window.addEventListener("party:end", () => {
     term.classList.remove("is-party-hidden");
     if (!isOpen) return;
@@ -766,6 +1030,7 @@
 
   function close() {
     if (!isOpen) return;
+    stopSnake();
     isOpen = false;
     closedAt = performance.now();
     term.setAttribute("aria-hidden", "true");
@@ -841,11 +1106,27 @@
   });
 
   input.addEventListener("input", renderGhost);
+  // On a phone, tapping the prompt is the way out of the game
+  input.addEventListener("focus", () => {
+    if (game && isTouch.matches) stopSnake();
+  });
 
   term.querySelector(".term-close").addEventListener("click", close);
   body.addEventListener("click", () => {
+    if (game && isTouch.matches) return;
     if (!window.getSelection().toString()) input.focus({ preventScroll: true });
   });
+
+  window.addEventListener(
+    "keydown",
+    (e) => {
+      if (isOpen && snakeKey(e)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+    true
+  );
 
   window.addEventListener("terminal:open", open);
   window.addEventListener("terminal:toggle", toggle);

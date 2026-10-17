@@ -246,6 +246,25 @@ ${items}
 `;
 }
 
+// Plain-text sections of a page made of "## Heading" blocks, for the terminal
+function plainSections(body) {
+  const plain = (s) =>
+    s
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/[*_`]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  return body
+    .split(/^##\s+/m)
+    .slice(1)
+    .map((chunk) => {
+      const [title, ...rest] = chunk.split('\n');
+      return { title: plain(title), text: plain(rest.join('\n')) };
+    })
+    .filter((s) => s.title);
+}
+
 function renderNowHtml({ meta, html }) {
   const content = `    <main class="blog-main">
       <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / now</nav>
@@ -688,6 +707,12 @@ async function handler(req, res) {
     if (query.page === 'now' || (req.url && /[?&]page=now\b/.test(req.url))) {
       const file = getFileHashAndMtime(path.join(getBlogDir(), '_now.md'));
       if (!file.exists) return res.status(404).send(render404Html());
+      // Only the query string picks JSON here, so the CDN never caches it under the HTML URL
+      if (format === 'json') {
+        const { meta, body } = parseFrontMatter(file.raw);
+        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+        return res.status(200).json({ date: meta.date, sections: plainSections(body) });
+      }
       const cached = memCache.get('__now__');
       let nowHtml = cached && cached.hash === file.hash && cached.version === 'v3' ? cached.html : null;
       if (!nowHtml) {

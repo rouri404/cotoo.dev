@@ -1035,7 +1035,7 @@
   }
   document.addEventListener("visibilitychange", wake);
 
-  if (isPost && !document.body.classList.contains("page-now")) {
+  if (isPost && !document.body.matches(".page-now, .page-uses")) {
     const said = { half: false, end: false };
     window.addEventListener(
       "scroll",

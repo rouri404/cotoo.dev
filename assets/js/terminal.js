@@ -7,6 +7,7 @@
     home: "/",
     blog: "/blog/",
     now: "/now/",
+    uses: "/uses/",
     rss: "/blog/rss.xml",
     github: "https://github.com/rouri404",
     linkedin: "https://linkedin.com/in/gabricouto",

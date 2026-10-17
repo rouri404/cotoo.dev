@@ -332,7 +332,43 @@ ${html}
   });
 }
 
-function layout({ title, description, canonical, bodyClass, content, jsonLd, ogType, extraScripts = '' }) {
+// /uses: the setup page, from blog/_uses.md. "draft: true" in its front matter keeps it out of search engines
+function renderUsesHtml({ meta, html }) {
+  const draft = meta.draft === 'true';
+  const content = `    <main class="blog-main">
+      <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / uses</nav>
+      <article class="post">
+        <header class="post-header">
+          <h1>uses</h1>
+          <p class="post-meta">${escapeHtml(meta.description)} Atualizado em <time datetime="${meta.date}">${formatDate(meta.date)}</time>.</p>
+        </header>
+        <div class="prose">
+${html}
+        </div>
+      </article>
+    </main>`;
+  return layout({
+    title: 'Uses | Gabriel Couto',
+    description: meta.description,
+    canonical: `${SITE}/uses/`,
+    bodyClass: 'page-post page-uses',
+    ogType: 'website',
+    robots: draft ? 'noindex, follow' : 'index, follow',
+    content,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Uses | Gabriel Couto',
+      description: meta.description,
+      url: `${SITE}/uses/`,
+      inLanguage: 'pt-BR',
+      dateModified: meta.date,
+      author: { '@type': 'Person', name: AUTHOR, url: `${SITE}/` },
+    },
+  });
+}
+
+function layout({ title, description, canonical, bodyClass, content, jsonLd, ogType, extraScripts = '', robots = 'index, follow' }) {
   return `<!doctype html>
 <html lang="pt-BR">
   <head>
@@ -342,7 +378,7 @@ function layout({ title, description, canonical, bodyClass, content, jsonLd, ogT
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
     <meta name="author" content="${AUTHOR}" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="${robots}" />
     <link rel="canonical" href="${canonical}" />
     <link rel="alternate" type="application/rss+xml" title="Blog | Gabriel Couto" href="${SITE}/blog/rss.xml" />
 
@@ -843,6 +879,21 @@ async function handler(req, res) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
       return res.status(200).send(nowHtml);
+    }
+
+    if (query.page === 'uses' || (req.url && /[?&]page=uses\b/.test(req.url))) {
+      const file = getFileHashAndMtime(path.join(getBlogDir(), '_uses.md'));
+      if (!file.exists) return res.status(404).send(render404Html());
+      const cached = memCache.get('__uses__');
+      let usesHtml = cached && cached.hash === file.hash && cached.version === 'v1' ? cached.html : null;
+      if (!usesHtml) {
+        const { meta, body } = parseFrontMatter(file.raw);
+        usesHtml = renderUsesHtml({ meta, html: await renderMarkdownWith(body) });
+        memCache.set('__uses__', { hash: file.hash, version: 'v1', html: usesHtml });
+      }
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+      return res.status(200).send(usesHtml);
     }
 
     // Tag pages: /blog/tag/ (all tags) and /blog/tag/<slug>/

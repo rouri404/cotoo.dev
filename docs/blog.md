@@ -146,7 +146,10 @@ Como os relacionados dependem da pasta inteira, o cache de cada post guarda tamb
 ### 3.9. Página /now
 `/now/` mostra o que o Gabriel está fazendo agora. O texto vem de [blog/_now.md](file:///var/home/gabrielcoto/cotoo.dev/blog/_now.md) (o prefixo `_` o tira da lista de posts): edite o Markdown e atualize o campo `date`, que aparece como "atualizado em". Abaixo do texto, o bloco `// ao vivo` é preenchido no navegador por [assets/js/now.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/now.js) com a música tocando (`/api/spotify`) e o último commit (`/api/github`); cada linha só aparece se a API responder.
 
-A rota é reescrita para `/api/blog?page=now` e a página reaproveita o layout do blog, incluindo a troca de tema.
+A rota é reescrita para `/api/blog?page=now` e a página reaproveita o layout do blog, incluindo a troca de tema. O comando `now` do terminal mostra as mesmas seções, lidas de `/now/?format=json` (`plainSections` em `api/blog.js`).
+
+### 3.10. Página /uses
+`/uses/` lista o hardware e o software do dia a dia. Funciona como a `/now`: o texto vem de [blog/_uses.md](../blog/_uses.md), a rota é reescrita para `/api/blog?page=uses` e a página usa o layout do blog (tema, Tux e terminal; `open uses` no terminal leva até ela). Com `draft: true` no front matter a página sai com `<meta name="robots" content="noindex, follow">`. A página já está publicada e consta no `sitemap.xml`.
 
 ---
 

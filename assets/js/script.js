@@ -463,7 +463,7 @@ themeToggle.addEventListener("click", (e) => {
   document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a, .heat-cell, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost'
+    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a, .heat-cell, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .project-meta .chip, .project-status'
   );
   
   const ditherBandRatio = 1 / 1.5;
@@ -559,7 +559,7 @@ themeToggle.addEventListener("click", (e) => {
       if (!flip.flipped && (waveR - ditherBand * flip.lag) > flip.d / size) {
         flip.el.setAttribute("data-theme", newTheme);
         flip.el.style.color = targetTextColor;
-        if (flip.el.matches('.education-card, .mascot-bubble, .btn, .modal-content, .contact-form input, .contact-form textarea, .menu-col, .projects li, .blog-all-btn, .visit-digit')) {
+        if (flip.el.matches('.education-card, .mascot-bubble, .btn, .modal-content, .contact-form input, .contact-form textarea, .menu-col, .projects li, .blog-all-btn, .visit-digit, .project-meta .chip')) {
           flip.el.style.borderColor = targetTextColor;
         }
         if (flip.el.tagName.toLowerCase() === "img") {

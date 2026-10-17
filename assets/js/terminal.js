@@ -325,8 +325,8 @@
     // The frame is a CSS border in the text colour, so it flips with the line during a theme change
     const field = span("", "term-game-field");
     const board = line(field, "term-art term-game");
-    board.setAttribute("role", "img");
-    board.setAttribute("aria-label", "jogo da cobrinha");
+    // The board redraws every tick inside the log's live region, so screen readers only get the status line
+    board.setAttribute("aria-hidden", "true");
     const status = line("", "term-dim");
     const mid = Math.floor(rows / 2);
     const g = {
@@ -366,7 +366,8 @@
       const touch = isTouch.matches;
       const hint = touch ? "deslize para virar, toque pausa, o prompt sai" : "setas ou WASD, espaço pausa, Esc sai";
       const state = g.state === "over" ? "fim de jogo! " + (touch ? "toque no jogo para jogar de novo" : "Enter joga de novo, Esc sai") : g.state === "paused" ? "pausado" : hint;
-      status.textContent = "pontos: " + g.score + "  recorde: " + Math.max(g.best, g.score) + "  " + state;
+      const text = "pontos: " + g.score + "  recorde: " + Math.max(g.best, g.score) + "  " + state;
+      if (status.textContent !== text) status.textContent = text;
     }
 
     function step() {
@@ -456,7 +457,6 @@
   function stopSnake() {
     if (!game) return;
     clearTimeout(game.timer);
-    game.board.removeAttribute("role");
     // The status line must not keep promising "Enter joga de novo" once the game is gone
     game.status.textContent =
       game.state === "over" ? "pontos: " + game.score + "  recorde: " + Math.max(game.best, game.score) + "  fim de jogo!" : "pontos: " + game.score + "  (saiu do jogo)";

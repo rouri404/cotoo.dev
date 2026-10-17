@@ -43,6 +43,7 @@
     function updateThemeIcon() {
       if (themeToggle) {
         themeToggle.innerHTML = currentTheme === "light" ? svgMoon : svgSun;
+        themeToggle.setAttribute("aria-label", currentTheme === "light" ? "Mudar para o tema escuro" : "Mudar para o tema claro");
       }
       if (metaTheme) {
         metaTheme.setAttribute("content", currentTheme === "dark" ? "#121212" : "#e3ecd7");
@@ -76,7 +77,8 @@
 
         const newBgColor = newTheme === "dark" ? "#121212" : "#e3ecd7";
 
-        if (!transCanvas || !transCtx) {
+        // With reduced motion the theme just switches, without the dither wave
+        if (!transCanvas || !transCtx || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
           root.setAttribute("data-theme", newTheme);
           isTransitioning = false;
           return;

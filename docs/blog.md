@@ -129,10 +129,12 @@ Arquivos envolvidos: `renderIndexHtml` em [api/blog.js](file:///var/home/gabriel
 ### 3.7. Animações dos Posts
 Os posts têm duas animações suaves, ambas com `opacity`/`transform` e desligadas com `prefers-reduced-motion`:
 
-- **Barra de progresso de leitura:** linha fina sobre a borda do header (`.reading-progress`).
+- **Barra de progresso de leitura:** linha fina sobre a borda do header (`.reading-progress`). Como ela atravessa o header inteiro, na troca de tema ela não vira de uma vez: `blog.js` move `--wave-split` ao longo dela e um gradiente pinta a cor nova do ponto em que a onda já passou para a direita.
 - **Sumário:** entra deslizando e o item ativo muda de cor com transição.
 
 Arquivos envolvidos: [assets/js/post-motion.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/post-motion.js) e a seção "Reading progress bar" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
+
+Com `prefers-reduced-motion` a troca de tema também é instantânea, sem a onda de dither (em `blog.js` e no `script.js` da home); o Tux também não dá a cambalhota.
 
 ### 3.8. Tags e Posts Relacionados
 As tags no topo do post são links para a página da tag, `/blog/tag/<tag>/`, que lista os posts com ela (mais novos primeiro). O endereço usa a tag em minúsculas, sem acentos e com hífens (`Docker Compose` vira `docker-compose`, `Segurança` vira `seguranca`; `tagSlug` em `api/blog.js`). `/blog/tag/` lista todas as tags com a contagem de posts, e o índice do blog tem um link `#tags` ao lado do RSS. A busca `/blog/?q=<termo>` continua funcionando.

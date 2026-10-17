@@ -400,6 +400,8 @@ function layout({ title, description, canonical, bodyClass, content, jsonLd, ogT
 ${JSON.stringify(jsonLd, null, 2)}
     </script>
     <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/assets/img/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preload" href="/assets/fonts/Tiny5-subset.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/assets/css/blog.css" />
     <link rel="stylesheet" href="/assets/css/mascot.css" />
@@ -870,11 +872,11 @@ async function handler(req, res) {
         return res.status(200).json({ date: meta.date, sections: plainSections(body) });
       }
       const cached = memCache.get('__now__');
-      let nowHtml = cached && cached.hash === file.hash && cached.version === 'v3' ? cached.html : null;
+      let nowHtml = cached && cached.hash === file.hash && cached.version === 'v4' ? cached.html : null;
       if (!nowHtml) {
         const { meta, body } = parseFrontMatter(file.raw);
         nowHtml = renderNowHtml({ meta, html: await renderMarkdownWith(body) });
-        memCache.set('__now__', { hash: file.hash, version: 'v3', html: nowHtml });
+        memCache.set('__now__', { hash: file.hash, version: 'v4', html: nowHtml });
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
@@ -885,11 +887,11 @@ async function handler(req, res) {
       const file = getFileHashAndMtime(path.join(getBlogDir(), '_uses.md'));
       if (!file.exists) return res.status(404).send(render404Html());
       const cached = memCache.get('__uses__');
-      let usesHtml = cached && cached.hash === file.hash && cached.version === 'v1' ? cached.html : null;
+      let usesHtml = cached && cached.hash === file.hash && cached.version === 'v2' ? cached.html : null;
       if (!usesHtml) {
         const { meta, body } = parseFrontMatter(file.raw);
         usesHtml = renderUsesHtml({ meta, html: await renderMarkdownWith(body) });
-        memCache.set('__uses__', { hash: file.hash, version: 'v1', html: usesHtml });
+        memCache.set('__uses__', { hash: file.hash, version: 'v2', html: usesHtml });
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
@@ -931,7 +933,7 @@ async function handler(req, res) {
     }
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v21';
+    const TEMPLATE_VERSION = 'v22';
     // Related posts depend on the whole folder, so post caches are tied to its signature too
     const dirSig = getBlogDirSignature();
 

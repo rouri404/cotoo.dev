@@ -411,6 +411,8 @@ try {
     document.documentElement.setAttribute("data-theme", "dark");
   }
 } catch (_) {}
+// The browser bar matches the theme the page opened with
+document.getElementById("meta-theme-color").setAttribute("content", currentTheme === "dark" ? "#121212" : "#e3ecd7");
 
 const svgSun = `<svg viewBox="0 0 12 12" style="width:24px; height:24px; display:block;" fill="currentColor" shape-rendering="crispEdges">
   <rect x="5" y="1" width="2" height="2" />
@@ -436,9 +438,20 @@ const svgMoon = `<svg viewBox="0 0 12 12" style="width:24px; height:24px; displa
 
 function updateThemeIcon() {
   themeToggle.innerHTML = currentTheme === "light" ? svgMoon : svgSun;
+  themeToggle.setAttribute("aria-label", currentTheme === "light" ? "Mudar para o tema escuro" : "Mudar para o tema claro");
 }
 
 updateThemeIcon();
+
+// The toggle is a div, so it takes Enter and Space itself (the page would read them as "go to the menu")
+themeToggle.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  e.preventDefault();
+  e.stopPropagation();
+  themeToggle.click();
+});
+
+const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 let isTransitioning = false;
 themeToggle.addEventListener("click", (e) => {
@@ -456,6 +469,13 @@ themeToggle.addEventListener("click", (e) => {
   const newBgColor = newTheme === "dark" ? "#121212" : "#e3ecd7";
   const metaTheme = document.getElementById("meta-theme-color");
   if (metaTheme) metaTheme.setAttribute("content", newBgColor);
+
+  // With reduced motion the theme just switches, without the dither wave
+  if (reduceMotionQuery.matches) {
+    document.documentElement.setAttribute("data-theme", newTheme);
+    isTransitioning = false;
+    return;
+  }
   
   transCanvas.width = window.innerWidth;
   transCanvas.height = window.innerHeight;

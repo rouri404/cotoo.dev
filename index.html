@@ -96,6 +96,8 @@
     }
     </script>
     <link rel="icon" type="image/png" href="assets/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/assets/img/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preload" href="assets/fonts/Tiny5-subset.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/mascot.css" />
@@ -108,7 +110,7 @@
 
     <div class="top-nav" onclick="event.stopPropagation()">
       <a href="/blog/" class="nav-blog-btn" id="navBlogBtn" title="Acessar o blog"><span class="nav-blog-text">blog</span> <span class="link-arrow" aria-hidden="true">➚</span></a>
-      <div class="theme-toggle" id="themeToggle" title="Alternar tema"></div>
+      <div class="theme-toggle" id="themeToggle" title="Alternar tema" role="button" tabindex="0" aria-label="Alternar tema"></div>
     </div>
 
     <div class="visit-counter" id="visitCounter" title="visitas" hidden>

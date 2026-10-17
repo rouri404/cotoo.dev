@@ -304,6 +304,12 @@ body.reading-mode .font-toggle {
   transform: translateY(4px);
 }
 
+.font-toggle:focus-visible,
+.theme-toggle:focus-visible {
+  outline: 2px dashed var(--text-color);
+  outline-offset: 6px;
+}
+
 .font-toggle:active,
 .theme-toggle:active {
   transform: translateY(2px);
@@ -592,8 +598,9 @@ body.reading-mode .font-toggle {
   margin: 0;
 }
 
+/* 0.7 keeps the small count above 4.5:1 in both themes */
 .tag-count {
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 /* Live status on the /now page */

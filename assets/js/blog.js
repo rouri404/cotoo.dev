@@ -145,11 +145,13 @@
         const duration = 800;
         let startTime = null;
         const targetTextColor = newTheme === "dark" ? "#8fbc8b" : "#1c2e1c";
+        const newTermBg = newTheme === "dark" ? "#0b140b" : "#d3e1c4";
         const targetRuleColor = newTheme === "dark" ? "rgba(143, 188, 139, 0.3)" : "rgba(28, 46, 28, 0.3)";
         // Sticky headings paint their background from these (see blog.css), so it follows the wave
-        const stickies = Array.from(document.querySelectorAll(".post-section > h2, .post-subsection > h3, .term, .mermaid-zoom"));
+        const stickies = Array.from(document.querySelectorAll(".post-section > h2, .post-subsection > h3, .mermaid-zoom"));
         root.style.setProperty("--tr-old-bg", newTheme === "dark" ? "#e3ecd7" : "#121212");
         root.style.setProperty("--tr-new-bg", newBgColor);
+        root.style.setProperty("--tr-old-term-bg", newTheme === "dark" ? "#d3e1c4" : "#0b140b");
         root.style.setProperty("--tr-old-fg", newTheme === "dark" ? "#1c2e1c" : "#8fbc8b");
         root.style.setProperty("--tr-new-fg", targetTextColor);
         const barHeight = blogBar ? Math.round(blogBar.getBoundingClientRect().height) : 58;
@@ -200,6 +202,10 @@
             }
           }
 
+          if (window.paintTermWave) {
+            window.paintTermWave({ size, cols, ditherBand, waveR, bayer, offsetY: gridOffsetY, bg: newTermBg, fg: targetTextColor });
+          }
+
           const sweptR = Math.max(0, waveR - ditherBand * 0.5) * size;
           for (const el of stickies) {
             const r = el.getBoundingClientRect();
@@ -234,6 +240,7 @@
             }
             root.style.removeProperty("--tr-old-bg");
             root.style.removeProperty("--tr-new-bg");
+            root.style.removeProperty("--tr-old-term-bg");
             root.style.removeProperty("--tr-old-fg");
             root.style.removeProperty("--tr-new-fg");
             for (const flip of flips) {

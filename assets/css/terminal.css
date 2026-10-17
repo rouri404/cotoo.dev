@@ -18,7 +18,7 @@
   width: min(560px, calc(100vw - 16px));
   height: min(400px, 70vh);
   border: 2px solid var(--text-color);
-  background: var(--bg-color);
+  background: var(--term-bg);
   color: var(--text-color);
   font-family: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace;
   font-size: 0.8rem;
@@ -231,15 +231,14 @@
 }
 
 /* While the dither wave runs, the pop-up paints its background and border in two layers: the old colours,
-   and the new colours clipped to the circle swept so far (the transition scripts set --wave-r/x/y on .term
-   every frame, plus --tr-old-* and --tr-new-* on the root) */
+   and the new colours on a canvas holding the dither cells swept so far (window.paintTermWave, called by the
+   transition scripts every frame; the old colours come from --tr-old-* on the root) */
 body.is-transitioning .term {
   background: transparent;
   border-color: transparent;
 }
 
-.term::before,
-.term::after {
+.term::before {
   content: "";
   display: none;
   position: absolute;
@@ -250,20 +249,26 @@ body.is-transitioning .term {
   pointer-events: none;
 }
 
-body.is-transitioning .term::before,
-body.is-transitioning .term::after {
+body.is-transitioning .term::before {
   display: block;
 }
 
 .term::before {
-  background: var(--tr-old-bg);
+  background: var(--tr-old-term-bg);
   border-color: var(--tr-old-fg);
 }
 
-.term::after {
-  background: var(--tr-new-bg);
-  border-color: var(--tr-new-fg);
-  clip-path: circle(var(--wave-r, 0px) at var(--wave-x, 0px) var(--wave-y, 0px));
+.term-wave {
+  display: none;
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+body.is-transitioning .term-wave {
+  display: block;
 }
 
 @media (max-width: 600px) {

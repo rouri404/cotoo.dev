@@ -1,6 +1,7 @@
 :root,
 [data-theme="light"] {
   --bg-color: #e3ecd7;
+  --term-bg: #d3e1c4;
   --text-color: #1c2e1c;
   --prose-color: #1c2e1c;
   --code-bg: rgba(28, 46, 28, 0.07);
@@ -44,6 +45,7 @@
 
 [data-theme="dark"] {
   --bg-color: #121212;
+  --term-bg: #0b140b;
   --text-color: #8fbc8b;
   --prose-color: #8fbc8b;
   --code-bg: rgba(255, 255, 255, 0.07);

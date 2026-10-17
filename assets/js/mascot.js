@@ -211,7 +211,8 @@
       pos.y += (t.y - pos.y) * k;
     }
     // The translate property, not transform: the CSS scale applies after it, so it scales around the box and leaves its position alone
-    box.style.translate = `${pos.x.toFixed(1)}px ${pos.y.toFixed(1)}px`;
+    // Whole pixels: a fractional offset smears the characters and the cloud's edges
+    box.style.translate = `${Math.round(pos.x)}px ${Math.round(pos.y)}px`;
     onScreen = pos.y + H > 0 && pos.y < vh && pos.x + W > 0 && pos.x < vw;
   }
 
@@ -283,6 +284,9 @@
     bh = Math.ceil((th * 1.5 + 14) / CELL) * CELL;
     bubble.style.width = bw + "px";
     bubble.style.height = bh + "px";
+    // Centred by hand: translate(-50%, -50%) lands on half pixels when the text has an odd size
+    bubbleText.style.left = Math.round((bw - tw) / 2) + "px";
+    bubbleText.style.top = Math.round((bh - th) / 2) + "px";
     return true;
   }
 
@@ -344,6 +348,10 @@
     return main.getBoundingClientRect().left - 24 >= bw;
   }
 
+  // Which side of his head the cloud is on, and what was last drawn (the art is only rebuilt when it changes)
+  let bubbleSide = 1;
+  let drawnKey = "";
+
   function placeBubble() {
     if (!bubble || (!bw && !sizeBubble())) return;
     const a = bw / 2, b = bh / 2;
@@ -353,9 +361,11 @@
     const re = 1 / Math.hypot(Math.cos(ang) / a, Math.sin(ang) / b);
     const dist = re + rh + TRAIL;
 
-    let side = 1;
-    if (pos.x + hx + dist * Math.cos(ang) + a > vw - 8) side = -1;
-    let cx = hx + side * dist * Math.cos(ang);
+    // Some slack before it goes back to the right, so it does not flip back and forth while he walks
+    const room = vw - 8 - (pos.x + hx + dist * Math.cos(ang) + a);
+    if (room < 0) bubbleSide = -1;
+    else if (room > 48) bubbleSide = 1;
+    let cx = hx + bubbleSide * dist * Math.cos(ang);
     const cy = hy - dist * Math.sin(ang);
 
     // Keep it inside the screen
@@ -365,9 +375,13 @@
     if (main) maxLeft = Math.min(maxLeft, main.getBoundingClientRect().left - 16 - bw);
     cx += clamp(absLeft, 8, Math.max(8, maxLeft)) - absLeft;
 
-    bubble.style.left = cx - a + "px";
-    bubble.style.top = cy - b + "px";
-    drawBubble(hx - cx, hy - cy);
+    bubble.style.left = Math.round(cx - a) + "px";
+    bubble.style.top = Math.round(cy - b) + "px";
+    const key = `${bw},${bh},${Math.round(hx - cx)},${Math.round(hy - cy)}`;
+    if (key !== drawnKey) {
+      drawnKey = key;
+      drawBubble(hx - cx, hy - cy);
+    }
   }
 
   function refitBubble() {
@@ -418,6 +432,8 @@
       bubble.classList.remove("is-on");
     }
     if (!want) return;
+    // He keeps moving while the cloud is up, so it is placed again every frame
+    placeBubble();
 
     // His own text is typed only the first time: opening the contact form moves the page, and the bubble must not start over
     const total = text.length;
@@ -444,8 +460,8 @@
     cssH = h;
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
-    // The party's big Tux gets more characters rather than bigger ones: about 140 columns instead of 56
-    cellW = Math.max(5, Math.round(cssW / PAD / (boosted ? 140 : 56)));
+    // The party's big Tux gets more characters rather than bigger ones: about 140 columns instead of 72
+    cellW = Math.max(4, Math.round(cssW / PAD / (boosted ? 140 : 72)));
     cellH = Math.round(cellW * 1.7);
     cols = Math.floor(cssW / cellW);
     rows = Math.floor(cssH / cellH);

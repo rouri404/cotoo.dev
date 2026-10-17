@@ -2,7 +2,7 @@
 :root,
 [data-theme="light"] {
   --mascot-white: #4a6a46;
-  --mascot-accent: #4e7d1f;
+  --mascot-accent: #9a6700;
 }
 
 [data-theme="dark"] {
@@ -89,11 +89,8 @@
 
 .mascot-bubble-text {
   position: absolute;
-  left: 50%;
-  top: 50%;
   width: max-content;
   max-width: 9rem;
-  transform: translate(-50%, -50%);
   font-size: 0.8rem;
   line-height: 1.25;
   text-align: center;

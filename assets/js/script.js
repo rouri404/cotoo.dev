@@ -517,9 +517,10 @@ themeToggle.addEventListener("click", (e) => {
     : "brightness(0) invert(10%) sepia(100%) saturate(150%) hue-rotate(72deg) brightness(130%)";
   
   // The terminal pop-up has an opaque background, so it paints the old and new colours in two layers (see terminal.css)
-  const termDrawer = document.getElementById("term");
+  const newTermBg = newTheme === "dark" ? "#0b140b" : "#d3e1c4";
   document.documentElement.style.setProperty("--tr-old-bg", newTheme === "dark" ? "#e3ecd7" : "#121212");
   document.documentElement.style.setProperty("--tr-new-bg", newBgColor);
+  document.documentElement.style.setProperty("--tr-old-term-bg", newTheme === "dark" ? "#d3e1c4" : "#0b140b");
   document.documentElement.style.setProperty("--tr-old-fg", newTheme === "dark" ? "#1c2e1c" : "#8fbc8b");
   document.documentElement.style.setProperty("--tr-new-fg", targetTextColor);
 
@@ -551,12 +552,7 @@ themeToggle.addEventListener("click", (e) => {
       }
     }
     
-    if (termDrawer) {
-      const r = termDrawer.getBoundingClientRect();
-      termDrawer.style.setProperty("--wave-r", Math.max(0, waveR - ditherBand * 0.5) * size + "px");
-      termDrawer.style.setProperty("--wave-x", cols * size - r.left + "px");
-      termDrawer.style.setProperty("--wave-y", -r.top + "px");
-    }
+    if (window.paintTermWave) window.paintTermWave({ size, cols, ditherBand, waveR, bayer, bg: newTermBg, fg: targetTextColor });
 
     // Flip individual elements as wave passes
     for (let flip of flips) {
@@ -581,11 +577,9 @@ themeToggle.addEventListener("click", (e) => {
       // Cleanup
       document.documentElement.style.removeProperty("--tr-old-bg");
       document.documentElement.style.removeProperty("--tr-new-bg");
+      document.documentElement.style.removeProperty("--tr-old-term-bg");
       document.documentElement.style.removeProperty("--tr-old-fg");
       document.documentElement.style.removeProperty("--tr-new-fg");
-      if (termDrawer) {
-        for (const name of ["--wave-r", "--wave-x", "--wave-y"]) termDrawer.style.removeProperty(name);
-      }
       for (let flip of flips) {
         flip.el.removeAttribute("data-theme");
         flip.el.style.color = "";

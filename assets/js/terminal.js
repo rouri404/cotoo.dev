@@ -60,7 +60,44 @@
     '<form class="term-form" autocomplete="off"><span class="term-prompt"><span class="nf-off">$</span><span class="ico">' + NF.prompt + '</span></span>' +
     '<span class="term-field"><span class="term-ghost" aria-hidden="true"></span>' +
     '<input class="term-input" type="text" aria-label="Comando" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="send" /></span></form>';
+  const waveCanvas = document.createElement("canvas");
+  waveCanvas.className = "term-wave";
+  term.appendChild(waveCanvas);
   document.body.appendChild(term);
+
+  // Called by the theme transition every frame: paints the new colours on the window wherever the dither has
+  // reached, in the same cells as the page canvas (offsetY is the grid shift the blog uses)
+  window.paintTermWave = ({ size, cols, ditherBand, waveR, bayer, offsetY = 0, bg, fg }) => {
+    if (!term.classList.contains("is-open")) return;
+    const w = term.offsetWidth;
+    const h = term.offsetHeight;
+    if (waveCanvas.width !== w || waveCanvas.height !== h) {
+      waveCanvas.width = w;
+      waveCanvas.height = h;
+    }
+    const c = waveCanvas.getContext("2d");
+    c.clearRect(0, 0, w, h);
+    const r = term.getBoundingClientRect();
+    const gx0 = Math.floor(r.left / size);
+    const gx1 = Math.floor(r.right / size);
+    const gy0 = Math.floor((r.top - offsetY) / size);
+    const gy1 = Math.floor((r.bottom - offsetY) / size);
+    c.fillStyle = bg;
+    for (let gx = gx0; gx <= gx1; gx++) {
+      for (let gy = gy0; gy <= gy1; gy++) {
+        const threshold = (waveR - Math.sqrt((cols - gx) ** 2 + gy ** 2)) / ditherBand;
+        if (threshold <= 0) continue;
+        if (threshold < 1 && threshold <= bayer[((gy % 4) + 4) % 4][((gx % 4) + 4) % 4] / 16) continue;
+        c.fillRect(gx * size - r.left - 0.5, gy * size + offsetY - r.top - 0.5, size + 1, size + 1);
+      }
+    }
+    // The border only takes the new colour inside the painted cells
+    c.globalCompositeOperation = "source-atop";
+    c.strokeStyle = fg;
+    c.lineWidth = 2;
+    c.strokeRect(1, 1, w - 2, h - 2);
+    c.globalCompositeOperation = "source-over";
+  };
 
   const body = term.querySelector(".term-body");
   const form = term.querySelector(".term-form");
@@ -647,6 +684,9 @@
   let closedAt = 0;
   // Where the window sits once it is dragged by the title bar; null means it follows Tux
   let manual = null;
+  // Where it stays once it has come out of Tux: he walks around the page, the window does not follow him
+  let settled = null;
+  let openedAt = 0;
   let current = { x: 0, y: 0 };
 
   function place() {
@@ -663,8 +703,8 @@
     const ax = r && r.width ? r.left + r.width / 2 : vx + vw / 2;
     const ay = r && r.width ? r.top + r.height * 0.1 : vy + vh - 8;
     const fit = (v, lo, hi) => Math.min(Math.max(v, lo), Math.max(lo, hi));
-    const x = fit(manual ? manual.x : ax - w / 2, vx + 8, vx + vw - w - 8);
-    const y = fit(manual ? manual.y : ay - h - GAP, vy + 8, vy + vh - h - 8);
+    const x = fit((manual || settled) ? (manual || settled).x : ax - w / 2, vx + 8, vx + vw - w - 8);
+    const y = fit((manual || settled) ? (manual || settled).y : ay - h - GAP, vy + 8, vy + vh - h - 8);
     current = { x, y };
     // The translate property (not transform) comes before the pop-in's scale, so the scale grows around Tux
     term.style.translate = `${x}px ${y}px`;
@@ -686,6 +726,7 @@
 
   function track() {
     place();
+    if (isOpen && !manual && !settled && performance.now() - openedAt > 700) settled = { x: current.x, y: current.y };
     if (isOpen || performance.now() - closedAt < 400) requestAnimationFrame(track);
     else placing = false;
   }
@@ -703,6 +744,8 @@
   function open() {
     if (isOpen) return;
     isOpen = true;
+    openedAt = performance.now();
+    settled = null;
     place();
     if (!placing) {
       placing = true;
@@ -792,6 +835,8 @@
   bar.addEventListener("dblclick", (e) => {
     if (e.target.closest(".term-close")) return;
     manual = null;
+    settled = null;
+    openedAt = performance.now();
     place();
   });
 

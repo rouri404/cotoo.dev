@@ -1,3 +1,12 @@
+/* Tiny5 (OFL), Latin subset of assets/fonts/Tiny5-Regular.ttf, self-hosted */
+@font-face {
+  font-family: "Tiny5";
+  src: url("../fonts/Tiny5-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root,
 [data-theme="light"] {
   --bg-color: #e3ecd7;

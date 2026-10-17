@@ -320,9 +320,7 @@ function layout({ title, description, canonical, bodyClass, content, jsonLd, ogT
 ${JSON.stringify(jsonLd, null, 2)}
     </script>
     <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet" />
+    <link rel="preload" href="/assets/fonts/Tiny5-subset.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/assets/css/blog.css" />
     <link rel="stylesheet" href="/assets/css/mascot.css" />
     <link rel="stylesheet" href="/assets/css/terminal.css" />

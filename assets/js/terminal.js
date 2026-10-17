@@ -294,6 +294,9 @@
 
   // Snake, drawn as text in one terminal line. Each cell is two characters wide so it comes out square.
   // Its keys are taken in the capture phase (see the keydown listener below), so the page and the Konami code never see them
+  // The skins mascot.js knows, plus the two ways to take them off or leave it to the calendar
+  const SKIN_NAMES = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa", "nenhuma", "auto"];
+
   let game = null;
   const SNAKE_BEST = "snake-best";
   const DIRS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] };
@@ -736,6 +739,31 @@
         window.dispatchEvent(new Event("mascot:party"));
       },
     },
+    tux: {
+      icon: NF.linux,
+      desc: "o mascote",
+      args: "[reset | skin]",
+      run(args) {
+        const sub = (args[0] || "").toLowerCase();
+        if (sub === "reset") {
+          const detail = {};
+          window.dispatchEvent(new CustomEvent("mascot:reset", { detail }));
+          line(detail.moved ? "o Tux voltou pro lugar dele." : "o Tux já está no lugar dele.", "term-dim");
+          return;
+        }
+        if (sub === "skin") {
+          const want = (args[1] || "").toLowerCase();
+          if (!SKIN_NAMES.includes(want)) return line("uso: tux skin <" + SKIN_NAMES.join(" | ") + ">");
+          const detail = { skin: want === "nenhuma" ? "none" : want };
+          window.dispatchEvent(new CustomEvent("mascot:skin", { detail }));
+          line("skin do Tux: " + (detail.skin === "none" || !detail.skin ? "nenhuma" : detail.skin) + (want === "auto" ? " (pela data)" : ""), "term-dim");
+          return;
+        }
+        if (sub) return line("uso: tux [reset | skin <nome>]");
+        line("o Tux é o mascote do Linux, desenhado em ASCII a partir de um modelo 3D.");
+        line("no início da home dá pra arrastá-lo; tux reset (ou um duplo clique nele) o devolve ao lugar.", "term-dim");
+      },
+    },
     snake: {
       icon: NF.gamepad,
       desc: "joga a cobrinha (Esc sai)",
@@ -876,6 +904,7 @@
       const first = parts[0].toLowerCase();
       if (first === "open") pool = [...Object.keys(SITE_LINKS), ...(posts || []).map((p) => p.slug)];
       else if (first === "theme") pool = ["dark", "light"];
+      else if (first === "tux") pool = parts.length > 2 ? (parts[1] === "skin" ? SKIN_NAMES : []) : ["reset", "skin"];
       else if (["cd", "ls", "cat"].includes(first)) {
         const here = entriesOf(cwd) || [];
         const names = here.filter((e) => first !== "cd" || e.dir).map((e) => e.name + (e.dir ? "/" : ""));

@@ -664,6 +664,12 @@ function updateLocalTimeUI() {
 }
 let currentSpotifyUri = null;
 
+// Tux (mascot.js) listens to this to react to the music
+function announceSpotify(data) {
+  const detail = data && data.is_playing ? { playing: true, title: String(data.title || ""), artist: String(data.artist || "") } : { playing: false };
+  window.dispatchEvent(new CustomEvent("spotify:update", { detail }));
+}
+
 async function fetchSpotifyCurrentlyPlaying() {
   try {
     const res = await fetch("/api/spotify");
@@ -673,6 +679,7 @@ async function fetchSpotifyCurrentlyPlaying() {
       const spotifyLabel = document.querySelector(".spotify-label");
       const spotifyTime = document.getElementById("spotifyTime");
       const progressWrapper = document.querySelector(".spotify-progress-wrapper");
+      announceSpotify(data);
       
       if (data.is_playing) {
         spotifyLabel.textContent = "coto tá ouvindo agora";

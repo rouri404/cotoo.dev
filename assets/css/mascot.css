@@ -3,11 +3,14 @@
 [data-theme="light"] {
   --mascot-white: #4a6a46;
   --mascot-accent: #9a6700;
+  /* The Santa hat of the December skin */
+  --mascot-red: #b3261e;
 }
 
 [data-theme="dark"] {
   --mascot-white: #d4ecd0;
   --mascot-accent: #b7d96a;
+  --mascot-red: #f0675c;
 }
 
 /* A fixed layer the script moves around the screen with transform */
@@ -70,17 +73,28 @@
   top: 0;
   color: var(--text-color);
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), visibility 0s 0.25s;
 }
 
+/* Leaving: a plain fade and shrink, no spring, and hidden only once it is gone */
 .mascot-bubble:not(.is-on) {
   opacity: 0;
   visibility: hidden;
-  transform: scale(0.5);
+  transform: scale(0.6);
+  transition: opacity 0.3s ease, transform 0.3s ease-in, visibility 0s 0.3s;
 }
 
+/* Arriving: it pops out of the last dot of the trail with a little spring */
 .mascot-bubble.is-on {
-  transition-delay: 0s;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.25s ease, transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* A new comment replaces the old one: the cloud dips, changes unseen and comes back */
+.mascot-bubble.is-on.is-swapping {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.16s ease-in, transform 0.16s ease-in;
 }
 
 .mascot-bubble-art {
@@ -143,7 +157,10 @@ body.is-transitioning .mascot-bubble-art .f {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mascot-bubble {
+  .mascot-bubble,
+  .mascot-bubble:not(.is-on),
+  .mascot-bubble.is-on,
+  .mascot-bubble.is-on.is-swapping {
     transition: none;
   }
 }
@@ -170,15 +187,47 @@ body.is-transitioning .mascot-bubble-art .f {
   image-rendering: pixelated;
 }
 
+/* Party controls (sound and the way out): fixed neon colours like the rest of the show, so they do not follow the theme */
+.party-controls {
+  position: fixed;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  z-index: 45;
+  display: flex;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.party-btn {
+  pointer-events: auto;
+  min-height: 40px;
+  padding: 0.3rem 0.8rem;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  background: rgba(5, 3, 13, 0.72);
+  color: #fff;
+  font-family: "Tiny5", sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.party-btn:hover,
+.party-btn:focus-visible {
+  background: #fff;
+  color: #05030d;
+  outline: none;
+}
+
 /* While the party runs, the page steps out of the way: everything but Tux, the lights and the confetti fades out.
    "party-ending" keeps the fade for the way back, after "party-on" is gone */
-body.party-on > *:not(.mascot-box):not(.party-lights):not(.mascot-confetti) {
+body.party-on > *:not(.mascot-box):not(.party-lights):not(.party-controls):not(.mascot-confetti) {
   opacity: 0 !important;
   pointer-events: none;
 }
 
-body.party-on > *:not(.mascot-box):not(.party-lights):not(.mascot-confetti),
-body.party-ending > *:not(.mascot-box):not(.party-lights):not(.mascot-confetti) {
+body.party-on > *:not(.mascot-box):not(.party-lights):not(.party-controls):not(.mascot-confetti),
+body.party-ending > *:not(.mascot-box):not(.party-lights):not(.party-controls):not(.mascot-confetti) {
   transition: opacity 0.5s ease !important;
 }
 

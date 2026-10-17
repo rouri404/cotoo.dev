@@ -58,7 +58,9 @@
         : '<span class="mascot-bubble-text">'
     }<span class="on"></span><span class="off">${BUBBLE_TEXT}</span>${isHome ? "</a>" : "</span>"}</div>` +
     '<canvas id="mascot" class="mascot" aria-hidden="true"></canvas>' +
-    '<button class="mascot-hit" type="button" aria-label="Tux, o mascote do Linux. Clique para abrir ou fechar o terminal"></button>';
+    `<button class="mascot-hit" type="button" aria-label="Tux, o mascote do Linux. Clique para abrir ou fechar o terminal${
+      isHome ? ". Arraste para mudar o lugar dele, duplo clique o devolve" : ""
+    }"></button>`;
   document.body.appendChild(box);
 
   const canvas = box.querySelector("canvas");
@@ -84,8 +86,8 @@
   const RAMP = " .,:;i1tfLCG08@";
   const FONT = 'ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace';
 
-  // Material: 0 black, 1 white, 2 accent (beak and feet)
-  const ALBEDO = [0.16, 0.95, 0.62];
+  // Material: 0 black, 1 white, 2 accent (beak and feet), 3 seasonal colour (the Santa hat)
+  const ALBEDO = [0.16, 0.95, 0.62, 0.55];
 
   // Subsamples per cell side: they give the edges a coverage instead of a hard cut
   const SS = 2;
@@ -141,6 +143,278 @@
     };
   }
 
+  // Skins: a few extra shapes merged into the model, so the rasterizer draws them like the rest of him.
+  // Some follow the calendar: "natal" (Dec 1 to Jan 6) is a Santa hat, "halloween" (Oct 20 to Nov 2) a witch hat,
+  // "pascoa" (Easter week) bunny ears and "junina" (June) a straw hat. The others, "formatura" (graduation cap),
+  // "fone" (headphones), "coroa" (crown) and "festa" (party hat), are only worn on request ("tux skin <nome>" in the terminal)
+  const SKIN_KEY = "mascot-skin";
+  const SKINS = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa"];
+
+  // Easter Sunday for a year (the Gregorian computus)
+  function easter(y) {
+    const a = y % 19, b = Math.floor(y / 100), c = y % 100;
+    const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const n = h + l - 7 * m + 114;
+    return new Date(y, Math.floor(n / 31) - 1, (n % 31) + 1);
+  }
+
+  function seasonSkin() {
+    try {
+      const forced = sessionStorage.getItem(SKIN_KEY);
+      if (forced === "none" || SKINS.includes(forced)) return forced === "none" ? "" : forced;
+    } catch (_) {}
+    const now = new Date();
+    const m = now.getMonth();
+    const d = now.getDate();
+    if (m === 11 || (m === 0 && d <= 6)) return "natal";
+    if ((m === 9 && d >= 20) || (m === 10 && d <= 2)) return "halloween";
+    if (m === 5) return "junina";
+    const today = new Date(now.getFullYear(), m, d);
+    const sunday = easter(now.getFullYear());
+    if (today >= new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() - 7) && today <= new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 1)) return "pascoa";
+    return "";
+  }
+
+  function buildSkin(skin) {
+    const pos = [], nor = [], mats = [], idx = [];
+
+    // A grid over a parametric surface f(u, v) -> [x, y, z]. Normals come from its derivatives and point away from
+    // center(u, v); each triangle is wound so its face normal agrees with them (the model's own convention)
+    function surface(f, nu, nv, center, matOf) {
+      const base = pos.length / 3;
+      const e = 1e-3;
+      for (let j = 0; j <= nv; j++) {
+        for (let i = 0; i <= nu; i++) {
+          const u = i / nu, v = j / nv;
+          const p = f(u, v);
+          const pu = f(Math.min(1, u + e), v), pu0 = f(Math.max(0, u - e), v);
+          const pv = f(u, Math.min(1, v + e)), pv0 = f(u, Math.max(0, v - e));
+          const du = [pu[0] - pu0[0], pu[1] - pu0[1], pu[2] - pu0[2]];
+          const dv = [pv[0] - pv0[0], pv[1] - pv0[1], pv[2] - pv0[2]];
+          let n = [du[1] * dv[2] - du[2] * dv[1], du[2] * dv[0] - du[0] * dv[2], du[0] * dv[1] - du[1] * dv[0]];
+          const c = center(u, v);
+          const out = [p[0] - c[0], p[1] - c[1], p[2] - c[2]];
+          let len = Math.hypot(n[0], n[1], n[2]);
+          // Degenerate spots (a cone's tip, a sphere's poles) take the outward direction instead
+          if (len < 1e-9) {
+            n = out;
+            len = Math.hypot(n[0], n[1], n[2]) || 1;
+          }
+          const sign = n[0] * out[0] + n[1] * out[1] + n[2] * out[2] < 0 ? -1 : 1;
+          pos.push(p[0], p[1], p[2]);
+          nor.push((sign * n[0]) / len, (sign * n[1]) / len, (sign * n[2]) / len);
+          mats.push(matOf(p, u, v));
+        }
+      }
+      const at = (i, j) => base + j * (nu + 1) + i;
+      const tri = (a, b, c) => {
+        const A = a * 3, B = b * 3, C = c * 3;
+        const ux = pos[B] - pos[A], uy = pos[B + 1] - pos[A + 1], uz = pos[B + 2] - pos[A + 2];
+        const vx = pos[C] - pos[A], vy = pos[C + 1] - pos[A + 1], vz = pos[C + 2] - pos[A + 2];
+        const fx = uy * vz - uz * vy, fy = uz * vx - ux * vz, fz = ux * vy - uy * vx;
+        const d = fx * (nor[A] + nor[B] + nor[C]) + fy * (nor[A + 1] + nor[B + 1] + nor[C + 1]) + fz * (nor[A + 2] + nor[B + 2] + nor[C + 2]);
+        if (d >= 0) idx.push(a, b, c);
+        else idx.push(a, c, b);
+      };
+      for (let j = 0; j < nv; j++) {
+        for (let i = 0; i < nu; i++) {
+          tri(at(i, j), at(i + 1, j), at(i + 1, j + 1));
+          tri(at(i, j), at(i + 1, j + 1), at(i, j + 1));
+        }
+      }
+    }
+
+    const TAU = Math.PI * 2;
+    // Shapes can pass through a transform "xf" (a tilt, a lean) before they are placed on his head
+    const same = (p) => p;
+    const matFn = (mat) => (typeof mat === "function" ? mat : () => mat);
+    const sphere = (cx, cy, cz, rx, ry, rz, mat, xf = same) =>
+      surface(
+        (u, v) => {
+          const a = u * TAU, b = v * Math.PI;
+          return xf([cx + rx * Math.sin(b) * Math.cos(a), cy + ry * Math.cos(b), cz + rz * Math.sin(b) * Math.sin(a)]);
+        },
+        14, 8, () => xf([cx, cy, cz]), matFn(mat)
+      );
+    // A cone standing on y0, its tip h above
+    const cone = (cx, y0, cz, r, h, mat, xf = same) =>
+      surface(
+        (u, t) => xf([cx + r * (1 - t) * Math.cos(u * TAU), y0 + h * t, cz + r * (1 - t) * Math.sin(u * TAU)]),
+        14, 6, (u, t) => xf([cx, y0 + h * t, cz]), matFn(mat)
+      );
+    // A wall of a cylinder around the y axis
+    const wall = (cx, y0, y1, cz, r, mat, xf = same) =>
+      surface(
+        (u, v) => xf([cx + r * Math.cos(u * TAU), y0 + (y1 - y0) * v, cz + r * Math.sin(u * TAU)]),
+        20, 2, (u, v) => xf([cx, y0 + (y1 - y0) * v, cz]), matFn(mat)
+      );
+    // A ring: a circle of radius R around the y axis, swept by a tube of radius r
+    const ring = (cx, cy, cz, R, r, mat, xf = same) =>
+      surface(
+        (u, v) => {
+          const a = u * TAU, b = v * TAU;
+          return xf([cx + (R + r * Math.cos(b)) * Math.cos(a), cy + r * Math.sin(b), cz + (R + r * Math.cos(b)) * Math.sin(a)]);
+        },
+        20, 6, (u) => xf([cx + R * Math.cos(u * TAU), cy, cz + R * Math.sin(u * TAU)]), matFn(mat)
+      );
+    // A box with rounded edges (a superquadric), for flat boards
+    const slab = (cx, cy, cz, rx, ry, rz, mat, xf = same) => {
+      const sp = (x, e) => Math.sign(x) * Math.pow(Math.abs(x), e);
+      return surface(
+        (u, v) => {
+          const w = u * TAU - Math.PI, h = v * Math.PI - Math.PI / 2;
+          return xf([cx + rx * sp(Math.cos(h), 0.3) * sp(Math.cos(w), 0.3), cy + ry * sp(Math.sin(h), 0.3), cz + rz * sp(Math.cos(h), 0.3) * sp(Math.sin(w), 0.3)]);
+        },
+        20, 10, () => xf([cx, cy, cz]), matFn(mat)
+      );
+    };
+    // Rotations about a pivot, and a way to chain them
+    const rotZ = (a, px, py) => ([x, y, z]) => [px + (x - px) * Math.cos(a) - (y - py) * Math.sin(a), py + (x - px) * Math.sin(a) + (y - py) * Math.cos(a), z];
+    const rotX = (a, py, pz) => ([x, y, z]) => [x, py + (y - py) * Math.cos(a) - (z - pz) * Math.sin(a), pz + (y - py) * Math.sin(a) + (z - pz) * Math.cos(a)];
+    const chain = (...fs) => (p) => fs.reduce((q, f) => f(q), p);
+
+    if (skin === "natal") {
+      // The hat sits tilted back on his head, above the eyes; its cone flops over to one side
+      const tilt = -0.3;
+      const ct = Math.cos(tilt), st = Math.sin(tilt);
+      const frame = ([x, y, z]) => [x, 1.06 + y * ct - z * st, -0.02 + y * st + z * ct];
+      const axis = (t) => [0.6 * t * t, 1.15 * t - 0.3 * t * t * t, -0.12 * t * t];
+      const radius = (t) => 0.45 * Math.pow(1 - t, 0.8);
+      surface(
+        (u, t) => {
+          const a = u * TAU, c = axis(t), r = radius(t);
+          return frame([c[0] + r * Math.cos(a), c[1], c[2] + r * Math.sin(a)]);
+        },
+        16, 10, (u, t) => frame(axis(t)), () => 3
+      );
+      // White fur band around the brim
+      surface(
+        (u, v) => {
+          const a = u * TAU, b = v * TAU, R = 0.45, r = 0.1;
+          return frame([(R + r * Math.cos(b)) * Math.cos(a), r * Math.sin(b), (R + r * Math.cos(b)) * Math.sin(a)]);
+        },
+        20, 6, (u) => frame([0.45 * Math.cos(u * TAU), 0, 0.45 * Math.sin(u * TAU)]), () => 1
+      );
+      const tip = frame(axis(1));
+      sphere(tip[0], tip[1], tip[2], 0.13, 0.13, 0.13, 1);
+    } else if (skin === "halloween") {
+      // A witch hat: a wide flat brim and a tall cone whose tip bends back
+      const tilt = -0.22;
+      const ct = Math.cos(tilt), st = Math.sin(tilt);
+      const frame = ([x, y, z]) => [x, 1.1 + y * ct - z * st, -0.02 + y * st + z * ct];
+      const axis = (t) => [0.08 * t * t, 1.2 * t - 0.25 * t * t * t, -0.45 * t * t * t];
+      const radius = (t) => 0.4 * (1 - t);
+      surface(
+        (u, v) => {
+          const a = u * TAU, b = v * Math.PI;
+          return frame([0.8 * Math.sin(b) * Math.cos(a), 0.05 * Math.cos(b), 0.8 * Math.sin(b) * Math.sin(a)]);
+        },
+        24, 6, () => frame([0, 0, 0]), () => 0
+      );
+      surface(
+        (u, t) => {
+          const a = u * TAU, c = axis(t), r = radius(t);
+          return frame([c[0] + r * Math.cos(a), c[1], c[2] + r * Math.sin(a)]);
+        },
+        16, 10, (u, t) => frame(axis(t)), () => 0
+      );
+    } else if (skin === "pascoa") {
+      // Bunny ears: two long white ears with an accent lining, leaning out and a little back
+      for (const side of [-1, 1]) {
+        const xf = chain(rotZ(-side * 0.22, side * 0.2, 1.25), rotX(-0.12, 1.25, 0));
+        sphere(side * 0.2, 1.68, 0, 0.11, 0.4, 0.06, 1, xf);
+        sphere(side * 0.2, 1.66, 0.04, 0.06, 0.3, 0.03, 2, xf);
+      }
+    } else if (skin === "junina") {
+      // Festa junina: a straw hat with a red band
+      const xf = rotX(-0.14, 1.05, 0);
+      sphere(0, 1.08, 0, 0.78, 0.05, 0.78, 2, xf);
+      sphere(0, 1.1, 0, 0.42, 0.34, 0.42, 2, xf);
+      ring(0, 1.16, 0, 0.42, 0.055, 3, xf);
+    } else if (skin === "formatura") {
+      // A graduation cap: a flat square board, turned a little, with a button and a tassel hanging on one side
+      const xf = chain(rotX(-0.1, 1.3, 0), ((a) => ([x, y, z]) => [x * Math.cos(a) - z * Math.sin(a), y, x * Math.sin(a) + z * Math.cos(a)])(0.5));
+      slab(0, 1.36, 0, 0.62, 0.035, 0.62, 0, xf);
+      sphere(0, 1.41, 0, 0.06, 0.04, 0.06, 2);
+      const cord = [[0, 1.4, 0], [0.3, 1.39, 0.12], [0.55, 1.34, 0.22], [0.6, 1.12, 0.24]];
+      surface(
+        (u, v) => {
+          const f = u * 3, i = Math.min(2, Math.floor(f)), k = f - i;
+          const A = cord[i], B = cord[i + 1];
+          const c = [A[0] + (B[0] - A[0]) * k, A[1] + (B[1] - A[1]) * k, A[2] + (B[2] - A[2]) * k];
+          const b = v * TAU;
+          return [c[0] + 0.03 * Math.cos(b), c[1] + 0.03 * Math.sin(b), c[2]];
+        },
+        12, 6, (u) => {
+          const f = u * 3, i = Math.min(2, Math.floor(f)), k = f - i;
+          const A = cord[i], B = cord[i + 1];
+          return [A[0] + (B[0] - A[0]) * k, A[1] + (B[1] - A[1]) * k, A[2] + (B[2] - A[2])  * k];
+        }, () => 2
+      );
+      sphere(0.6, 1.02, 0.24, 0.07, 0.14, 0.07, 2);
+    } else if (skin === "fone") {
+      // Headphones: a band over his head and a cup over each ear
+      surface(
+        (u, v) => {
+          const A = Math.PI * u, b = v * TAU;
+          const c = [0.47 * Math.cos(A), 0.72 + 0.66 * Math.sin(A)];
+          let nx = Math.cos(A) / 0.47, ny = Math.sin(A) / 0.66;
+          const n = Math.hypot(nx, ny);
+          nx /= n;
+          ny /= n;
+          return [c[0] + 0.055 * (Math.cos(b) * nx), c[1] + 0.055 * (Math.cos(b) * ny), -0.02 + 0.055 * Math.sin(b)];
+        },
+        24, 6, (u) => [0.47 * Math.cos(Math.PI * u), 0.72 + 0.66 * Math.sin(Math.PI * u), -0.02], () => 1
+      );
+      for (const side of [-1, 1]) sphere(side * 0.46, 0.72, -0.02, 0.11, 0.2, 0.2, 1);
+    } else if (skin === "coroa") {
+      // A crown: a gold band with five points, each ending in a white bead
+      const xf = rotX(-0.1, 1.02, 0);
+      wall(0, 1.02, 1.16, 0, 0.43, 2, xf);
+      ring(0, 1.02, 0, 0.43, 0.025, 2, xf);
+      ring(0, 1.16, 0, 0.43, 0.025, 2, xf);
+      for (let k = 0; k < 5; k++) {
+        const a = 0.5 + (k * TAU) / 5;
+        const x = 0.43 * Math.cos(a), z = 0.43 * Math.sin(a);
+        cone(x, 1.16, z, 0.12, 0.34, 2, xf);
+        sphere(x, 1.54, z, 0.065, 0.065, 0.065, 1, xf);
+      }
+    } else if (skin === "festa") {
+      // A party hat: a striped cone leaning to one side, with a white pompom
+      const frame = chain(rotZ(-0.28, 0, 1.06), rotX(-0.15, 1.06, 0));
+      cone(0, 1.06, 0, 0.36, 0.95, (p, u, t) => (Math.floor(t * 7) % 2 ? 1 : 3), frame);
+      const tip = frame([0, 2.01, 0]);
+      sphere(tip[0], tip[1], tip[2], 0.1, 0.1, 0.1, 1);
+    }
+    return { pos, nor, mats, idx };
+  }
+
+  function withSkin(base, skin) {
+    if (!skin) return base;
+    const extra = buildSkin(skin);
+    const V = base.V + extra.pos.length / 3;
+    const T = base.T + extra.idx.length / 3;
+    const pos = new Float32Array(V * 3);
+    const nor = new Float32Array(V * 3);
+    const mats = new Uint8Array(V);
+    const idx = new Uint16Array(T * 3);
+    pos.set(base.pos);
+    pos.set(extra.pos, base.V * 3);
+    nor.set(base.nor);
+    nor.set(extra.nor, base.V * 3);
+    mats.set(base.mats);
+    mats.set(extra.mats, base.V);
+    idx.set(base.idx);
+    idx.set(extra.idx.map((i) => i + base.V), base.T * 3);
+    return {
+      V, T, pos, nor, mats, idx, skin,
+      sx: new Float32Array(V), sy: new Float32Array(V), sz: new Float32Array(V), lum: new Float32Array(V),
+    };
+  }
+
   // Size and screen position
   let vw = 0, vh = 0, W = 0, H = 0;
 
@@ -155,7 +429,7 @@
     const hMax = Math.min(0.27 * vh, vh / 2 - 170, 260);
     baseW = Math.max(110, Math.min((hMax * 300) / 340, vw * 0.42));
     const baseH = (baseW * 340) / 300;
-    const boost = boosted ? Math.max(1, Math.min((vh * 0.85) / baseH, (vw * 0.6) / baseW)) : 1;
+    const boost = boosted ? Math.max(1, Math.min((vh * 0.76) / baseH, (vw * 0.6) / baseW)) : 1;
     W = baseW * boost;
     H = baseH * boost;
     box.style.width = W + "px";
@@ -174,7 +448,7 @@
   }
 
   function targetFor() {
-    if (partyStart >= 0 && !partyLeaving) return { mode: "fixed", x: (vw - W) / 2, y: (vh - H) / 2 + vh * 0.03 };
+    if (partyStart >= 0 && !partyLeaving) return { mode: "fixed", x: (vw - W) / 2, y: (vh - H) / 2 + vh * 0.07 };
     if (dragging()) return { mode: "fixed", x: drag.x, y: drag.y };
     if (!boosted) return homeTarget();
 
@@ -424,14 +698,33 @@
   // A short comment that takes the bubble over for a while (sleeping, reading milestones, copying code)
   let speech = null;
   let shownText = null;
+  // When a new comment replaces the one on screen (swapAt), and when the cloud last left (leftAt)
+  let swapAt = 0;
+  let leftAt = -1e9;
 
   function say(text, ms = 4500) {
     speech = { text, until: performance.now() + ms };
   }
 
+  // One comment can wait for the current one to end (a greeting and a song can arrive together)
+  let nextSpeech = null;
+  function sayNext(text, ms) {
+    if (speech) nextSpeech = { text, ms };
+    else say(text, ms);
+  }
+
+  // His own comments stay off the home menu, where the bubble belongs to the repository link
+  const chatty = () => !isHome || heroActive();
+
   function updateBubble(now) {
     if (!bubble) return;
-    if (speech && now >= speech.until) speech = null;
+    if (speech && now >= speech.until) {
+      speech = null;
+      if (nextSpeech) {
+        say(nextSpeech.text, nextSpeech.ms);
+        nextSpeech = null;
+      }
+    }
     const text = speech ? speech.text : partyStart >= 0 ? "" : BUBBLE_TEXT;
     const rel = parseFloat(bubble.style.top);
     const top = pos.y + (isNaN(rel) ? -90 : rel);
@@ -440,7 +733,7 @@
     const isOn = bubble.classList.contains("is-on");
 
     // New text: the cloud is sized again, and the home link only makes sense for his own text
-    if (text !== shownText) {
+    const applyText = () => {
       shownText = text;
       typedAt = now;
       typedLen = -1;
@@ -451,7 +744,26 @@
         if (speech) bubbleText.removeAttribute("href");
         else bubbleText.setAttribute("href", REPO_URL);
       }
-      if (want && isOn) placeBubble();
+    };
+
+    if (text !== shownText) {
+      if (!isOn) {
+        // Hidden: swap at once when the cloud is about to show, else once the last exit has finished
+        if (want || now - leftAt > 320) applyText();
+      } else if (want) {
+        // Visible and staying: the cloud dips, the words and the shape change unseen, and it comes back
+        if (!swapAt) {
+          swapAt = now;
+          if (!reduceMotion.matches) bubble.classList.add("is-swapping");
+        }
+        if (now - swapAt >= (reduceMotion.matches ? 0 : 170)) {
+          applyText();
+          placeBubble();
+          bubble.classList.remove("is-swapping");
+          swapAt = 0;
+        }
+      }
+      // Leaving: the old words stay until the cloud is gone, so it never shows empty
     }
 
     if (want && !isOn) {
@@ -460,11 +772,14 @@
       typedAt = now;
       typedLen = -1;
     } else if (!want && isOn) {
-      bubble.classList.remove("is-on");
+      bubble.classList.remove("is-on", "is-swapping");
+      swapAt = 0;
+      leftAt = now;
     }
     if (!want) return;
     // He keeps moving while the cloud is up, so it is placed again every frame
     placeBubble();
+    if (swapAt) return;
 
     // His own text is typed only the first time: opening the contact form moves the page, and the bubble must not start over
     const total = text.length;
@@ -512,6 +827,7 @@
       textColor,
       style.getPropertyValue("--mascot-white").trim() || textColor,
       style.getPropertyValue("--mascot-accent").trim() || textColor,
+      style.getPropertyValue("--mascot-red").trim() || textColor,
     ];
     const theme = canvas.getAttribute("data-theme") || document.documentElement.getAttribute("data-theme") || "light";
     // The party happens on a darkened screen, so he is drawn light on dark whatever the theme
@@ -601,7 +917,7 @@
 
     for (let j = 0; j < rows; j++) {
       for (let i = 0; i < cols; i++) {
-        let count = 0, sum = 0, m0 = 0, m1 = 0, m2 = 0;
+        let count = 0, sum = 0, m0 = 0, m1 = 0, m2 = 0, m3 = 0;
         for (let v = 0; v < SS; v++) {
           for (let u = 0; u < SS; u++) {
             const p = (j * SS + v) * SW + i * SS + u;
@@ -609,12 +925,13 @@
             count++;
             sum += lbuf[p];
             const m = mbuf[p];
-            if (m === 0) m0++; else if (m === 1) m1++; else m2++;
+            if (m === 0) m0++; else if (m === 1) m1++; else if (m === 2) m2++; else m3++;
           }
         }
         if (count < 2) continue;
 
-        const material = m1 >= m0 && m1 >= m2 ? 1 : m2 > m0 ? 2 : 0;
+        let material = m1 >= m0 && m1 >= m2 ? 1 : m2 > m0 ? 2 : 0;
+        if (m3 > m0 && m3 > m1 && m3 > m2) material = 3;
         const lo = isDark ? 0.14 : 0;
         const l = clamp(sum / count + (hash(i, j) - 0.5) * 0.06, lo, 1);
 
@@ -668,8 +985,10 @@
   }
   let partyStart = -1;
 
-  // After a while without any input he dozes off (head down, "zzz"), and wakes with a spin when you come back
-  const IDLE_MS = 45000;
+  // After a while without any input he dozes off (head down, "zzz"), and wakes with a spin when you come back.
+  // Late at night (midnight to 6 am, local time) he is sleepier
+  const lateNight = () => new Date().getHours() < 6;
+  const idleMs = () => (lateNight() ? 20000 : 45000);
   let lastActive = performance.now();
   let sleeping = false;
 
@@ -678,8 +997,37 @@
     if (!sleeping) return;
     sleeping = false;
     if (!reduceMotion.matches) spin(performance.now());
-    say("opa, voltou amigao? o.O", 2800);
+    say(lateNight() ? "hm? tava cochilando... que horas são? o.O" : "opa, voltou amigao? o.O", 2800);
   }
+
+  // A greeting by time of day, once per visit
+  const GREET_KEY = "mascot-greeted";
+  function greet() {
+    try {
+      if (sessionStorage.getItem(GREET_KEY)) return;
+      sessionStorage.setItem(GREET_KEY, "1");
+    } catch (_) {}
+    if (!chatty()) return;
+    const h = new Date().getHours();
+    const text =
+      h < 6 ? "madrugada, hein? eu também não durmo :p" :
+      h < 12 ? "bom dia! o café já tá passado?" :
+      h < 18 ? "boa tarde! bora fuçar o site?" :
+      "boa noite! fica à vontade :)";
+    sayNext(text, 4000);
+  }
+
+  // The Spotify widget on the home page (script.js) reports what is playing: he bobs to the music and comments on new songs
+  let music = null;
+  window.addEventListener("spotify:update", (e) => {
+    const d = e.detail || {};
+    const key = d.playing ? d.artist + " - " + d.title : "";
+    const isNew = key && (!music || music.key !== key);
+    music = key ? { key } : null;
+    if (!isNew || sleeping || partyStart >= 0 || !chatty()) return;
+    const title = d.title.length > 22 ? d.title.slice(0, 21).trimEnd() + "..." : d.title;
+    sayNext("ouvindo " + title.toLowerCase() + "? boa escolha :)", 4000);
+  });
 
   // Capture phase, so keys typed in the terminal (which stops them) still count
   for (const type of ["pointermove", "pointerdown", "keydown", "wheel", "scroll", "touchstart"]) {
@@ -786,6 +1134,11 @@
   }
 
   window.addEventListener("mascot:party", party);
+
+  // Esc or the "sair" button: jump to the start of the way out, so he shrinks back right away
+  window.addEventListener("party:stop", () => {
+    if (partyStart >= 0 && !partyLeaving) partyStart = Math.min(partyStart, performance.now() - (PARTY_MS - LEAVE_MS));
+  });
   document.addEventListener("keydown", (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
@@ -810,9 +1163,33 @@
   );
 
   // The spin plays first, then the terminal pops out of him (terminal.js listens for this event)
+  let toggleTimer = 0;
+  let toggleFired = false;
   function openTerminal() {
-    setTimeout(() => window.dispatchEvent(new Event("terminal:toggle")), reduceMotion.matches ? 0 : 350);
+    clearTimeout(toggleTimer);
+    toggleFired = false;
+    toggleTimer = setTimeout(() => {
+      toggleTimer = 0;
+      toggleFired = true;
+      window.dispatchEvent(new Event("terminal:toggle"));
+    }, reduceMotion.matches ? 0 : 350);
   }
+
+  // Back to his own spot after a drag (double click, or "tux reset" in the terminal). Returns whether he had been moved
+  function resetPerch() {
+    const moved = !!perch;
+    perch = null;
+    try {
+      sessionStorage.removeItem(PERCH_KEY);
+    } catch (_) {}
+    if (moved && canDrag()) say("de volta pro meu cantinho :)", 2500);
+    return moved;
+  }
+
+  window.addEventListener("mascot:reset", (e) => {
+    const moved = resetPerch();
+    if (e.detail) e.detail.moved = moved;
+  });
 
   // Drag him anywhere: a press that moves a few pixels picks him up, a plain press still opens the terminal
   hit.addEventListener("pointerdown", (e) => {
@@ -866,13 +1243,27 @@
       justDragged = false;
       return;
     }
-    // Keyboard presses are handled on keydown
-    if (e.detail > 0) {
+    // A double click puts him back and leaves the terminal as it was: the first click's toggle is cancelled, or undone if it already ran
+    if (partyStart >= 0) return;
+    if (e.detail === 2) {
+      if (toggleTimer) {
+        clearTimeout(toggleTimer);
+        toggleTimer = 0;
+      } else if (toggleFired) {
+        window.dispatchEvent(new Event("terminal:toggle"));
+      }
+      toggleFired = false;
+      resetPerch();
+      return;
+    }
+    // Keyboard presses are handled on keydown, and a third click of a burst is ignored
+    if (e.detail === 1) {
       if (!reduceMotion.matches) spin(performance.now());
       openTerminal();
     }
   });
   hit.addEventListener("keydown", (e) => {
+    if (partyStart >= 0) return;
     if (e.key === "Enter" || e.key === " ") {
       // The page also uses these keys to leave the hero
       e.preventDefault();
@@ -931,7 +1322,7 @@
     if (!pos) return;
 
     updatePosition(now, dt);
-    if (!sleeping && onScreen && !document.hidden && now - lastActive > IDLE_MS) {
+    if (!sleeping && onScreen && !document.hidden && now - lastActive > idleMs()) {
       sleeping = true;
       say("zzz...", 1e9);
     }
@@ -1003,6 +1394,9 @@
         }
       }
 
+      // A small bob to the music, about 120 bpm
+      if (music && !sleeping && partyStart < 0) lift = Math.max(lift, Math.abs(Math.sin((now / 500) * Math.PI)) * 0.06);
+
       if (flipStart >= 0 && now >= flipStart) {
         const p = (now - flipStart) / FLIP_MS;
         if (p >= 1) {
@@ -1050,9 +1444,22 @@
     }
   }
 
+  let baseModel = null;
+  // "tux skin" in the terminal previews a skin for the rest of the visit ("auto" goes back to the calendar)
+  window.addEventListener("mascot:skin", (e) => {
+    const want = e.detail && e.detail.skin;
+    try {
+      if (want === "auto") sessionStorage.removeItem(SKIN_KEY);
+      else sessionStorage.setItem(SKIN_KEY, want || "none");
+    } catch (_) {}
+    if (baseModel) model = withSkin(baseModel, seasonSkin());
+    if (e.detail) e.detail.skin = seasonSkin();
+  });
+
   loadModel()
     .then((m) => {
-      model = m;
+      baseModel = m;
+      model = withSkin(m, seasonSkin());
 
       // Start where he was, or rise from below the screen
       if (!pos) pos = { x: targetFor().x, y: vh + 40 };
@@ -1068,6 +1475,7 @@
 
       // A hello spin when he first shows up
       if (!saved && !reduceMotion.matches) setTimeout(() => spin(performance.now()), 600);
+      setTimeout(greet, saved ? 600 : 1600);
     })
     .catch(() => box.remove());
 

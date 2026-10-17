@@ -5,6 +5,7 @@
 //   home hero    -> bottom center
 //   home menu    -> waits at the end of the page, with a speech bubble
 //   blog         -> bottom left corner, out of the way (or at the end of the page on narrow screens)
+//   dragged      -> on the home hero only, he stays wherever he was dropped until the tab is closed; the menu and the blog always send him back to their own spot
 // Pages are separate documents, so the last position is kept in sessionStorage and Tux glides from there.
 (function () {
   const hero = document.getElementById("stage-hero");
@@ -32,6 +33,19 @@
     }
     sessionStorage.removeItem(STORE_KEY);
   } catch (_) {}
+
+  // Where he was dropped after a drag, as fractions of the free room so it holds on any screen size
+  const PERCH_KEY = "mascot-perch";
+  // A fingertip wobbles more than a mouse, so a tap must not turn into a drag too easily
+  const DRAG_PX = { mouse: 6, touch: 12 };
+  let perch = null;
+  try {
+    const p = JSON.parse(sessionStorage.getItem(PERCH_KEY));
+    if (p && isFinite(p.fx) && isFinite(p.fy)) perch = p;
+  } catch (_) {}
+  let drag = null;
+  let justDragged = false;
+  const dragging = () => !!drag && drag.moved;
 
   // Layer
   const box = document.createElement("div");
@@ -150,6 +164,8 @@
   }
 
   const heroActive = () => hero.classList.contains("active");
+  // Only the home hero lets him be moved, and not on short screens (a phone on its side), where he is not shown at all
+  const canDrag = () => isHome && heroActive() && vh >= 560;
 
   function follow() {
     if (!spot) return { mode: "away", x: (vw - W) / 2, y: vh + 40 };
@@ -159,6 +175,7 @@
 
   function targetFor() {
     if (partyStart >= 0 && !partyLeaving) return { mode: "fixed", x: (vw - W) / 2, y: (vh - H) / 2 + vh * 0.03 };
+    if (dragging()) return { mode: "fixed", x: drag.x, y: drag.y };
     if (!boosted) return homeTarget();
 
     // Walking home while still big: aim where the small box will be, shifted so the two boxes share a centre
@@ -176,6 +193,7 @@
   }
 
   function homeTarget() {
+    if (perch && canDrag()) return { mode: "fixed", x: perch.fx * Math.max(0, vw - W), y: perch.fy * Math.max(0, vh - H) };
     if (isHome) {
       if (heroActive()) {
         if (vh < 560) return { mode: "away", x: (vw - W) / 2, y: vh + 40 };
@@ -206,6 +224,9 @@
   let onScreen = false;
 
   function updatePosition(now, dt) {
+    // The stage changed (or the screen turned) while he was held: let go
+    if (drag && !canDrag()) endDrag();
+    box.classList.toggle("is-draggable", canDrag());
     const t = targetFor();
     if (t.mode !== mode) {
       mode = t.mode;
@@ -213,7 +234,7 @@
     }
     const k = 1 - Math.exp(-dt / 140);
     // At the end of a page he sticks to the page, so scrolling does not make him lag behind
-    if (mode === "follow" && now - modeSince > 1400) {
+    if (dragging() || (mode === "follow" && now - modeSince > 1400)) {
       pos.x = t.x;
       pos.y = t.y;
     } else {
@@ -415,7 +436,7 @@
     const rel = parseFloat(bubble.style.top);
     const top = pos.y + (isNaN(rel) ? -90 : rel);
     const placed = speech ? true : isHome ? mode === "follow" && now - modeSince > 900 : isIndex && now - modeSince > 1800;
-    const want = !!text && placed && !leaving && onScreen && top > 8 && fitsBeside();
+    const want = !!text && placed && !leaving && !dragging() && onScreen && top > 8 && fitsBeside();
     const isOn = bubble.classList.contains("is-on");
 
     // New text: the cloud is sized again, and the home link only makes sense for his own text
@@ -793,8 +814,58 @@
     setTimeout(() => window.dispatchEvent(new Event("terminal:toggle")), reduceMotion.matches ? 0 : 350);
   }
 
+  // Drag him anywhere: a press that moves a few pixels picks him up, a plain press still opens the terminal
+  hit.addEventListener("pointerdown", (e) => {
+    justDragged = false;
+    // A second finger is ignored while one is already dragging
+    if (drag || !pos || partyStart >= 0 || !canDrag() || (e.pointerType === "mouse" && e.button !== 0)) return;
+    drag = { touch: e.pointerType !== "mouse", id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: pos.x, oy: pos.y, x: pos.x, y: pos.y, moved: false };
+    try {
+      hit.setPointerCapture(e.pointerId);
+    } catch (_) {}
+  });
+
+  hit.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.sx;
+    const dy = e.clientY - drag.sy;
+    if (!drag.moved) {
+      if (Math.hypot(dx, dy) < (drag.touch ? DRAG_PX.touch : DRAG_PX.mouse)) return;
+      drag.moved = true;
+      box.classList.add("is-dragging");
+    }
+    drag.x = clamp(drag.ox + dx, 0, Math.max(0, vw - W));
+    drag.y = clamp(drag.oy + dy, 0, Math.max(0, vh - H));
+  });
+
+  function endDrag() {
+    if (!drag) return;
+    if (drag.moved) {
+      justDragged = true;
+      perch = { fx: drag.x / Math.max(1, vw - W), fy: drag.y / Math.max(1, vh - H) };
+      try {
+        sessionStorage.setItem(PERCH_KEY, JSON.stringify(perch));
+      } catch (_) {}
+    }
+    drag = null;
+    box.classList.remove("is-dragging");
+  }
+  const release = (e) => {
+    if (drag && e.pointerId === drag.id) endDrag();
+  };
+  hit.addEventListener("pointerup", release);
+  hit.addEventListener("pointercancel", release);
+  hit.addEventListener("lostpointercapture", release);
+  // Switching apps or tabs mid-drag must not leave him stuck to a finger that is gone
+  window.addEventListener("blur", endDrag);
+  document.addEventListener("visibilitychange", () => document.hidden && endDrag());
+
   hit.addEventListener("click", (e) => {
     e.stopPropagation();
+    if (justDragged) {
+      justDragged = false;
+      return;
+    }
     // Keyboard presses are handled on keydown
     if (e.detail > 0) {
       if (!reduceMotion.matches) spin(performance.now());

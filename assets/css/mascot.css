@@ -44,6 +44,18 @@
   outline: none;
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* Where he can be moved (the home hero) a finger drags him instead of scrolling; elsewhere the page scrolls over him */
+.mascot-box.is-draggable .mascot-hit {
+  cursor: grab;
+  touch-action: none;
+}
+
+.mascot-box.is-dragging .mascot-hit {
+  cursor: grabbing;
 }
 
 .mascot-hit:focus-visible {

@@ -98,7 +98,7 @@
         window.addEventListener("scroll", clipMainBelowHeader, { passive: true });
 
         const elementsToFlip = document.querySelectorAll(
-          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .reading-progress, .mascot, .mascot-bubble, .mascot-bubble a, .mermaid-zoom-title, .mermaid-zoom-btn, .mermaid-zoom-stage, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost'
+          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .mascot, .mascot-bubble, .mascot-bubble a, .mermaid-zoom-title, .mermaid-zoom-btn, .mermaid-zoom-stage, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .rss-link'
         );
 
         const flips = Array.from(elementsToFlip).map((el) => {
@@ -154,6 +154,10 @@
         root.style.setProperty("--tr-old-term-bg", newTheme === "dark" ? "#d3e1c4" : "#0b140b");
         root.style.setProperty("--tr-old-fg", newTheme === "dark" ? "#1c2e1c" : "#8fbc8b");
         root.style.setProperty("--tr-new-fg", targetTextColor);
+        // The reading progress bar spans the header, so it is split where the wave crosses it instead of flipping whole
+        const progressBar = document.querySelector(".reading-progress");
+        root.style.setProperty("--tr-old-progress", newTheme === "dark" ? "#2d7a2d" : "#b9e4b4");
+        root.style.setProperty("--tr-new-progress", newTheme === "dark" ? "#b9e4b4" : "#2d7a2d");
         const barHeight = blogBar ? Math.round(blogBar.getBoundingClientRect().height) : 58;
         const borderTop = barHeight - 2;
         const borderBottom = barHeight;
@@ -214,6 +218,12 @@
             el.style.setProperty("--wave-y", -r.top - gridOffsetY + "px");
           }
 
+          if (progressBar) {
+            const y = progressBar.getBoundingClientRect().top + 1 - gridOffsetY;
+            const reach = sweptR > y ? Math.sqrt(sweptR * sweptR - y * y) : 0;
+            progressBar.style.setProperty("--wave-split", window.innerWidth - reach + "px");
+          }
+
           for (const flip of flips) {
             if (!flip.flipped && (flip.letter ? letterReached(flip, waveR) : waveR - ditherBand * flip.lag > flip.d / size)) {
               flip.el.setAttribute("data-theme", newTheme);
@@ -222,7 +232,7 @@
               }
               if (flip.el.matches('.post-header, h2, .post-subsection > h3, .post-search-input, hr, .code-block, .code-header, .mermaid-block, .mermaid-header, blockquote, .table-wrap, table, th, td')) {
                 flip.el.style.borderColor = targetRuleColor;
-              } else if (flip.el.matches('.tag, .post-card, .mascot-bubble')) {
+              } else if (flip.el.matches('.tag, .post-card, .mascot-bubble, .rss-link')) {
                 flip.el.style.borderColor = targetTextColor;
               }
               flip.flipped = true;
@@ -243,6 +253,9 @@
             root.style.removeProperty("--tr-old-term-bg");
             root.style.removeProperty("--tr-old-fg");
             root.style.removeProperty("--tr-new-fg");
+            root.style.removeProperty("--tr-old-progress");
+            root.style.removeProperty("--tr-new-progress");
+            if (progressBar) progressBar.style.removeProperty("--wave-split");
             for (const flip of flips) {
               flip.el.removeAttribute("data-theme");
               flip.el.style.color = "";

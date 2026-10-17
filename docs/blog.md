@@ -135,7 +135,11 @@ Os posts têm duas animações suaves, ambas com `opacity`/`transform` e desliga
 Arquivos envolvidos: [assets/js/post-motion.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/post-motion.js) e a seção "Reading progress bar" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
 
 ### 3.8. Tags e Posts Relacionados
-As tags no topo do post são links para `/blog/?q=<tag>`, que abre o índice já filtrado. No fim de cada post, o bloco `// continue lendo` mostra até 2 outros posts: primeiro os que têm mais tags em comum e, se faltar, os mais recentes. O tempo de leitura (palavras ÷ 200, sem contar blocos de código) aparece no cabeçalho do post e nos cards.
+As tags no topo do post são links para a página da tag, `/blog/tag/<tag>/`, que lista os posts com ela (mais novos primeiro). O endereço usa a tag em minúsculas, sem acentos e com hífens (`Docker Compose` vira `docker-compose`, `Segurança` vira `seguranca`; `tagSlug` em `api/blog.js`). `/blog/tag/` lista todas as tags com a contagem de posts, e o índice do blog tem um link `#tags` ao lado do RSS. A busca `/blog/?q=<termo>` continua funcionando.
+
+- **Rotas:** `vercel.json` reescreve `/blog/tag[/]` para `/api/blog?page=tags` e `/blog/tag/:tag[/]` para `/api/blog?tag=:tag`.
+- **Validação:** o parâmetro passa por `tagSlug` (só `a-z`, `0-9` e hífens, até 60 caracteres na entrada). Tag vazia redireciona (302) para `/blog/tag/`; uma variação de uma tag existente (`/blog/tag/Docker`, `/blog/tag/Seguran%C3%A7a`) redireciona (301) para o endereço canônico; qualquer outra coisa recebe a página 404, sem repetir o que foi digitado.
+- **SEO:** cada página tem `canonical`, Open Graph e JSON-LD `CollectionPage`, e entra no `sitemap.xml` (que é estático: ao criar um post com uma tag nova, adicione `/blog/tag/<tag>/` lá também). No fim de cada post, o bloco `// continue lendo` mostra até 2 outros posts: primeiro os que têm mais tags em comum e, se faltar, os mais recentes. O tempo de leitura (palavras ÷ 200, sem contar blocos de código) aparece no cabeçalho do post e nos cards.
 
 Como os relacionados dependem da pasta inteira, o cache de cada post guarda também a assinatura de `/blog/` e é refeito quando qualquer post muda. Arquivos envolvidos: `pickRelated` e `renderRelatedHtml` em [api/blog.js](file:///var/home/gabrielcoto/cotoo.dev/api/blog.js) e a seção "Related posts" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
 
@@ -160,6 +164,6 @@ A rota é reescrita para `/api/blog?page=now` e a página reaproveita o layout d
 - **Forçar Atualização de Cache:**
   - Adicione o parâmetro `?refresh=1` na URL para invalidar o cache e forçar a releitura imediata do disco (ex: `/blog/meu-post/?refresh=1`).
 - **Feed RSS:**
-  - `/blog/rss.xml` é reescrito para `/api/blog?format=rss` e lista todos os posts (título, descrição, data e tags). Cada página do blog anuncia o feed com `<link rel="alternate">`.
+  - `/blog/rss.xml` é reescrito para `/api/blog?format=rss` e lista todos os posts (título, descrição, data e tags). Cada página do blog anuncia o feed com `<link rel="alternate">`. O feed também aparece como botão (`.rss-link`, com ícone em pixel art): no cabeçalho do índice e no fim de cada post, depois dos relacionados (`renderFeedLink` em `api/blog.js`). A borda dele está na lista `borderColor` de `blog.js`, então vira com a onda do tema.
 - **Sitemap:**
   - Lembre-se de adicionar a nova rota em `sitemap.xml` para indexação em motores de busca.

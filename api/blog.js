@@ -19,6 +19,31 @@ const memCache = new Map();
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
+// URL form of a tag: "Docker Compose" -> "docker-compose", "Segurança" -> "seguranca"
+const tagSlug = (t) =>
+  String(t)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+const TAG_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// Every tag in use, by slug, with its posts (newest first, like the index)
+function collectTags(posts) {
+  const tags = new Map();
+  for (const post of posts) {
+    for (const name of post.meta.tags) {
+      const slug = tagSlug(name);
+      if (!slug) continue;
+      if (!tags.has(slug)) tags.set(slug, { slug, name, posts: [] });
+      const entry = tags.get(slug);
+      if (!entry.posts.includes(post)) entry.posts.push(post);
+    }
+  }
+  return tags;
+}
+
 // Highlight comments in code blocks to provide crisp retro syntax contrast
 function highlightCode(rawText) {
   const lines = rawText.split('\n');
@@ -378,8 +403,20 @@ function pickRelated(current, posts, limit = 2) {
     .map(({ p }) => p);
 }
 
+const RSS_ICON =
+  '<svg class="rss-icon" viewBox="0 0 12 12" width="14" height="14" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true"><rect x="0" y="1" width="5" height="1"/><rect x="0" y="2" width="7" height="1"/><rect x="5" y="3" width="3" height="1"/><rect x="6" y="4" width="3" height="1"/><rect x="0" y="5" width="3" height="1"/><rect x="7" y="5" width="3" height="1"/><rect x="0" y="6" width="5" height="1"/><rect x="8" y="6" width="2" height="1"/><rect x="3" y="7" width="3" height="1"/><rect x="9" y="7" width="2" height="1"/><rect x="4" y="8" width="2" height="1"/><rect x="9" y="8" width="2" height="1"/><rect x="5" y="9" width="2" height="1"/><rect x="9" y="9" width="2" height="1"/><rect x="0" y="10" width="2" height="1"/><rect x="5" y="10" width="2" height="1"/><rect x="9" y="10" width="2" height="1"/><rect x="0" y="11" width="2" height="1"/><rect x="5" y="11" width="2" height="1"/><rect x="9" y="11" width="2" height="1"/></svg>';
+
+const feedLink = (label) =>
+  `<a class="rss-link" href="/blog/rss.xml" type="application/rss+xml" title="Assinar o feed RSS do blog">${RSS_ICON}<span>${label}</span></a>`;
+
 function renderRelatedHtml(related) {
-  if (!related.length) return '';
+  if (!related.length) {
+    return `
+      <aside class="post-related" aria-label="Feed RSS">
+        <hr />
+        <p class="post-feed">${feedLink('assine o feed rss')}</p>
+      </aside>`;
+  }
   const items = related
     .map(
       ({ meta, slug, readingMinutes }) => `          <li>
@@ -398,6 +435,7 @@ function renderRelatedHtml(related) {
         <ul class="related-list">
 ${items}
         </ul>
+        <p class="post-feed">${feedLink('assine o feed rss')}</p>
       </aside>`;
 }
 
@@ -405,7 +443,8 @@ function renderPostHtml(post, related = []) {
   const { meta, html, slug, readingMinutes } = post;
   const url = `${SITE}/blog/${slug}/`;
   const tags = meta.tags
-    .map((t) => `<a class="tag" href="/blog/?q=${encodeURIComponent(t)}" title="Ver posts com a tag ${escapeHtml(t)}">${escapeHtml(t)}</a>`)
+    .filter((t) => tagSlug(t))
+    .map((t) => `<a class="tag" href="/blog/tag/${tagSlug(t)}/" title="Ver posts com a tag ${escapeHtml(t)}">${escapeHtml(t)}</a>`)
     .join('');
   const content = `    <main class="blog-main">
       <nav class="crumbs" aria-label="Navegação"><a href="/blog/">blog</a> / ${escapeHtml(slug)}</nav>
@@ -445,15 +484,19 @@ ${html}
   });
 }
 
-function renderIndexHtml(posts) {
-  const items = posts
-    .map(
-      ({ meta, slug, readingMinutes }) => `        <li data-search="${escapeHtml([meta.title, meta.description, ...meta.tags].join(' '))}">
-          <a class="post-card" href="/blog/${slug}/">
+function renderCard({ meta, slug, readingMinutes }) {
+  return `<a class="post-card" href="/blog/${slug}/">
             <span class="post-card-title">${escapeHtml(meta.title)}</span>
             <span class="post-card-desc">${escapeHtml(meta.description)}</span>
             <span class="post-card-meta"><time datetime="${meta.date}">${formatDate(meta.date)}</time> · ${readingMinutes} min de leitura</span>
-          </a>
+          </a>`;
+}
+
+function renderIndexHtml(posts) {
+  const items = posts
+    .map(
+      (post) => `        <li data-search="${escapeHtml([post.meta.title, post.meta.description, ...post.meta.tags].join(' '))}">
+          ${renderCard(post)}
         </li>`,
     )
     .join('\n');
@@ -461,6 +504,7 @@ function renderIndexHtml(posts) {
       <header class="post-header">
         <h1>blog</h1>
         <p class="post-meta">Guias e anotações sobre back-end, infraestrutura e sistemas.</p>
+        <p class="post-feed">${feedLink('rss')} <a class="tag" href="/blog/tag/" title="Ver todas as tags">#tags</a></p>
       </header>
       <div class="post-search" hidden>
         <label class="post-search-label" for="postSearch">// buscar</label>
@@ -494,6 +538,82 @@ ${items}
         url: `${SITE}/blog/${slug}/`,
         datePublished: meta.date,
       })),
+    },
+  });
+}
+
+function renderTagHtml(tag) {
+  const count = tag.posts.length;
+  const items = tag.posts.map((post) => `        <li>
+          ${renderCard(post)}
+        </li>`).join('\n');
+  const url = `${SITE}/blog/tag/${tag.slug}/`;
+  const content = `    <main class="blog-main">
+      <nav class="crumbs" aria-label="Navegação"><a href="/blog/">blog</a> / <a href="/blog/tag/">tags</a> / ${escapeHtml(tag.slug)}</nav>
+      <header class="post-header">
+        <h1>#${escapeHtml(tag.name)}</h1>
+        <p class="post-meta">${count} ${count === 1 ? 'post' : 'posts'} com a tag ${escapeHtml(tag.name)}.</p>
+      </header>
+      <ul class="post-list">
+${items}
+      </ul>
+    </main>`;
+  const description = `Posts de Gabriel Couto com a tag ${tag.name}.`;
+  return layout({
+    title: `#${tag.name} | Blog | Gabriel Couto`,
+    description,
+    canonical: url,
+    bodyClass: 'page-index page-tag',
+    ogType: 'website',
+    content,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `#${tag.name} | Blog | Gabriel Couto`,
+      description,
+      url,
+      inLanguage: 'pt-BR',
+      isPartOf: { '@type': 'Blog', name: 'Blog | Gabriel Couto', url: `${SITE}/blog/` },
+      hasPart: tag.posts.map(({ meta, slug }) => ({
+        '@type': 'BlogPosting',
+        headline: meta.title,
+        url: `${SITE}/blog/${slug}/`,
+        datePublished: meta.date,
+      })),
+    },
+  });
+}
+
+function renderTagIndexHtml(tags) {
+  const list = [...tags.values()].sort((a, b) => b.posts.length - a.posts.length || a.slug.localeCompare(b.slug));
+  const chips = list
+    .map((t) => `<a class="tag" href="/blog/tag/${t.slug}/" title="${t.posts.length} ${t.posts.length === 1 ? 'post' : 'posts'}">${escapeHtml(t.name)} <span class="tag-count">${t.posts.length}</span></a>`)
+    .join('\n          ');
+  const description = 'Todas as tags dos posts de Gabriel Couto sobre back-end, infraestrutura e sistemas.';
+  const content = `    <main class="blog-main">
+      <nav class="crumbs" aria-label="Navegação"><a href="/blog/">blog</a> / tags</nav>
+      <header class="post-header">
+        <h1>tags</h1>
+        <p class="post-meta">${list.length} tags nos posts do blog.</p>
+      </header>
+      <p class="post-tags tag-cloud">
+          ${chips}
+      </p>
+    </main>`;
+  return layout({
+    title: 'Tags | Blog | Gabriel Couto',
+    description,
+    canonical: `${SITE}/blog/tag/`,
+    bodyClass: 'page-index page-tag',
+    ogType: 'website',
+    content,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Tags | Blog | Gabriel Couto',
+      description,
+      url: `${SITE}/blog/tag/`,
+      inLanguage: 'pt-BR',
     },
   });
 }
@@ -701,13 +821,13 @@ async function handler(req, res) {
       } catch (_) {}
     }
 
-    const isJson = format === 'json' || (req.headers && req.headers['accept'] && req.headers['accept'].includes('application/json') && !req.headers['accept'].includes('text/html'));
+    // Only the query string picks JSON, so the CDN never caches it under the HTML URL
+    const isJson = format === 'json';
     const forceRefresh = refresh === '1' || refresh === 'true';
 
     if (query.page === 'now' || (req.url && /[?&]page=now\b/.test(req.url))) {
       const file = getFileHashAndMtime(path.join(getBlogDir(), '_now.md'));
       if (!file.exists) return res.status(404).send(render404Html());
-      // Only the query string picks JSON here, so the CDN never caches it under the HTML URL
       if (format === 'json') {
         const { meta, body } = parseFrontMatter(file.raw);
         res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
@@ -725,6 +845,34 @@ async function handler(req, res) {
       return res.status(200).send(nowHtml);
     }
 
+    // Tag pages: /blog/tag/ (all tags) and /blog/tag/<slug>/
+    const tagParam = query.tag !== undefined ? query.tag : req.url && req.url.includes('tag=') ? new URL(req.url, 'http://localhost').searchParams.get('tag') : undefined;
+    const isTagIndex = query.page === 'tags' || (req.url && /[?&]page=tags\b/.test(req.url));
+    if (isTagIndex || tagParam !== undefined) {
+      const raw = Array.isArray(tagParam) ? tagParam[0] : tagParam;
+      if (!isTagIndex && (typeof raw !== 'string' || !raw.trim())) return res.redirect(302, '/blog/tag/');
+      const posts = getLocalPosts();
+      const tags = collectTags(posts);
+      let html;
+      if (isTagIndex) {
+        html = renderTagIndexHtml(tags);
+      } else {
+        // Anything longer or stranger than a tag slug is rejected before it gets near the page
+        const slug = raw.length <= 60 ? tagSlug(raw) : '';
+        if (!slug || !TAG_SLUG_RE.test(slug) || !tags.has(slug)) {
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
+          return res.status(404).send(render404Html());
+        }
+        // "Docker" or "docker-compose/" style variants go to the one canonical URL
+        if (raw !== slug) return res.redirect(301, `/blog/tag/${slug}/`);
+        html = renderTagHtml(tags.get(slug));
+      }
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+      return res.status(200).send(html);
+    }
+
     if (format === 'rss') {
       res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
@@ -732,7 +880,7 @@ async function handler(req, res) {
     }
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v19';
+    const TEMPLATE_VERSION = 'v21';
     // Related posts depend on the whole folder, so post caches are tied to its signature too
     const dirSig = getBlogDirSignature();
 
@@ -898,7 +1046,7 @@ async function handler(req, res) {
   } catch (err) {
     console.error('Blog handler unexpected error:', err);
     if (!res.headersSent) {
-      const isJson = (req.query && req.query.format === 'json') || (req.headers && req.headers['accept'] && req.headers['accept'].includes('application/json'));
+      const isJson = req.query && req.query.format === 'json';
       if (isJson) {
         return res.status(500).json({ error: 'Internal Server Error' });
       }

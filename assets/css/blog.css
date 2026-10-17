@@ -553,6 +553,49 @@ body.reading-mode .font-toggle {
   font-size: 1.35rem;
 }
 
+/* RSS feed link, on the index header and after each post */
+.post-feed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+}
+
+.related-list + .post-feed {
+  margin-top: 2rem;
+}
+
+.rss-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 2px solid var(--text-color);
+  padding: 0.15rem 0.6rem;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.rss-link:hover,
+.rss-link:focus-visible {
+  background: var(--text-color);
+  color: var(--bg-color);
+  outline: none;
+}
+
+.rss-icon {
+  flex: none;
+}
+
+/* Tag pages (/blog/tag/) */
+.tag-cloud {
+  margin: 0;
+}
+
+.tag-count {
+  opacity: 0.6;
+}
+
 /* Live status on the /now page */
 .now-live-list {
   list-style: none;
@@ -760,6 +803,11 @@ body.reading-mode .prose {
   height: 2px;
   background: var(--toc-active);
   pointer-events: none;
+}
+
+/* While the theme changes, blog.js moves --wave-split along the bar: the new colour from there to the right */
+body.is-transitioning .reading-progress {
+  background: linear-gradient(to right, var(--tr-old-progress) var(--wave-split, 100vw), var(--tr-new-progress) var(--wave-split, 100vw));
 }
 
 @keyframes tocIn {

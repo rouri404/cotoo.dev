@@ -179,6 +179,16 @@
     if (isHome) {
       if (heroActive()) {
         if (vh < 560) return { mode: "away", x: (vw - W) / 2, y: vh + 40 };
+        if (vw < 700) {
+          // On phones he sits halfway between the hint and the Spotify widget
+          const hint = hero.querySelector(".hint");
+          const widget = document.querySelector(".spotify-widget");
+          if (hint && widget) {
+            const top = hint.getBoundingClientRect().bottom;
+            const bottom = widget.getBoundingClientRect().top;
+            return { mode: "fixed", x: (vw - W) / 2, y: Math.max(top, (top + bottom - H) / 2) };
+          }
+        }
         return { mode: "fixed", x: (vw - W) / 2, y: vh - H - CREDIT_GAP - (vw < 700 ? 100 : 48) };
       }
       return follow();

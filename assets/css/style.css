@@ -1156,7 +1156,14 @@ body.is-transitioning *::after {
     z-index: 9998;
   }
   .nav-blog-btn {
-    display: none !important;
+    position: fixed;
+    top: 0.2rem;
+    left: 50%;
+    height: 50px;
+    margin: 0;
+    padding: 0 12px;
+    font-size: 1rem;
+    transform: translateX(-50%);
   }
   .theme-toggle {
     position: relative;

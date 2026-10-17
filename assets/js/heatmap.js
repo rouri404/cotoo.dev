@@ -49,7 +49,13 @@
   grid.addEventListener("pointerover", (e) => {
     if (e.target.classList.contains("heat-cell")) info.textContent = e.target.dataset.info;
   });
-  grid.addEventListener("pointerleave", () => (info.textContent = summary));
+  // A touch pointer "leaves" as soon as the finger lifts, so the day stays until the next tap elsewhere
+  grid.addEventListener("pointerleave", (e) => {
+    if (e.pointerType !== "touch") info.textContent = summary;
+  });
+  document.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "touch" && !grid.contains(e.target)) info.textContent = summary;
+  });
 
   let resizeTimer = 0;
   window.addEventListener("resize", () => {

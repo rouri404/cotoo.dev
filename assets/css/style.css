@@ -193,8 +193,9 @@ body {
   outline-offset: 1px;
 }
 
-.heat-cell {
-  animation: heatIn 0.35s steps(3) calc(var(--w, 0) * 14ms) backwards;
+/* Played each time the menu comes back (heatmap.js adds .is-playing); the delay lets the stage fade in first */
+.heatmap.is-playing .heat-cell {
+  animation: heatIn 0.35s steps(3) calc(0.2s + var(--w, 0) * 14ms) backwards;
 }
 
 @keyframes heatIn {
@@ -209,7 +210,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .heat-cell {
+  .heatmap.is-playing .heat-cell {
     animation: none;
   }
 }

@@ -57,6 +57,20 @@
     if (e.pointerType === "touch" && !grid.contains(e.target)) info.textContent = summary;
   });
 
+  // The squares light up in a wave every time the menu comes back, not only the first time it is drawn.
+  // The class is dropped afterwards, so redrawing the grid on a resize does not replay it
+  let playTimer = 0;
+  function play() {
+    clearTimeout(playTimer);
+    grid.classList.remove("is-playing");
+    void grid.offsetWidth;
+    grid.classList.add("is-playing");
+    playTimer = setTimeout(() => grid.classList.remove("is-playing"), 1800);
+  }
+  new MutationObserver(() => {
+    if (document.body.dataset.stage === "menu" && data && !section.hidden) play();
+  }).observe(document.body, { attributes: true, attributeFilter: ["data-stage"] });
+
   let resizeTimer = 0;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
@@ -70,6 +84,7 @@
       data = json;
       section.hidden = false;
       render();
+      if (document.body.dataset.stage === "menu") play();
     })
     .catch(() => {});
 })();

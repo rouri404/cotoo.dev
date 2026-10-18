@@ -144,7 +144,7 @@
         <div class="menu-col">
           <p class="eyebrow">// projetos</p>
           <ul class="projects" id="projectList">
-            <li tabindex="0" data-url="https://github.com/rouri404/site-gs-fiap">
+            <li tabindex="0" data-modal="protechModal">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Protech The Future</span>
@@ -427,6 +427,13 @@
       <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('kumonModal').classList.remove('active')" title="fechar">x</button>
         <p><strong>Kumon Brasil — Calculus &amp; Linear Algebra Tutor</strong><br><br>Atuação por 4 anos (jan/2022 – dez/2025) como orientador especializado em matemática superior e avançada:<br><br>• <strong>Cálculo Diferencial e Integral (1 a 3):</strong> Instrução e resolução aprofundada de limites, derivadas, integrais múltiplas, campos vetoriais, séries infinitas e equações diferenciais aplicadas.<br>• <strong>Álgebra Linear:</strong> Espaços vetoriais, transformações lineares, determinantes, álgebra matricial, autovalores e autovetores.<br>• <strong>Rigor Analítico:</strong> Capacidade comprovada de decompor problemas complexos, rigor matemático e didática técnica.<br><br><a href="https://www.kumon.com.br" target="_blank" rel="noopener"><span class="modal-link-text">kumon.com.br</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="protechModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('protechModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>Protech The Future — Detecção Precoce de Enchentes</strong><br><br>Projeto da Global Solution 2025 da FIAP (1º lugar), feito em equipe com mais dois colegas. Bueiros entupidos por lixo agravam as enchentes urbanas, e um alerta antecipado reduziria danos e salvaria vidas. A solução monitora o nível de água dos bueiros em tempo real e avisa a prefeitura e a Defesa Civil antes de o alagamento acontecer.<br><br>• <strong>Sensores no bueiro:</strong> Um ESP32 numa caixa selada (IP67), fixada fora da linha d'água, lê um sensor analógico de nível de água e a umidade de um DHT22 perto da base, que denuncia o acúmulo antes de a água subir. Roda com bateria Li-ion e painel solar, ou com a rede elétrica municipal.<br>• <strong>Dados em tempo real:</strong> Os dispositivos enviam as leituras por MQTT para o broker FIWARE, e o dashboard em Python e Django mostra o nível de cada bueiro, os alertas e um mapa dos dispositivos pelos bairros.<br>• <strong>Alertas:</strong> Quando o nível passa de um limite definido, o sistema dispara o aviso por HTTP ou SMS. O dashboard também guarda o histórico de enchentes por local, com gráficos e relatórios mensais.<br>• <strong>Custo baixo:</strong> Menos de R$ 300 por unidade, usando ESP32, sensores comuns e plataformas de código aberto (Mosquitto e FIWARE). Uma solução parecida, de um projeto da FAPESP, custa cerca de R$ 15 mil por unidade. Isso permite instalar dezenas de bueiros críticos em cidades pequenas, e não só pontos isolados.<br><br><a href="https://gs2025.cotoo.dev" target="_blank" rel="noopener"><span class="modal-link-text">gs2025.cotoo.dev</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://github.com/rouri404/site-gs-fiap" target="_blank" rel="noopener"><span class="modal-link-text">github.com/rouri404/site-gs-fiap</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
       </div>
     </div>
 

@@ -146,8 +146,12 @@
   // Skins: a few extra shapes merged into the model, so the rasterizer draws them like the rest of him.
   // Some follow the calendar: "natal" (Dec 1 to Jan 6) is a Santa hat, "halloween" (Oct 20 to Nov 2) a witch hat,
   // "pascoa" (Easter week) bunny ears and "junina" (June) a straw hat. The others, "formatura" (graduation cap),
-  // "fone" (headphones), "coroa" (crown) and "festa" (party hat), are only worn on request ("tux skin <nome>" in the terminal)
+  // "formatura" (graduation cap), "coroa" (crown) and "festa" (party hat) are only worn on request ("tux skin <nome>" in the terminal).
+  // "fone" (headphones) is worn on request and whenever Spotify says the owner is listening to something
   const SKIN_KEY = "mascot-skin";
+  const MUSIC_KEY = "mascot-music";
+  // The widget only reports on the home page, so the blog trusts the last report for this long
+  const MUSIC_TTL = 5 * 60 * 1000;
   const SKINS = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa"];
 
   // Easter Sunday for a year (the Gregorian computus)
@@ -161,11 +165,20 @@
     return new Date(y, Math.floor(n / 31) - 1, (n % 31) + 1);
   }
 
+  function listening() {
+    try {
+      return Date.now() - Number(sessionStorage.getItem(MUSIC_KEY)) < MUSIC_TTL;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function seasonSkin() {
     try {
       const forced = sessionStorage.getItem(SKIN_KEY);
       if (forced === "none" || SKINS.includes(forced)) return forced === "none" ? "" : forced;
     } catch (_) {}
+    if (listening()) return "fone";
     const now = new Date();
     const m = now.getMonth();
     const d = now.getDate();
@@ -1024,6 +1037,12 @@
     const key = d.playing ? d.artist + " - " + d.title : "";
     const isNew = key && (!music || music.key !== key);
     music = key ? { key } : null;
+    const wasListening = listening();
+    try {
+      if (key) sessionStorage.setItem(MUSIC_KEY, String(Date.now()));
+      else sessionStorage.removeItem(MUSIC_KEY);
+    } catch (_) {}
+    if (baseModel && wasListening !== !!key) model = withSkin(baseModel, seasonSkin());
     if (!isNew || sleeping || partyStart >= 0 || !chatty()) return;
     const title = d.title.length > 22 ? d.title.slice(0, 21).trimEnd() + "..." : d.title;
     sayNext("ouvindo " + title.toLowerCase() + "? boa escolha :)", 4000);

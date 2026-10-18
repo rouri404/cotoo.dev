@@ -1,4 +1,4 @@
-// Terminal pop-up that comes out of Tux: opened by clicking him, the Backquote key or Ctrl+K. Shared by the home page and the blog
+// Terminal pop-up that comes out of Tux: opened by clicking him, the Backquote key, "/" or Ctrl+K. Shared by the home page and the blog
 (function () {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const startedAt = Date.now();
@@ -14,7 +14,7 @@
   };
 
   const PROJECTS = [
-    ["Protech The Future", "https://github.com/rouri404/site-gs-fiap", "telemetria e detecção de enchentes em tempo real, 1º lugar FIAP GS 2025"],
+    ["Protech The Future", "https://gs2025.cotoo.dev", "telemetria e detecção de enchentes em tempo real, 1º lugar FIAP GS 2025"],
     ["CRMed", "https://github.com/GrupoMoskitto/Challenge-2026", "gestão clínica com Redis e GraphQL, Hospital São Rafael"],
     ["Grabtext", "https://github.com/rouri404/grabtext", "OCR local de baixa latência no clipboard GNU/Linux"],
     ["OEDLA (Unicamp)", "/blog/oedla-plataforma-editorial/", "portal de notícias de custo zero, com cache na borda (~93% de hit ratio)"],
@@ -1167,6 +1167,10 @@
     if (e.code === "Backquote" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       toggle();
+    } else if (e.key === "/" && !typing && !isOpen && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      // Only opens: while it is open the key belongs to the page, and typing in a field is never hijacked
+      e.preventDefault();
+      open();
     } else if (e.key.toLowerCase() === "k" && (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
       e.preventDefault();
       toggle();

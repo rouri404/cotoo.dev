@@ -335,10 +335,11 @@ code {
 #stage-menu.active #blogList li:nth-child(1) { animation-delay: 1.05s; }
 #stage-menu.active .blog-all-btn { animation: listItemIn 0.5s ease 1.15s backwards; }
 
-/* Hovering a project plays one animation and leaving it plays the same one backwards, but faster (0.4x: 0.2 s per letter,
-   0.012 s between letters, instead of 0.5 s and 0.03 s), so that leaving does not drag. Each letter has its index --i, and
-   the project its letter count --n (set in script.js): the letters turn in order on hover and in the opposite order on exit,
-   with the time-reversed curve, and the square, which comes first on hover, leaves last */
+/* Hovering a project plays one animation and leaving it plays the same one backwards at the same speed (0.5 s per letter,
+   0.03 s between letters), but it starts straight away: the first 0.315 s of the reversed curve is only the wind-up of the
+   hover overshoot, so a negative delay skips it. Each letter has its index --i, and the project its letter count --n (set in
+   script.js): the letters turn in order on hover and in the opposite order on exit, and the square, which comes first on
+   hover, leaves last */
 .projects .sq {
   width: 10px;
   height: 10px;
@@ -346,8 +347,8 @@ code {
   background: var(--text-color);
   opacity: 0;
   flex: none;
-  /* Exit: the hover steps backwards, so the first one comes when the last letter is about to land */
-  transition: opacity 0.06s steps(2, start) calc((var(--n, 1) - 1) * 0.012s + 0.14s);
+  /* Exit: the hover steps backwards, so the first one comes when the first letter is about to land */
+  transition: opacity 0.15s steps(2, start) calc((var(--n, 1) - 1) * 0.03s + 0.035s);
 }
 
 .projects li:focus-visible .sq,
@@ -381,7 +382,7 @@ code {
 /* The 3D context only exists while the flip runs: a permanent one gets clipped by anything that moves over it, like the terminal.
    It goes away only after the last letter has turned back, or they would unflip flat */
 .projects .name {
-  transition: perspective 0s linear calc(var(--n, 1) * 0.012s + 0.2s);
+  transition: perspective 0s linear calc(var(--n, 1) * 0.03s + 0.2s);
   transition-behavior: allow-discrete;
 }
 
@@ -404,7 +405,7 @@ code {
   position: relative;
   display: inline-block;
   transform-style: preserve-3d;
-  transition: transform 0.2s cubic-bezier(0.36, 0, 0.66, -0.56) calc((var(--n, 1) - 1 - var(--i, 0)) * 0.012s);
+  transition: transform 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) calc((var(--n, 1) - 1 - var(--i, 0)) * 0.03s - 0.315s);
   line-height: 1;
 }
 

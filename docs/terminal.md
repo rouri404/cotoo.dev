@@ -9,6 +9,7 @@ Uma janela de terminal pequena (até 560 × 400 px; 380 px de altura no celular)
 | :--- | :--- |
 | Clicar no Tux (ou Enter/Espaço nele) | Ele gira e o terminal abre ou fecha logo depois (evento `terminal:toggle`, disparado por `mascot.js`) |
 | Tecla `` ` `` (a tecla física `Backquote`, que também funciona em layouts em que o acento é tecla morta) ou `Ctrl+K` | Alterna |
+| Tecla `/` (fora de campos de texto) | Só abre, como nas buscas de outros sites |
 | `Esc`, `Ctrl+K` dentro do campo, botão `x` ou o comando `exit` | Fecha |
 
 ## Posição

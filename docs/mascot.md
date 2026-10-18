@@ -65,11 +65,11 @@ O Tux pode ganhar um acessório, feito de geometria extra somada ao modelo (`bui
 | `pascoa` | semana da Páscoa (7 dias antes até 1 dia depois do domingo, calculado por ano) | Orelhas de coelho brancas, com o forro na cor de destaque |
 | `junina` | junho | Chapéu de palha (cor de destaque) com faixa vermelha |
 | `formatura` | só por pedido | Capelo preto, com botão e uma borla pendurada de um lado |
-| `fone` | só por pedido | Fones de ouvido brancos: arco sobre a cabeça e uma concha em cada orelha |
+| `fone` | por pedido e sempre que o Spotify mostra música tocando | Fones de ouvido brancos: arco sobre a cabeça e uma concha em cada orelha |
 | `coroa` | só por pedido | Coroa de ouro (cor de destaque) com cinco pontas e contas brancas |
 | `festa` | só por pedido | Chapéu de festa listrado de vermelho e branco, inclinado, com pompom |
 
-Para ver uma skin fora da data, use `tux skin <nome>` no [terminal](terminal.md); `nenhuma` tira a skin e `auto` volta ao calendário (vale até a aba fechar, em `sessionStorage` `mascot-skin`). A cor vermelha tem uma variável para cada tema em `mascot.css`, então vira com a onda como o resto do Tux. Para criar outra, acrescente o nome em `SKINS` (e em `SKIN_NAMES` no `terminal.js`) e um bloco em `buildSkin`, usando as formas já prontas (`sphere`, `cone`, `wall`, `ring`, `slab`) e os materiais 0 (preto), 1 (branco), 2 (destaque) e 3 (vermelho).
+Enquanto o widget do Spotify (home) informa que há música tocando, o Tux usa o `fone` por cima do calendário; a skin pedida no terminal ganha dos dois. O último aviso fica em `sessionStorage` `mascot-music` por 5 minutos, para o fone continuar no blog, onde o widget não existe. Para ver uma skin fora da data, use `tux skin <nome>` no [terminal](terminal.md); `nenhuma` tira a skin e `auto` volta ao calendário (vale até a aba fechar, em `sessionStorage` `mascot-skin`). A cor vermelha tem uma variável para cada tema em `mascot.css`, então vira com a onda como o resto do Tux. Para criar outra, acrescente o nome em `SKINS` (e em `SKIN_NAMES` no `terminal.js`) e um bloco em `buildSkin`, usando as formas já prontas (`sphere`, `cone`, `wall`, `ring`, `slab`) e os materiais 0 (preto), 1 (branco), 2 (destaque) e 3 (vermelho).
 
 ### Posição e escala
 O Tux é posicionado com a propriedade CSS `translate` (e não com `transform`), e o terminal também. As propriedades individuais se aplicam na ordem `translate`, `rotate`, `scale` e só então `transform`, então um `scale` junto de `transform: translate()` escalaria também a posição, fazendo o elemento deslizar enquanto cresce ou encolhe.

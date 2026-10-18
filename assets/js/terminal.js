@@ -17,8 +17,8 @@
     ["Protech The Future", "https://github.com/rouri404/site-gs-fiap", "telemetria e detecção de enchentes em tempo real, 1º lugar FIAP GS 2025"],
     ["CRMed", "https://github.com/GrupoMoskitto/Challenge-2026", "gestão clínica com Redis e GraphQL, Hospital São Rafael"],
     ["Grabtext", "https://github.com/rouri404/grabtext", "OCR local de baixa latência no clipboard GNU/Linux"],
-    ["OEDLA (Unicamp)", "/blog/oedla-plataforma-editorial/", "portal de notícias com cache na borda (~93% de hit ratio)"],
-    ["PremiumUUID", "https://github.com/rouri404/premium-uuid", "resolução concorrente de UUID Mojang (Java/Paper)"],
+    ["OEDLA (Unicamp)", "/blog/oedla-plataforma-editorial/", "portal de notícias de custo zero, com cache na borda (~93% de hit ratio)"],
+    ["PremiumUUID", "https://modrinth.com/plugin/premiumuuid", "plugin Paper que aplica o UUID premium da Mojang em servidores offline-mode (no Modrinth)"],
     ["cotoo.dev", "https://github.com/rouri404/cotoo.dev", "esse portfólio :P"],
   ];
 

@@ -365,11 +365,18 @@ code {
   flex-wrap: wrap;
 }
 
-/* The 3D context only exists while the flip runs: a permanent one gets clipped by anything that moves over it, like the terminal */
+/* The 3D context only exists while the flip runs: a permanent one gets clipped by anything that moves over it, like the terminal.
+   It goes away only after the letters have turned back (0.5 s flip plus the overshoot), or they would unflip flat */
+.projects .name {
+  transition: perspective 0s linear 0.65s;
+  transition-behavior: allow-discrete;
+}
+
 .projects li:hover .name,
 .projects li:focus-visible .name,
 .projects li.is-clicked .name {
   perspective: 800px;
+  transition-delay: 0s;
 }
 
 .letter-3d-wrapper {
@@ -1348,10 +1355,24 @@ body.is-transitioning *::after {
   padding: 3rem 2.5rem;
   max-width: 600px;
   width: 90%;
+  /* A long text scrolls inside the box instead of running off the screen */
+  box-sizing: border-box;
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-color) transparent;
   position: relative;
   text-align: justify;
   transform: translateY(20px);
   transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 2.75rem 1.5rem 2rem;
+  }
 }
 
 .modal-content p {

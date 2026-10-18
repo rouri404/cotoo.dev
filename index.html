@@ -149,6 +149,7 @@
               <span class="label">
                 <span class="name">Protech The Future</span>
                 <span class="desc">Telemetria e detecção de enchentes em tempo real (Edge/IoT) — <span class="shimmer">1º lugar</span> FIAP GS 2025</span>
+                <span class="project-meta" aria-label="Stack"><span class="chip">Django</span><span class="chip">Fiware</span><span class="chip">ESP32</span><span class="chip">Chart.js</span><span class="chip">Leaflet</span><span class="chip">Tailwind</span><span class="chip">Docker</span></span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/GrupoMoskitto/Challenge-2026">
@@ -156,7 +157,7 @@
               <span class="label">
                 <span class="name">CRMed</span>
                 <span class="desc">Gestão clínica com cache em memória (Redis) e GraphQL — Hospital São Rafael</span>
-                <span class="project-meta" aria-label="Stack"><span class="chip">Redis</span><span class="chip">GraphQL</span></span>
+                <span class="project-meta" aria-label="Stack"><span class="chip">TypeScript</span><span class="chip">Node.js</span><span class="chip">GraphQL</span><span class="chip">React</span><span class="chip">PostgreSQL</span><span class="chip">Prisma</span><span class="chip">Redis</span><span class="chip">BullMQ</span><span class="chip">Docker</span></span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/rouri404/grabtext">
@@ -164,6 +165,7 @@
               <span class="label">
                 <span class="name">Grabtext</span>
                 <span class="desc">Processamento de imagem e OCR local de baixa latência no clipboard GNU/Linux</span>
+                <span class="project-meta" aria-label="Stack"><span class="chip">Python</span><span class="chip">Tesseract</span><span class="chip">Flameshot</span><span class="chip">OpenCV</span><span class="chip">Pillow</span></span>
               </span>
             </li>
             <!-- <li tabindex="0" data-url="https://github.com/rouri404/armin-hofmann">
@@ -198,16 +200,16 @@
               <span class="sq"></span>
               <span class="label">
                 <span class="name">OEDLA (Unicamp)</span>
-                <span class="desc">Portal de notícias com SEO agressivo e cache na borda (~93% hit ratio)</span>
-                <span class="project-meta" aria-label="Stack"><span class="chip">Cloudflare</span></span>
+                <span class="desc">Portal de notícias de custo zero, com SEO agressivo e cache na borda (~93% hit ratio)</span>
+                <span class="project-meta" aria-label="Stack"><span class="chip">Flask</span><span class="chip">React</span><span class="chip">MongoDB</span><span class="chip">Redis</span><span class="chip">Cloudinary</span><span class="chip">Cloudflare</span><span class="chip">Vercel</span></span>
               </span>
             </li>
-            <li tabindex="0" data-url="https://github.com/rouri404/premium-uuid">
+            <li tabindex="0" data-modal="premiumModal">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">PremiumUUID</span>
-                <span class="desc">Resolução concorrente de UUID Mojang com cache assíncrono em memória (Java/Paper)</span>
-                <span class="project-meta" aria-label="Stack"><span class="chip">Java</span><span class="chip">Paper</span></span>
+                <span class="desc">Plugin de Minecraft que dá a cada jogador premium o UUID certo, mesmo em servidor offline-mode</span>
+                <span class="project-meta" aria-label="Stack e status"><span class="chip">Java</span><span class="chip">Paper</span><span class="chip">Spigot</span><span class="project-status">no Modrinth</span></span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/rouri404/cotoo.dev">
@@ -215,7 +217,7 @@
               <span class="label">
                 <span class="name">cotoo.dev</span>
                 <span class="desc">Esse portfólio :P</span>
-                <span class="project-meta" aria-label="Stack e status"><span class="chip">HTML</span><span class="chip">CSS</span><span class="chip">JavaScript</span><span class="chip">Vercel</span><span class="project-status">no ar</span></span>
+                <span class="project-meta" aria-label="Stack e status"><span class="chip">HTML</span><span class="chip">CSS</span><span class="chip">JavaScript</span><span class="project-status">no ar</span></span>
               </span>
             </li>
           </ul>
@@ -431,10 +433,17 @@
     <div class="modal-overlay" id="oedlaModal" onclick="this.classList.remove('active')">
       <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('oedlaModal').classList.remove('active')" title="fechar">x</button>
-        <p><strong>OEDLA (Unicamp) — Portal de Notícias &amp; Arquitetura de Cache</strong><br><br>Arquitetei toda a infraestrutura e a plataforma do OEDLA (iniciativa acadêmica de observatório sediada na Unicamp), concebido e estruturado como um <strong>portal de notícias de ponta a ponta</strong> com foco em alta disponibilidade sob picos de tráfego, SEO agressivo e latência mínima para os leitores no Brasil.<br><br>• <strong>Portal de Notícias Ponta a Ponta:</strong> Arquitetura completa para publicação jornalística e acadêmica, contemplando fluxo editorial, gestão de artigos e dossiês, categorização temática, pipeline de renderização rápida e distribuição contínua.<br>• <strong>SEO Agressivo &amp; Descoberta:</strong> Otimização técnica aprofundada voltada a indexação imediata nos motores de busca e Google Notícias: Schema.org semântico (<code>NewsArticle</code>), metadados Open Graph/Twitter completos, sitemaps dinâmicos e URLs amigáveis estruturadas para captura de tráfego orgânico.<br>• <strong>Cache na Borda com ~93% de Hit Ratio:</strong> Implementação de proxy reverso com Cloudflare e regras rigorosas de cache. Cerca de <strong>~93% de todas as requisições são entregues diretamente pelo cache na borda (edge)</strong>, eliminando gargalos no servidor de origem.<br>• <strong>Baixa Latência no Brasil:</strong> Roteamento inteligente pelos PoPs locais no Brasil (São Paulo, Rio de Janeiro e Fortaleza), garantindo TTFB (Time to First Byte) na casa dos milissegundos sem requisições transatlânticas desnecessárias.<br>• <strong>Estratégia Multi-Camadas &amp; Mitigação de Egress:</strong> Cabeçalhos <code>Cache-Control</code> com <code>s-maxage</code> e <code>stale-while-revalidate</code>, garantindo custos de infraestrutura praticamente nulos e blindagem ativa contra bots e scraping abusivo.</p>
+        <p><strong>OEDLA (Unicamp) — Portal de Notícias &amp; Arquitetura de Cache</strong><br><br>Arquitetei toda a infraestrutura e a plataforma do OEDLA (iniciativa acadêmica de observatório sediada na Unicamp), concebido e estruturado como um <strong>portal de notícias de ponta a ponta</strong> com foco em alta disponibilidade sob picos de tráfego, SEO agressivo e latência mínima para os leitores no Brasil.<br><br>• <strong>Portal de Notícias Ponta a Ponta:</strong> Arquitetura completa para publicação jornalística e acadêmica, contemplando fluxo editorial, gestão de artigos e dossiês, categorização temática, pipeline de renderização rápida e distribuição contínua.<br>• <strong>SEO Agressivo &amp; Descoberta:</strong> Otimização técnica aprofundada voltada a indexação imediata nos motores de busca e Google Notícias: Schema.org semântico (<code>NewsArticle</code>), metadados Open Graph/Twitter completos, sitemaps dinâmicos e URLs amigáveis estruturadas para captura de tráfego orgânico.<br>• <strong>Cache na Borda com ~93% de Hit Ratio:</strong> Implementação de proxy reverso com Cloudflare e regras rigorosas de cache. Cerca de <strong>~93% de todas as requisições são entregues diretamente pelo cache na borda (edge)</strong>, eliminando gargalos no servidor de origem.<br>• <strong>Baixa Latência no Brasil:</strong> Roteamento inteligente pelos PoPs locais no Brasil (São Paulo, Rio de Janeiro e Fortaleza), garantindo TTFB (Time to First Byte) na casa dos milissegundos sem requisições transatlânticas desnecessárias.<br>• <strong>Estratégia Multi-Camadas &amp; Mitigação de Egress:</strong> Cabeçalhos <code>Cache-Control</code> com <code>s-maxage</code> e <code>stale-while-revalidate</code>, garantindo custos de infraestrutura praticamente nulos e blindagem ativa contra bots e scraping abusivo.<br>• <strong>Custo de Infraestrutura Zero:</strong> Roda inteiramente em planos gratuitos (R$ 0 por mês), com API em Flask, frontend em React, MongoDB, Redis como cache e Cloudinary para as imagens. A regra que guiou o projeto: a requisição mais barata é a que nunca chega ao servidor.<br>• <strong>Pré-visualização de Links sem SSR:</strong> WhatsApp, LinkedIn e Telegram não executam JavaScript, então o edge reconhece esses bots pelo User-Agent e devolve um HTML mínimo com título, resumo, imagem e JSON-LD, sem precisar de um servidor renderizando páginas.<br>• <strong>Login sem Senha:</strong> Os editores entram com um código OTP de 6 dígitos enviado por e-mail (uso único, válido por 10 minutos, 3 tentativas), e recebem um JWT em cookie HTTP-only.<br>• <strong>Segurança em Camadas:</strong> Porta única (só o proxy fala com a API), rate limit por IP com agrupamento de IPv6 por /64, CORS, sanitização e newsletter com double opt-in e reCAPTCHA.<br><br><a href="/blog/oedla-plataforma-editorial/"><span class="modal-link-text">Como construímos o OEDLA: arquitetura de custo zero</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
       </div>
     </div>
     
+    <div class="modal-overlay" id="premiumModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('premiumModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>PremiumUUID — Plugin de Minecraft</strong><br><br>Em servidores com <code>online-mode=false</code>, um jogador com conta premium entra com um UUID diferente do verdadeiro e perde itens, estatísticas e permissões. O PremiumUUID resolve isso: quando o jogador entra, ele confere se o nick é de uma conta premium da Mojang e, se for, usa o UUID real dela.<br><br>• Guarda as respostas em cache, para não consultar a Mojang toda hora.<br>• Se a API da Mojang cair, usa o cache ou o UUID offline.<br>• Tem comandos de admin e dá para ligar e desligar quando quiser.<br><br>Ele não confirma que o jogador é dono da conta, então serve só para servidores privados e de confiança.<br><br><a href="https://modrinth.com/plugin/premiumuuid" target="_blank" rel="noopener"><span class="modal-link-text">modrinth.com/plugin/premiumuuid</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://github.com/rouri404/premium-uuid" target="_blank" rel="noopener"><span class="modal-link-text">github.com/rouri404/premium-uuid</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="actionsModal" onclick="this.classList.remove('active')">
       <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('actionsModal').classList.remove('active')" title="fechar">x</button>

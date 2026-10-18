@@ -350,7 +350,7 @@ function wrapLetters3D(el, textContent) {
     word.split("").forEach((char) => {
       const wrapper = document.createElement("span");
       wrapper.className = "letter-3d-wrapper";
-      wrapper.style.transitionDelay = `${globalIndex * 0.03}s`;
+      wrapper.style.setProperty("--i", globalIndex);
       
       const front = document.createElement("span");
       front.className = "letter-3d-front";
@@ -373,7 +373,7 @@ function wrapLetters3D(el, textContent) {
     if (wordIdx < words.length - 1) {
       const spaceWrapper = document.createElement("span");
       spaceWrapper.className = "letter-3d-wrapper";
-      spaceWrapper.style.transitionDelay = `${globalIndex * 0.03}s`;
+      spaceWrapper.style.setProperty("--i", globalIndex);
       
       const front = document.createElement("span");
       front.className = "letter-3d-front";
@@ -390,6 +390,9 @@ function wrapLetters3D(el, textContent) {
       globalIndex++;
     }
   });
+
+  // The letter count lets the hover exit play the same delays in reverse order (see style.css)
+  (el.closest("li") || el).style.setProperty("--n", globalIndex);
 }
 
 document.querySelectorAll(".projects .name").forEach((el) => {

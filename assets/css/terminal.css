@@ -184,6 +184,11 @@
   margin: 0.3rem 0;
 }
 
+/* Glyphs must not make their row taller, so the penguin lines up with the info */
+.term-art .ico {
+  line-height: 1;
+}
+
 /* The activity chart: a gap between squares and tight rows, so each day reads as its own square */
 .term-chart {
   line-height: 1.05;

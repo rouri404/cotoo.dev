@@ -18,7 +18,7 @@
     ["CRMed", "https://crmed.cotoo.dev", "gestão clínica com Redis e GraphQL, Hospital São Rafael"],
     ["Grabtext", "https://github.com/rouri404/grabtext", "OCR local de baixa latência no clipboard GNU/Linux"],
     ["OEDLA (Unicamp)", "/blog/oedla-plataforma-editorial/", "portal de notícias de custo zero, com cache na borda (~93% de hit ratio)"],
-    ["PremiumUUID", "https://modrinth.com/plugin/premiumuuid", "plugin Paper que aplica o UUID premium da Mojang em servidores offline-mode (no Modrinth)"],
+    ["PremiumUUID", "https://premiumuuid.cotoo.dev", "plugin Paper que aplica o UUID premium da Mojang em servidores offline-mode"],
     ["cotoo.dev", "https://github.com/rouri404/cotoo.dev", "esse portfólio :P"],
   ];
 
@@ -46,7 +46,8 @@
     file: "\uf0f6", user: "\uf007", clock: "\uf017", moon: "\uf186", sun: "\uf185", warn: "\uf071", lock: "\uf023", rocket: "\uf135",
     chart: "\uf080", book: "\uf02d", cubes: "\uf1b3", help: "\uf059", adjust: "\uf042", link: "\uf08e", eraser: "\uf12d",
     signout: "\uf08b", server: "\uf233", code: "\uf121", desktop: "\uf108", prompt: "\u276f", folderOpen: "\uf07c", sitemap: "\uf0e8",
-    gamepad: "\uf11b",
+    gamepad: "\uf11b", globe: "\uf0ac", chip: "\uf2db", music: "\uf001", firefox: "\uf269", chrome: "\uf268", safari: "\uf267",
+    edge: "\uf282",
   };
 
   const term = document.createElement("section");
@@ -700,20 +701,37 @@
         const commit = live(getJson("/api/github"), (d) => (d.found ? d.repo + ", " + ago(d.created_at) : ""));
         const postCount = live(loadPosts(), (list) => (list.length ? String(list.length) : ""));
 
+        const spotify = live(
+          fetch("/api/spotify").then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status)))),
+          (d) => {
+            if (!d.is_playing) return "nada no momento :c";
+            const track = (d.artist + " - " + d.title).toLowerCase();
+            return track.length > 34 ? track.slice(0, 33) + "\u2026" : track;
+          },
+        );
+
+        const ua = navigator.userAgent;
+        const [browserName, browserGlyph] = /Edg\//.test(ua) ? ["Edge", NF.edge] : /OPR\//.test(ua) ? ["Opera", NF.globe] : /Firefox\//.test(ua) ? ["Firefox", NF.firefox] : /Chrome\//.test(ua) ? ["Chrome", NF.chrome] : /Safari\//.test(ua) ? ["Safari", NF.safari] : ["navegador", NF.globe];
+        const browserVersion = (ua.match(/(?:Edg|OPR|Firefox|Chrome|Version)\/(\d+)/) || [])[1];
+        const osName = /Android/.test(ua) ? "Android" : /iPhone|iPad|iPod/.test(ua) ? "iOS" : /Windows/.test(ua) ? "Windows" : /Mac OS X/.test(ua) ? "macOS" : /CrOS/.test(ua) ? "ChromeOS" : /Linux/.test(ua) ? "Linux" : "";
+        const hardware = [navigator.hardwareConcurrency && navigator.hardwareConcurrency + " threads", navigator.deviceMemory && "~" + navigator.deviceMemory + " GB"].filter(Boolean).join(", ");
+        const dpr = window.devicePixelRatio || 1;
+
         const info = [
           [null, "tux@cotoo.dev", null],
           [NF.linux, "os", "cotoo.dev"],
-          [NF.code, "stack", "HTML, CSS e JS puros"],
           [NF.server, "host", "Vercel"],
-          [NF.terminal, "shell", "cotoo-sh"],
           [NF.adjust, "tema", currentTheme()],
-          [NF.desktop, "tela", window.innerWidth + "x" + window.innerHeight],
+          [browserGlyph, "navegador", browserName + (browserVersion ? " " + browserVersion : "") + (osName ? " (" + osName + ")" : "")],
+          hardware && [NF.chip, "cpu", hardware],
+          [NF.desktop, "tela", window.innerWidth + "x" + window.innerHeight + (dpr > 1 ? " @" + +dpr.toFixed(2) + "x" : "")],
           [NF.clock, "uptime", mins + (mins === 1 ? " min" : " mins")],
           [NF.user, "visitas", visits],
           [NF.github, "commit", commit],
           [NF.book, "posts", postCount],
+          [NF.music, "ouvindo", spotify],
           [null, "", swatch],
-        ];
+        ].filter(Boolean);
         const narrow = window.innerWidth < 600;
         const offset = narrow ? TUX.length + 1 : Math.floor((info.length - TUX.length) / 2);
         const rows = narrow ? offset + info.length : info.length;
@@ -725,7 +743,7 @@
             const [glyph, key, value] = entry;
             nodes.push(glyph ? ico(glyph) : blankIco());
             if (value === null) nodes.push(span(key, "term-accent"));
-            else nodes.push(span(key ? (key + ":").padEnd(9) : "", "term-accent"), value);
+            else nodes.push(span(key ? (key + ":").padEnd(11) : "", "term-accent"), value);
           }
           if (i < rows - 1) nodes.push("\n");
         }

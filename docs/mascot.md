@@ -56,7 +56,7 @@ Digitar `↑ ↑ ↓ ↓ ← → ← → B A` (fora de campos de texto) ou rodar
 - **Eventos:** `party:start` (com `detail.ms`) e `party:end` no `window`.
 
 ### Skins
-O Tux pode ganhar um acessório, feito de geometria extra somada ao modelo (`buildSkin`/`withSkin` em `mascot.js`), então ele é desenhado pelo mesmo rasterizador ASCII, gira junto com a cabeça e não custa nada perceptível (poucas centenas de vértices a mais; 60 fps com a CPU 4× mais lenta). Quatro seguem o calendário; as outras quatro só aparecem quando você pede.
+O Tux pode ganhar um acessório, feito de geometria extra somada ao modelo (`buildSkin`/`withSkin` em `mascot.js`), então ele é desenhado pelo mesmo rasterizador ASCII, gira junto com a cabeça e não custa nada perceptível (poucas centenas de vértices a mais; 60 fps com a CPU 4× mais lenta). Quatro seguem o calendário, uma segue o relógio e as outras só aparecem quando você pede (ou, no caso do `fone`, quando há música tocando).
 
 | Skin | Quando (data local) | Desenho |
 | :--- | :--- | :--- |
@@ -68,8 +68,9 @@ O Tux pode ganhar um acessório, feito de geometria extra somada ao modelo (`bui
 | `fone` | por pedido e sempre que o Spotify mostra música tocando | Fones de ouvido brancos: arco sobre a cabeça e uma concha em cada orelha |
 | `coroa` | só por pedido | Coroa de ouro (cor de destaque) com cinco pontas e contas brancas |
 | `festa` | só por pedido | Chapéu de festa listrado de vermelho e branco, inclinado, com pompom |
+| `sono` | da meia-noite às 6h (hora local), por cima do calendário | Touca de dormir listrada de branco e cor de destaque, que sobe e cai para o lado, com pompom |
 
-Enquanto o widget do Spotify (home) informa que há música tocando, o Tux usa o `fone` por cima do calendário; a skin pedida no terminal ganha dos dois. O último aviso fica em `sessionStorage` `mascot-music` por 5 minutos, para o fone continuar no blog, onde o widget não existe. Para ver uma skin fora da data, use `tux skin <nome>` no [terminal](terminal.md); `nenhuma` tira a skin e `auto` volta ao calendário (vale até a aba fechar, em `sessionStorage` `mascot-skin`). A cor vermelha tem uma variável para cada tema em `mascot.css`, então vira com a onda como o resto do Tux. Para criar outra, acrescente o nome em `SKINS` (e em `SKIN_NAMES` no `terminal.js`) e um bloco em `buildSkin`, usando as formas já prontas (`sphere`, `cone`, `wall`, `ring`, `slab`) e os materiais 0 (preto), 1 (branco), 2 (destaque) e 3 (vermelho).
+Enquanto o widget do Spotify (home) informa que há música tocando, o Tux usa o `fone` por cima do calendário e da touca; a skin pedida no terminal ganha dos dois. O último aviso fica em `sessionStorage` `mascot-music` por 5 minutos, para o fone continuar no blog, onde o widget não existe. Para ver uma skin fora da data, use `tux skin <nome>` no [terminal](terminal.md); `nenhuma` tira a skin e `auto` volta ao calendário (vale até a aba fechar, em `sessionStorage` `mascot-skin`). A cor vermelha tem uma variável para cada tema em `mascot.css`, então vira com a onda como o resto do Tux. Para criar outra, acrescente o nome em `SKINS` (e em `SKIN_NAMES` no `terminal.js`) e um bloco em `buildSkin`, usando as formas já prontas (`sphere`, `cone`, `wall`, `ring`, `slab`) e os materiais 0 (preto), 1 (branco), 2 (destaque) e 3 (vermelho).
 
 ### Posição e escala
 O Tux é posicionado com a propriedade CSS `translate` (e não com `transform`), e o terminal também. As propriedades individuais se aplicam na ordem `translate`, `rotate`, `scale` e só então `transform`, então um `scale` junto de `transform: translate()` escalaria também a posição, fazendo o elemento deslizar enquanto cresce ou encolhe.

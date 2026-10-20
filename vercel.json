@@ -2,6 +2,9 @@
   "functions": {
     "api/blog.js": {
       "includeFiles": "blog/**"
+    },
+    "api/views.js": {
+      "includeFiles": "blog/**"
     }
   },
   "rewrites": [
@@ -9,6 +12,8 @@
     { "source": "/now/", "destination": "/api/blog?page=now" },
     { "source": "/uses", "destination": "/api/blog?page=uses" },
     { "source": "/uses/", "destination": "/api/blog?page=uses" },
+    { "source": "/colophon", "destination": "/api/blog?page=colophon" },
+    { "source": "/colophon/", "destination": "/api/blog?page=colophon" },
     { "source": "/blog/rss.xml", "destination": "/api/blog?format=rss" },
     { "source": "/blog/tag", "destination": "/api/blog?page=tags" },
     { "source": "/blog/tag/", "destination": "/api/blog?page=tags" },

@@ -317,6 +317,41 @@
       });
     }
 
+    // Read counter of the post: one read per post and browser session
+    const views = document.querySelector(".post-views[data-slug]");
+    if (views) {
+      const slug = views.dataset.slug;
+      let counted = false;
+      try {
+        counted = sessionStorage.getItem("read:" + slug) === "1";
+      } catch (e) {}
+      fetch("/api/views?slug=" + encodeURIComponent(slug), { method: counted ? "GET" : "POST" })
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
+        .then(({ views: total }) => {
+          try {
+            sessionStorage.setItem("read:" + slug, "1");
+          } catch (e) {}
+          if (!(total > 0)) return;
+          views.textContent = " · " + total.toLocaleString("pt-BR") + (total === 1 ? " leitura" : " leituras");
+          views.hidden = false;
+        })
+        .catch(() => {});
+    }
+
+    // Section links: the "#" next to a heading copies the URL of that section
+    document.addEventListener("click", function (e) {
+      const anchor = e.target.closest(".heading-anchor");
+      if (!anchor) return;
+      e.preventDefault();
+      const url = location.origin + location.pathname + anchor.getAttribute("href");
+      history.replaceState(null, "", anchor.getAttribute("href"));
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(url).then(() => {
+        anchor.classList.add("copied");
+        setTimeout(() => anchor.classList.remove("copied"), 1500);
+      }, () => {});
+    });
+
     // 3. Code copy buttons
     document.addEventListener("click", function (e) {
       const btn = e.target.closest(".copy-btn");

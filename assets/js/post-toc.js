@@ -72,7 +72,9 @@
   // Table of contents
   const tocItems = wrappers.map((wrapper) => {
     const heading = headingOf(wrapper);
-    return { wrapper, id: heading.id, level: heading.tagName === "H3" ? 3 : 2, text: heading.textContent.trim() };
+    const label = heading.cloneNode(true);
+    label.querySelectorAll(".heading-anchor").forEach((a) => a.remove());
+    return { wrapper, id: heading.id, level: heading.tagName === "H3" ? 3 : 2, text: label.textContent.trim() };
   });
 
   let toc = null;

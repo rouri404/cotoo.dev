@@ -132,6 +132,10 @@ Os posts têm duas animações suaves, ambas com `opacity`/`transform` e desliga
 - **Barra de progresso de leitura:** linha fina sobre a borda do header (`.reading-progress`). Como ela atravessa o header inteiro, na troca de tema ela não vira de uma vez: `blog.js` move `--wave-split` ao longo dela e um gradiente pinta a cor nova do ponto em que a onda já passou para a direita.
 - **Sumário:** entra deslizando e o item ativo muda de cor com transição.
 
+### 3.8. Links de seção e leituras
+- **Link de seção:** cada título dos posts, de `/now` e de `/uses` termina com um `#` (`.heading-anchor`, gerado pelo renderer de `heading` em `api/blog.js`). Ele aparece ao passar o mouse sobre o título (em telas de toque fica sempre visível, bem claro) e, ao clicar, copia o endereço da seção e mostra `link copiado`. O sumário ignora esse `#` ao montar os itens.
+- **Leituras:** o cabeçalho do post mostra `· N leituras`, preenchido por `blog.js` com `/api/views?slug=<slug>` ([api/views.js](../api/views.js)). Cada navegador conta uma leitura por post e sessão (`POST`); depois disso só lê o total (`GET`). A API só aceita slugs de arquivos que existem em `blog/` (o `vercel.json` inclui a pasta na função), guarda o total no Redis em `cotoo:views:<slug>` e responde com `Cache-Control: no-store`. Com zero leituras ou erro, nada aparece.
+
 Arquivos envolvidos: [assets/js/post-motion.js](file:///var/home/gabrielcoto/cotoo.dev/assets/js/post-motion.js) e a seção "Reading progress bar" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
 
 Com `prefers-reduced-motion` a troca de tema também é instantânea, sem a onda de dither (em `blog.js` e no `script.js` da home); o Tux também não dá a cambalhota.
@@ -141,7 +145,7 @@ As tags no topo do post são links para a página da tag, `/blog/tag/<tag>/`, qu
 
 - **Rotas:** `vercel.json` reescreve `/blog/tag[/]` para `/api/blog?page=tags` e `/blog/tag/:tag[/]` para `/api/blog?tag=:tag`.
 - **Validação:** o parâmetro passa por `tagSlug` (só `a-z`, `0-9` e hífens, até 60 caracteres na entrada). Tag vazia redireciona (302) para `/blog/tag/`; uma variação de uma tag existente (`/blog/tag/Docker`, `/blog/tag/Seguran%C3%A7a`) redireciona (301) para o endereço canônico; qualquer outra coisa recebe a página 404, sem repetir o que foi digitado.
-- **SEO:** cada página tem `canonical`, Open Graph e JSON-LD `CollectionPage`, e entra no `sitemap.xml` (que é estático: ao criar um post com uma tag nova, adicione `/blog/tag/<tag>/` lá também). No fim de cada post, o bloco `// continue lendo` mostra até 2 outros posts: primeiro os que têm mais tags em comum e, se faltar, os mais recentes. O tempo de leitura (palavras ÷ 200, sem contar blocos de código) aparece no cabeçalho do post e nos cards.
+- **SEO:** cada página tem `canonical`, Open Graph e JSON-LD `CollectionPage`, e, quando a tag tem 2 posts ou mais, entra no `sitemap.xml` (que é estático: quando uma tag chegar a 2 posts, adicione `/blog/tag/<tag>/` lá). A página de uma tag com um post só sai com `noindex, follow`, porque repetiria o próprio post. No fim de cada post, o bloco `// continue lendo` mostra até 2 outros posts: primeiro os que têm mais tags em comum e, se faltar, os mais recentes. O tempo de leitura (palavras ÷ 200, sem contar blocos de código) aparece no cabeçalho do post e nos cards.
 
 Como os relacionados dependem da pasta inteira, o cache de cada post guarda também a assinatura de `/blog/` e é refeito quando qualquer post muda. Arquivos envolvidos: `pickRelated` e `renderRelatedHtml` em [api/blog.js](file:///var/home/gabrielcoto/cotoo.dev/api/blog.js) e a seção "Related posts" de [assets/css/blog.css](file:///var/home/gabrielcoto/cotoo.dev/assets/css/blog.css).
 
@@ -152,6 +156,8 @@ A rota é reescrita para `/api/blog?page=now` e a página reaproveita o layout d
 
 ### 3.10. Página /uses
 `/uses/` lista o hardware e o software do dia a dia. Funciona como a `/now`: o texto vem de [blog/_uses.md](../blog/_uses.md), a rota é reescrita para `/api/blog?page=uses` e a página usa o layout do blog (tema, Tux e terminal; `open uses` no terminal leva até ela). Com `draft: true` no front matter a página sai com `<meta name="robots" content="noindex, follow">`. A página já está publicada e consta no `sitemap.xml`.
+
+`/colophon/` conta como o site é feito (stack, tema, Tux, dados ao vivo, blog e cuidados). Funciona igual à `/uses`, a partir de [blog/_colophon.md](../blog/_colophon.md); as duas páginas saem de `renderPageHtml` e da lista `PAGES` em `api/blog.js`, então outra página do mesmo tipo só precisa de uma entrada ali, do arquivo `_<nome>.md`, das rotas no `vercel.json` e da URL no `sitemap.xml`. `open colophon` no terminal leva até ela.
 
 ---
 

@@ -105,20 +105,20 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </head>
   <body onclick="">
-    <canvas id="pixel-trail"></canvas>
-    <canvas id="pixel-transition"></canvas>
+    <canvas id="pixel-trail" aria-hidden="true"></canvas>
+    <canvas id="pixel-transition" aria-hidden="true"></canvas>
 
-    <div class="top-nav" onclick="event.stopPropagation()">
+    <div class="top-nav" role="navigation" aria-label="Navegação principal" onclick="event.stopPropagation()">
       <a href="/blog/" class="nav-blog-btn" id="navBlogBtn" title="Acessar o blog"><span class="nav-blog-text">blog</span> <span class="link-arrow" aria-hidden="true">➚</span></a>
       <div class="theme-toggle" id="themeToggle" title="Alternar tema" role="button" tabindex="0" aria-label="Alternar tema"></div>
     </div>
 
-    <div class="visit-counter" id="visitCounter" title="visitas" hidden>
+    <div class="visit-counter" id="visitCounter" role="complementary" aria-label="Contador de visitas" title="visitas" hidden>
       <span class="visit-label">visitas</span>
       <span class="visit-digits" id="visitDigits"></span>
     </div>
 
-    <div class="stage active" id="stage-hero">
+    <div class="stage active" id="stage-hero" role="banner">
       <div class="education-section desktop-edu">
         <p class="eyebrow">// formação</p>
         <a href="https://www.fiap.com.br/graduacao/bacharelado/engenharia-de-software/" target="_blank" rel="noopener noreferrer" class="education-card">
@@ -138,7 +138,7 @@
       <p class="hint">role ou clique para continuar</p>
     </div>
 
-    <div class="stage" id="stage-menu">
+    <div class="stage" id="stage-menu" role="main">
       <div class="scroll-wrapper">
         <div class="menu-content">
         <div class="menu-col">
@@ -149,7 +149,7 @@
               <span class="label">
                 <span class="name">Protech The Future</span>
                 <span class="desc">Telemetria e detecção de enchentes em tempo real (Edge/IoT) — <span class="shimmer">1º lugar</span> FIAP GS 2025</span>
-                <span class="project-meta" aria-label="Stack"><span class="chip">Django</span><span class="chip">Fiware</span><span class="chip">ESP32</span><span class="chip">Chart.js</span><span class="chip">Leaflet</span><span class="chip">Tailwind</span><span class="chip">Docker</span></span>
+                <span class="project-meta" aria-label="Stack e status"><span class="chip">Django</span><span class="chip">Fiware</span><span class="chip">ESP32</span><span class="chip">Chart.js</span><span class="chip">Leaflet</span><span class="chip">Tailwind</span><span class="chip">Docker</span><span class="project-status" data-status="gs2025" data-up="no ar" hidden></span></span>
               </span>
             </li>
             <li tabindex="0" data-modal="crmedModal">
@@ -157,10 +157,10 @@
               <span class="label">
                 <span class="name">CRMed</span>
                 <span class="desc">Gestão clínica com cache em memória (Redis) e GraphQL — Hospital São Rafael</span>
-                <span class="project-meta" aria-label="Stack"><span class="chip">TypeScript</span><span class="chip">Node.js</span><span class="chip">GraphQL</span><span class="chip">React</span><span class="chip">PostgreSQL</span><span class="chip">Prisma</span><span class="chip">Redis</span><span class="chip">BullMQ</span><span class="chip">Docker</span></span>
+                <span class="project-meta" aria-label="Stack e status"><span class="chip">TypeScript</span><span class="chip">Node.js</span><span class="chip">GraphQL</span><span class="chip">React</span><span class="chip">PostgreSQL</span><span class="chip">Prisma</span><span class="chip">Redis</span><span class="chip">BullMQ</span><span class="chip">Docker</span><span class="project-status" data-status="crmed" data-up="docs no ar" hidden></span></span>
               </span>
             </li>
-            <li tabindex="0" data-url="https://github.com/rouri404/grabtext#readme">
+            <li tabindex="0" data-modal="grabtextModal">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Grabtext</span>
@@ -351,7 +351,7 @@
       </div>
     </div>
 
-    <div class="socials">
+    <div class="socials" role="navigation" aria-label="Redes sociais">
       <div id="githubStatus" class="github-status loading">buscando status</div>
       <div class="social-icons">
         <a
@@ -373,7 +373,7 @@
       </div>
     </div>
 
-    <div class="spotify-widget" id="spotifyWidget">
+    <div class="spotify-widget" id="spotifyWidget" role="complementary" aria-label="Ouvindo no Spotify">
       <a id="spotifyLink" href="#" target="_blank" rel="noopener noreferrer">
         <div class="spotify-icon">
           <svg id="spotifySvg" viewBox="0 0 16 16" width="32" height="32" shape-rendering="crispEdges">
@@ -417,56 +417,63 @@
 
     <!-- Modals -->
     <div class="modal-overlay" id="idealModal" onclick="this.classList.remove('active')">
-      <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="Ideal CTVM (Grupo Itaú)" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('idealModal').classList.remove('active')" title="fechar">x</button>
         <p><strong>Ideal CTVM (Grupo Itaú) — Architecture and Technology IT Intern</strong><br><br>Atuação como estagiário na área de arquitetura e tecnologia da Ideal CTVM (corretora institucional e HFT, 50,1% Itaú).<br><br>• <strong>Conectividade &amp; Protocolo FIX:</strong> Introdução e atuação prática com o protocolo <strong>FIX</strong> utilizando <strong>QuickFIX/J</strong>, acompanhando a integração de gateways de mercado e o fluxo de mensageria financeira.<br>• <strong>Desenvolvimento Back-end:</strong> Apoio no desenvolvimento e manutenção de serviços internos com <strong>Java</strong> e <strong>TypeScript</strong>, auxiliando no processamento de dados e suporte a rotinas operacionais.<br>• <strong>Ambiente de Missão Crítica:</strong> Aprendizado contínuo sobre sistemas de trading, redes, sockets de baixa latência e requisitos de alta confiabilidade em ambiente institucional.<br><br><a href="https://idealctvm.com.br" target="_blank" rel="noopener"><span class="modal-link-text">idealctvm.com.br</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
       </div>
     </div>
 
     <div class="modal-overlay" id="kumonModal" onclick="this.classList.remove('active')">
-      <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="Kumon Brasil" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('kumonModal').classList.remove('active')" title="fechar">x</button>
         <p><strong>Kumon Brasil — Calculus &amp; Linear Algebra Tutor</strong><br><br>Atuação por 4 anos (jan/2022 – dez/2025) como orientador especializado em matemática superior e avançada:<br><br>• <strong>Cálculo Diferencial e Integral (1 a 3):</strong> Instrução e resolução aprofundada de limites, derivadas, integrais múltiplas, campos vetoriais, séries infinitas e equações diferenciais aplicadas.<br>• <strong>Álgebra Linear:</strong> Espaços vetoriais, transformações lineares, determinantes, álgebra matricial, autovalores e autovetores.<br>• <strong>Rigor Analítico:</strong> Capacidade comprovada de decompor problemas complexos, rigor matemático e didática técnica.<br><br><a href="https://www.kumon.com.br" target="_blank" rel="noopener"><span class="modal-link-text">kumon.com.br</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
       </div>
     </div>
 
     <div class="modal-overlay" id="protechModal" onclick="this.classList.remove('active')">
-      <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="Protech The Future" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('protechModal').classList.remove('active')" title="fechar">x</button>
-        <p><strong>Protech The Future — Detecção Precoce de Enchentes</strong><br><br>Projeto da Global Solution 2025 da FIAP (1º lugar), feito em equipe com mais dois colegas. Bueiros entupidos por lixo agravam as enchentes urbanas, e um alerta antecipado reduziria danos e salvaria vidas. A solução monitora o nível de água dos bueiros em tempo real e avisa a prefeitura e a Defesa Civil antes de o alagamento acontecer.<br><br>• <strong>Sensores no bueiro:</strong> Um ESP32 numa caixa selada (IP67), fixada fora da linha d'água, lê um sensor analógico de nível de água e a umidade de um DHT22 perto da base, que denuncia o acúmulo antes de a água subir. Roda com bateria Li-ion e painel solar, ou com a rede elétrica municipal.<br>• <strong>Dados em tempo real:</strong> Os dispositivos enviam as leituras por MQTT para o broker FIWARE, e o dashboard em Python e Django mostra o nível de cada bueiro, os alertas e um mapa dos dispositivos pelos bairros.<br>• <strong>Alertas:</strong> Quando o nível passa de um limite definido, o sistema dispara o aviso por HTTP ou SMS. O dashboard também guarda o histórico de enchentes por local, com gráficos e relatórios mensais.<br>• <strong>Custo baixo:</strong> Menos de R$ 300 por unidade, usando ESP32, sensores comuns e plataformas de código aberto (Mosquitto e FIWARE). Uma solução parecida, de um projeto da FAPESP, custa cerca de R$ 15 mil por unidade. Isso permite instalar dezenas de bueiros críticos em cidades pequenas, e não só pontos isolados.<br><br><a href="https://gs2025.cotoo.dev" target="_blank" rel="noopener"><span class="modal-link-text">gs2025.cotoo.dev</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://github.com/rouri404/site-gs-fiap" target="_blank" rel="noopener"><span class="modal-link-text">github.com/rouri404/site-gs-fiap</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
+        <p><strong>Protech The Future — Detecção Precoce de Enchentes</strong><br><br>Projeto da Global Solution 2025 da FIAP (1º lugar), feito em equipe com mais dois colegas. Bueiros entupidos por lixo agravam as enchentes urbanas, e um alerta antecipado reduziria danos e salvaria vidas. A solução monitora o nível de água dos bueiros em tempo real e avisa a prefeitura e a Defesa Civil antes de o alagamento acontecer.<span class="modal-gallery"><button class="modal-shot" type="button" aria-label="Ampliar: Gráfico do histórico de nível de água de um bueiro, subindo até o nível crítico"><img src="/assets/img/projects/protech-chart.webp" width="830" height="495" loading="lazy" alt="Gráfico do histórico de nível de água de um bueiro, subindo até o nível crítico"></button><button class="modal-shot" type="button" aria-label="Ampliar: Mapa de São Paulo com os bueiros monitorados, marcados por nível normal, moderado e crítico"><img src="/assets/img/projects/protech-map.webp" width="1100" height="687" loading="lazy" alt="Mapa de São Paulo com os bueiros monitorados, marcados por nível normal, moderado e crítico"></button></span>• <strong>Sensores no bueiro:</strong> Um ESP32 numa caixa selada (IP67), fixada fora da linha d'água, lê um sensor analógico de nível de água e a umidade de um DHT22 perto da base, que denuncia o acúmulo antes de a água subir. Roda com bateria Li-ion e painel solar, ou com a rede elétrica municipal.<br>• <strong>Dados em tempo real:</strong> Os dispositivos enviam as leituras por MQTT para o broker FIWARE, e o dashboard em Python e Django mostra o nível de cada bueiro, os alertas e um mapa dos dispositivos pelos bairros.<br>• <strong>Alertas:</strong> Quando o nível passa de um limite definido, o sistema dispara o aviso por HTTP ou SMS. O dashboard também guarda o histórico de enchentes por local, com gráficos e relatórios mensais.<br>• <strong>Custo baixo:</strong> Menos de R$ 300 por unidade, usando ESP32, sensores comuns e plataformas de código aberto (Mosquitto e FIWARE). Uma solução parecida, de um projeto da FAPESP, custa cerca de R$ 15 mil por unidade. Isso permite instalar dezenas de bueiros críticos em cidades pequenas, e não só pontos isolados.<br><br><a href="https://gs2025.cotoo.dev" target="_blank" rel="noopener"><span class="modal-link-text">gs2025.cotoo.dev</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://github.com/rouri404/site-gs-fiap" target="_blank" rel="noopener"><span class="modal-link-text">github.com/rouri404/site-gs-fiap</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
       </div>
     </div>
 
     <div class="modal-overlay" id="crmedModal" onclick="this.classList.remove('active')">
-      <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="CRMed" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('crmedModal').classList.remove('active')" title="fechar">x</button>
-        <p><strong>CRMed — Gestão Clínica para o Hospital São Rafael</strong><br><br>Sistema de relacionamento e performance clínica que acompanha a jornada do paciente, da captação do lead ao pós-operatório, feito em equipe para o Hospital São Rafael. Ele liga o marketing, a recepção e os cirurgiões num só lugar e automatiza o contato com o paciente pelo WhatsApp.<br><br>• <strong>Leads e pacientes:</strong> Fluxo de conversão do lead ao paciente, ficha clínica centralizada e auditoria de toda mudança de status.<br>• <strong>Agenda inteligente:</strong> Disponibilidade dos cirurgiões, bloqueio de horários fora do expediente (08h às 18h) e alertas quando uma confirmação fica mais de 24 horas úteis sem resposta.<br>• <strong>WhatsApp automatizado:</strong> Lembretes 30 dias, 7 dias e 48 horas antes da cirurgia, confirmação e reagendamento, e um chatbot que capta leads e passa para a equipe humana quando precisa.<br>• <strong>Risco de não comparecimento:</strong> Uma nota de 0 a 100 por agendamento, calculada a partir de confirmações, cancelamentos anteriores, horário e antecedência, para a equipe ligar antes de perder a cirurgia.<br>• <strong>Segurança e LGPD:</strong> Controle de acesso por perfil, JWT em cookie HttpOnly, rate limit distribuído no Redis e validação da data de nascimento antes de abrir dados sensíveis.<br>• <strong>Por dentro:</strong> Monorepo com pnpm e Turborepo, API GraphQL em Node.js e TypeScript, painel em React, PostgreSQL com Prisma e workers BullMQ com Redis para os lembretes.<br><br><a href="https://crmed.cotoo.dev" target="_blank" rel="noopener"><span class="modal-link-text">crmed.cotoo.dev (documentação)</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://github.com/GrupoMoskitto/Challenge-2026" target="_blank" rel="noopener"><span class="modal-link-text">github.com/GrupoMoskitto/Challenge-2026</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
+        <p><strong>CRMed — Gestão Clínica para o Hospital São Rafael</strong><br><br>Sistema de relacionamento e performance clínica que acompanha a jornada do paciente, da captação do lead ao pós-operatório, feito em equipe para o Hospital São Rafael. Ele liga o marketing, a recepção e os cirurgiões num só lugar e automatiza o contato com o paciente pelo WhatsApp.<span class="modal-gallery"><button class="modal-shot" type="button" aria-label="Ampliar: Dashboard do CRMed com indicadores de leads, taxa de conversão e gráficos de tendência e status"><img class="shot-light" src="/assets/img/projects/crmed-dashboard-light.webp" width="1100" height="687" loading="lazy" alt="Dashboard do CRMed com indicadores de leads, taxa de conversão e gráficos de tendência e status"><img class="shot-dark" src="/assets/img/projects/crmed-dashboard-dark.webp" width="1100" height="687" loading="lazy" alt="Dashboard do CRMed com indicadores de leads, taxa de conversão e gráficos de tendência e status"></button><button class="modal-shot" type="button" aria-label="Ampliar: Quadro de leads do CRMed organizado em colunas por etapa do funil"><img class="shot-light" src="/assets/img/projects/crmed-leads-light.webp" width="1100" height="687" loading="lazy" alt="Quadro de leads do CRMed organizado em colunas por etapa do funil"><img class="shot-dark" src="/assets/img/projects/crmed-leads-dark.webp" width="1100" height="687" loading="lazy" alt="Quadro de leads do CRMed organizado em colunas por etapa do funil"></button></span>• <strong>Leads e pacientes:</strong> Fluxo de conversão do lead ao paciente, ficha clínica centralizada e auditoria de toda mudança de status.<br>• <strong>Agenda inteligente:</strong> Disponibilidade dos cirurgiões, bloqueio de horários fora do expediente (08h às 18h) e alertas quando uma confirmação fica mais de 24 horas úteis sem resposta.<br>• <strong>WhatsApp automatizado:</strong> Lembretes 30 dias, 7 dias e 48 horas antes da cirurgia, confirmação e reagendamento, e um chatbot que capta leads e passa para a equipe humana quando precisa.<br>• <strong>Risco de não comparecimento:</strong> Uma nota de 0 a 100 por agendamento, calculada a partir de confirmações, cancelamentos anteriores, horário e antecedência, para a equipe ligar antes de perder a cirurgia.<br>• <strong>Segurança e LGPD:</strong> Controle de acesso por perfil, JWT em cookie HttpOnly, rate limit distribuído no Redis e validação da data de nascimento antes de abrir dados sensíveis.<br>• <strong>Por dentro:</strong> Monorepo com pnpm e Turborepo, API GraphQL em Node.js e TypeScript, painel em React, PostgreSQL com Prisma e workers BullMQ com Redis para os lembretes.<br><br><a href="https://crmed.cotoo.dev" target="_blank" rel="noopener"><span class="modal-link-text">crmed.cotoo.dev (documentação)</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://github.com/GrupoMoskitto/Challenge-2026" target="_blank" rel="noopener"><span class="modal-link-text">github.com/GrupoMoskitto/Challenge-2026</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="grabtextModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="Grabtext" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('grabtextModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>Grabtext — OCR de tela para Linux</strong><br><br>Ferramenta open source para GNU/Linux que copia para a área de transferência o texto de qualquer coisa que apareça na tela: imagem, vídeo, PDF protegido ou página web. Você aperta uma tecla, seleciona a área e cola o texto com <code>Ctrl+V</code>.<span class="modal-gallery"><span class="modal-shot"><img src="/assets/img/projects/grabtext-preview.webp" width="688" height="362" loading="lazy" alt="Grabtext em uso: a área com o texto escrito à mão é selecionada no Flameshot e confirmada"></span></span>• <strong>Captura:</strong> A seleção da área usa o Flameshot, e o reconhecimento de caracteres usa o Tesseract, com OCR em português e inglês.<br>• <strong>Interface gráfica e CLI:</strong> No modo gráfico basta apertar <code>INSERT</code>. Na linha de comando, <code>grabtext process</code> lê imagens e pastas inteiras, e <code>grabtext monitor</code> fica de olho numa pasta e processa o que chegar.<br>• <strong>Exportação:</strong> A saída pode ser texto, JSON ou CSV, com metadados da imagem e a confiança do OCR, para usar em pipelines e planilhas.<br>• <strong>Instalação:</strong> Um <code>install.sh</code> instala as dependências em distribuições baseadas em apt, pacman, dnf ou zypper e configura o atalho.<br><br>Feito em Python, com OpenCV e Pillow no tratamento da imagem, sob licença MIT.<br><br><a href="https://github.com/rouri404/grabtext" target="_blank" rel="noopener"><span class="modal-link-text">github.com/rouri404/grabtext</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
       </div>
     </div>
 
     <div class="modal-overlay" id="oedlaModal" onclick="this.classList.remove('active')">
-      <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="OEDLA (Unicamp)" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('oedlaModal').classList.remove('active')" title="fechar">x</button>
         <p><strong>OEDLA (Unicamp) — Portal de Notícias &amp; Arquitetura de Cache</strong><br><br>Arquitetei toda a infraestrutura e a plataforma do OEDLA (iniciativa acadêmica de observatório sediada na Unicamp), concebido e estruturado como um <strong>portal de notícias de ponta a ponta</strong> com foco em alta disponibilidade sob picos de tráfego, SEO agressivo e latência mínima para os leitores no Brasil.<br><br>• <strong>Portal de Notícias Ponta a Ponta:</strong> Arquitetura completa para publicação jornalística e acadêmica, contemplando fluxo editorial, gestão de artigos e dossiês, categorização temática, pipeline de renderização rápida e distribuição contínua.<br>• <strong>SEO Agressivo &amp; Descoberta:</strong> Otimização técnica aprofundada voltada a indexação imediata nos motores de busca e Google Notícias: Schema.org semântico (<code>NewsArticle</code>), metadados Open Graph/Twitter completos, sitemaps dinâmicos e URLs amigáveis estruturadas para captura de tráfego orgânico.<br>• <strong>Cache na Borda com ~93% de Hit Ratio:</strong> Implementação de proxy reverso com Cloudflare e regras rigorosas de cache. Cerca de <strong>~93% de todas as requisições são entregues diretamente pelo cache na borda (edge)</strong>, eliminando gargalos no servidor de origem.<br>• <strong>Baixa Latência no Brasil:</strong> Roteamento inteligente pelos PoPs locais no Brasil (São Paulo, Rio de Janeiro e Fortaleza), garantindo TTFB (Time to First Byte) na casa dos milissegundos sem requisições transatlânticas desnecessárias.<br>• <strong>Estratégia Multi-Camadas &amp; Mitigação de Egress:</strong> Cabeçalhos <code>Cache-Control</code> com <code>s-maxage</code> e <code>stale-while-revalidate</code>, garantindo custos de infraestrutura praticamente nulos e blindagem ativa contra bots e scraping abusivo.<br>• <strong>Custo de Infraestrutura Zero:</strong> Roda inteiramente em planos gratuitos (R$ 0 por mês), com API em Flask, frontend em React, MongoDB, Redis como cache e Cloudinary para as imagens. A regra que guiou o projeto: a requisição mais barata é a que nunca chega ao servidor.<br>• <strong>Pré-visualização de Links sem SSR:</strong> WhatsApp, LinkedIn e Telegram não executam JavaScript, então o edge reconhece esses bots pelo User-Agent e devolve um HTML mínimo com título, resumo, imagem e JSON-LD, sem precisar de um servidor renderizando páginas.<br>• <strong>Login sem Senha:</strong> Os editores entram com um código OTP de 6 dígitos enviado por e-mail (uso único, válido por 10 minutos, 3 tentativas), e recebem um JWT em cookie HTTP-only.<br>• <strong>Segurança em Camadas:</strong> Porta única (só o proxy fala com a API), rate limit por IP com agrupamento de IPv6 por /64, CORS, sanitização e newsletter com double opt-in e reCAPTCHA.<br><br><a href="/blog/oedla-plataforma-editorial/"><span class="modal-link-text">Como construímos o OEDLA: arquitetura de custo zero</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
       </div>
     </div>
     
     <div class="modal-overlay" id="premiumModal" onclick="this.classList.remove('active')">
-      <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="PremiumUUID" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('premiumModal').classList.remove('active')" title="fechar">x</button>
         <p><strong>PremiumUUID — Plugin de Minecraft</strong><br><br>Em servidores com <code>online-mode=false</code>, um jogador com conta premium entra com um UUID diferente do verdadeiro e perde itens, estatísticas e permissões. O PremiumUUID resolve isso: quando o jogador entra, ele confere se o nick é de uma conta premium da Mojang e, se for, usa o UUID real dela.<br><br>• Guarda as respostas em cache, para não consultar a Mojang toda hora.<br>• Se a API da Mojang cair, usa o cache ou o UUID offline.<br>• Tem comandos de admin e dá para ligar e desligar quando quiser.<br><br>Ele não confirma que o jogador é dono da conta, então serve só para servidores privados e de confiança.<br><br><a href="https://premiumuuid.cotoo.dev" target="_blank" rel="noopener"><span class="modal-link-text">premiumuuid.cotoo.dev</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://modrinth.com/plugin/premiumuuid" target="_blank" rel="noopener"><span class="modal-link-text">modrinth.com/plugin/premiumuuid</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://github.com/rouri404/premium-uuid" target="_blank" rel="noopener"><span class="modal-link-text">github.com/rouri404/premium-uuid</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
       </div>
     </div>
 
     <div class="modal-overlay" id="actionsModal" onclick="this.classList.remove('active')">
-      <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="Actions Heartbeat (Em Construção)" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('actionsModal').classList.remove('active')" title="fechar">x</button>
         <p><strong>Actions Heartbeat (Em Construção)</strong><br><br>Um dead man's switch em formato SaaS para monitoramento de workflows de cron do GitHub Actions. Sistema desenvolvido do zero com FastAPI, MongoDB, Redis e React, envelopado por um design system próprio inspirado em traçados de eletrocardiograma. Repositório e case study arquitetural serão publicados em breve.</p>
       </div>
     </div>
     
     <div class="modal-overlay" id="cadernoModal" onclick="this.classList.remove('active')">
-      <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="Caderno Digital (Em Construção)" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('cadernoModal').classList.remove('active')" title="fechar">x</button>
         <p><strong>Caderno Digital (Em Construção)</strong><br><br>Projeto de hardware embarcado integrando um ESP32 a uma tela touchscreen de 7 polegadas. A interface local é desenhada via LVGL e os dados são sincronizados em tempo real através de SignalR/WebSockets. Conta com integração ao Azure AI Vision para OCR direto no dispositivo. A documentação completa e o código-fonte estarão abertos em breve.</p>
       </div>

@@ -147,12 +147,13 @@
   // Some follow the calendar: "natal" (Dec 1 to Jan 6) is a Santa hat, "halloween" (Oct 20 to Nov 2) a witch hat,
   // "pascoa" (Easter week) bunny ears and "junina" (June) a straw hat. The others, "formatura" (graduation cap),
   // "formatura" (graduation cap), "coroa" (crown) and "festa" (party hat) are only worn on request ("tux skin <nome>" in the terminal).
-  // "fone" (headphones) is worn on request and whenever Spotify says the owner is listening to something
+  // "fone" (headphones) is worn on request and whenever Spotify says the owner is listening to something, and
+  // "sono" (a striped nightcap) from midnight to 6 am, local time
   const SKIN_KEY = "mascot-skin";
   const MUSIC_KEY = "mascot-music";
   // The widget only reports on the home page, so the blog trusts the last report for this long
   const MUSIC_TTL = 5 * 60 * 1000;
-  const SKINS = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa"];
+  const SKINS = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa", "sono"];
 
   // Easter Sunday for a year (the Gregorian computus)
   function easter(y) {
@@ -180,6 +181,7 @@
     } catch (_) {}
     if (listening()) return "fone";
     const now = new Date();
+    if (now.getHours() < 6) return "sono";
     const m = now.getMonth();
     const d = now.getDate();
     if (m === 11 || (m === 0 && d <= 6)) return "natal";
@@ -395,6 +397,21 @@
         cone(x, 1.16, z, 0.12, 0.34, 2, xf);
         sphere(x, 1.54, z, 0.065, 0.065, 0.065, 1, xf);
       }
+    } else if (skin === "sono") {
+      // A nightcap: a long striped cone that rises a little and then flops down beside his head, with a pompom
+      const frame = ([x, y, z]) => [x, 1.04 + y * Math.cos(-0.25) - z * Math.sin(-0.25), -0.02 + y * Math.sin(-0.25) + z * Math.cos(-0.25)];
+      const axis = (t) => [0.8 * t * t, 1.35 * t - 0.95 * t * t * t, -0.12 * t * t];
+      const radius = (t) => 0.44 * Math.pow(1 - t, 0.9) + 0.02;
+      surface(
+        (u, t) => {
+          const a = u * TAU, c = axis(t), r = radius(t);
+          return frame([c[0] + r * Math.cos(a), c[1], c[2] + r * Math.sin(a)]);
+        },
+        16, 14, (u, t) => frame(axis(t)), (p, u, t) => (Math.floor(t * 6) % 2 ? 2 : 1)
+      );
+      ring(0, 0, 0, 0.45, 0.07, 1, frame);
+      const tip = frame(axis(1));
+      sphere(tip[0], tip[1], tip[2], 0.12, 0.12, 0.12, 1);
     } else if (skin === "festa") {
       // A party hat: a striped cone leaning to one side, with a white pompom
       const frame = chain(rotZ(-0.28, 0, 1.06), rotX(-0.15, 1.06, 0));

@@ -90,7 +90,7 @@
   --callout-warning-bg: rgba(210, 153, 34, 0.1);
   --callout-warning-header-bg: rgba(210, 153, 34, 0.2);
 
-  --callout-caution-color: #f85149;
+  --callout-caution-color: #ff7b72;
   --callout-caution-border: #f85149;
   --callout-caution-bg: rgba(248, 81, 73, 0.1);
   --callout-caution-header-bg: rgba(248, 81, 73, 0.2);
@@ -351,7 +351,7 @@ body.reading-mode .font-toggle {
 
 .crumbs {
   font-size: 0.95rem;
-  opacity: 0.65;
+  opacity: 0.72;
   margin-bottom: 1.5rem;
 }
 
@@ -404,7 +404,7 @@ body.reading-mode .font-toggle {
   display: block;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
-  opacity: 0.55;
+  opacity: 0.72;
 }
 
 .post-search-input {
@@ -667,6 +667,39 @@ body.reading-mode .prose {
   margin: 2rem 0 0.5rem;
 }
 
+/* The section link only shows on hover or focus where there is a pointer; on touch screens it stays faintly visible */
+.prose .heading-anchor {
+  position: relative;
+  margin-left: 0.35em;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.prose :is(h2, h3, h4):hover .heading-anchor,
+.heading-anchor:focus-visible,
+.heading-anchor.copied {
+  opacity: 0.6;
+}
+
+@media (hover: none) {
+  .prose .heading-anchor {
+    opacity: 0.35;
+  }
+}
+
+.heading-anchor.copied::after {
+  content: "link copiado";
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 0.5em;
+  transform: translateY(-50%);
+  font-size: 0.5em;
+  white-space: nowrap;
+}
+
 /* Stacking sticky headings: each heading is bounded by the section wrapped around it */
 .post-section {
   padding-bottom: 3.5rem;
@@ -758,7 +791,7 @@ body.reading-mode .prose {
 .toc-title {
   margin: 0 0 0.75rem;
   font-size: 0.9rem;
-  opacity: 0.55;
+  opacity: 0.72;
 }
 
 .toc-list {
@@ -780,7 +813,7 @@ body.reading-mode .prose {
   font-size: 0.95rem;
   line-height: 1.3;
   text-decoration: none;
-  opacity: 0.6;
+  opacity: 0.72;
   transition: opacity 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
@@ -1044,7 +1077,7 @@ body.reading-mode .code-block pre code {
 }
 
 .code-comment {
-  opacity: 0.6;
+  opacity: 0.75;
   color: var(--code-comment-color);
 }
 

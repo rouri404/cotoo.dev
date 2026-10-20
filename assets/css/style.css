@@ -17,6 +17,8 @@
   --time-opacity: 0.6;
   --progress-bg-opacity: 0.15;
   --shimmer-color: #4d9a4d;
+  --shot-light: block;
+  --shot-dark: none;
 }
 
 [data-theme="dark"] {
@@ -28,6 +30,8 @@
   --time-opacity: 0.4;
   --progress-bg-opacity: 0.25;
   --shimmer-color: #fff;
+  --shot-light: none;
+  --shot-dark: block;
 }
 
 html,
@@ -471,6 +475,17 @@ code {
   width: 6px;
   height: 6px;
   background: var(--text-color);
+}
+
+.project-status[hidden] {
+  display: none;
+}
+
+/* A site that does not answer gets a hollow square */
+.project-status.is-down::before {
+  box-sizing: border-box;
+  background: transparent;
+  border: 1px solid var(--text-color);
 }
 
 .shimmer {
@@ -1366,12 +1381,16 @@ body.is-transitioning *::after {
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  /* Hidden for screen readers and keyboard too, only once the fade out ends */
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 }
 
 .modal-overlay.active {
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
+  transition-delay: 0s;
 }
 
 .modal-content {
@@ -1407,6 +1426,58 @@ body.is-transitioning *::after {
   margin: 0;
 }
 
+/* Screenshots sit side by side as small thumbnails and open full size in .shot-viewer. Each one may come in a light and a
+   dark version, picked by the theme variables; the thumbnail border follows the text colour, so it flips with its paragraph */
+.modal-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.modal-shot {
+  display: block;
+  padding: 0;
+  margin: 0;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: none;
+  color: inherit;
+  border: 1px solid currentColor;
+  cursor: zoom-in;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.modal-shot:hover,
+.modal-shot:focus-visible {
+  opacity: 1;
+}
+
+/* A single animation (not a thumbnail) takes the whole width at its own proportions and does not enlarge */
+.modal-gallery > :only-child {
+  grid-column: 1 / -1;
+  aspect-ratio: auto;
+  cursor: auto;
+  opacity: 1;
+}
+
+.modal-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.modal-shot .shot-light {
+  display: var(--shot-light);
+}
+
+.modal-shot .shot-dark {
+  display: var(--shot-dark);
+}
+
 .modal-content a {
   color: inherit;
   text-decoration: underline;
@@ -1426,6 +1497,19 @@ body.is-transitioning *::after {
 
 .modal-content a:hover {
   opacity: 1;
+}
+
+.shot-viewer {
+  z-index: 10000;
+  padding: 1rem;
+  box-sizing: border-box;
+  cursor: zoom-out;
+}
+
+.shot-viewer img {
+  max-width: min(1100px, 100%);
+  max-height: 100%;
+  border: 1px solid var(--text-color);
 }
 
 .modal-overlay.active .modal-content {

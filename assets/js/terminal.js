@@ -8,6 +8,7 @@
     blog: "/blog/",
     now: "/now/",
     uses: "/uses/",
+    colophon: "/colophon/",
     rss: "/blog/rss.xml",
     github: "https://github.com/rouri404",
     linkedin: "https://linkedin.com/in/gabricouto",
@@ -30,6 +31,23 @@
     ["front-end", "React, Tailwind CSS, Expo, Canvas Puro"],
   ];
 
+  const FORTUNES = [
+    "funciona na minha máquina. então a gente manda a minha máquina pro cliente.",
+    "não existe código sem bug, existe bug que ainda não te encontrou.",
+    "cache é o melhor amigo do back-end, até a hora de invalidar.",
+    "deploy na sexta-feira é esporte radical.",
+    "compilou de primeira? desconfie.",
+    "todo sistema legado já foi o projeto novo de alguém.",
+    "latência não é um número, é uma distribuição. olhe o p99.",
+    "ler a mensagem de erro inteira resolve metade dos bugs.",
+    "documentação boa é a que você escreve pro você do mês que vem.",
+    "rm -rf é rápido. o restore, nem tanto.",
+    "são dois os problemas difíceis: invalidar cache, dar nome às coisas e erro de off-by-one.",
+    "a melhor linha de código é a que você não precisou escrever.",
+    "pausa pro café também é otimização de performance.",
+    "o Tux aprova o seu uptime.",
+  ];
+
   const TUX = [
     "    .--.   ",
     "   |o_o |  ",
@@ -46,7 +64,7 @@
     file: "\uf0f6", user: "\uf007", clock: "\uf017", moon: "\uf186", sun: "\uf185", warn: "\uf071", lock: "\uf023", rocket: "\uf135",
     chart: "\uf080", book: "\uf02d", cubes: "\uf1b3", help: "\uf059", adjust: "\uf042", link: "\uf08e", eraser: "\uf12d",
     signout: "\uf08b", server: "\uf233", code: "\uf121", desktop: "\uf108", prompt: "\u276f", folderOpen: "\uf07c", sitemap: "\uf0e8",
-    gamepad: "\uf11b", globe: "\uf0ac", chip: "\uf2db", music: "\uf001", firefox: "\uf269", chrome: "\uf268", safari: "\uf267",
+    gamepad: "\uf11b", search: "\uf002", quote: "\uf10d", globe: "\uf0ac", chip: "\uf2db", music: "\uf001", firefox: "\uf269", chrome: "\uf268", safari: "\uf267",
     edge: "\uf282",
   };
 
@@ -192,6 +210,8 @@
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
+  // Lower case without accents, so "seguranca" finds "Segurança". Each character keeps its position
+  const fold = (text) => text.split("").map((c) => c.normalize("NFD")[0].toLowerCase()).join("");
   const projectFiles = PROJECTS.map(([name, url, desc]) => ({ name: slugify(name) + ".md", title: name, url, desc }));
   const HOME_FILES = ["about.txt", "stack.txt", "contact.txt", "now.md"];
 
@@ -297,7 +317,7 @@
   // Snake, drawn as text in one terminal line. Each cell is two characters wide so it comes out square.
   // Its keys are taken in the capture phase (see the keydown listener below), so the page and the Konami code never see them
   // The skins mascot.js knows, plus the two ways to take them off or leave it to the calendar
-  const SKIN_NAMES = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa", "nenhuma", "auto"];
+  const SKIN_NAMES = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa", "sono", "nenhuma", "auto"];
 
   let game = null;
   const SNAKE_BEST = "snake-best";
@@ -789,6 +809,75 @@
       run() {
         stopSnake();
         startSnake();
+      },
+    },
+    grep: {
+      icon: NF.search,
+      desc: "busca nos projetos e posts",
+      args: "<termo>",
+      async run(args) {
+        const query = fold(args.join(" ").trim());
+        if (!query) return line("uso: grep <termo>");
+        const sources = [
+          ...projectFiles.map((f) => ({ path: "projects/" + f.name, href: f.url, texts: [f.title, f.desc] })),
+          ...(await loadPosts()).map((p) => ({ path: "blog/" + p.slug + ".md", href: `/blog/${p.slug}/`, texts: [p.meta.title, p.meta.description || "", (p.meta.tags || []).join(", ")] })),
+          ...STACK.map(([area, items]) => ({ path: "stack.txt", texts: [area + ": " + items] })),
+        ];
+        let hits = 0;
+        for (const src of sources) {
+          for (const text of src.texts) {
+            const at = fold(text).indexOf(query);
+            if (at < 0) continue;
+            hits++;
+            const path = src.href ? link(src.href, src.path) : span(src.path, "term-key");
+            line([path, span(": ", "term-dim"), span(text.slice(0, at), "term-dim"), span(text.slice(at, at + query.length), "term-accent"), span(text.slice(at + query.length), "term-dim")]);
+          }
+        }
+        line(hits ? hits + (hits === 1 ? " ocorrência" : " ocorrências") : "nada encontrado para \"" + args.join(" ") + "\"", "term-dim");
+      },
+    },
+    music: {
+      icon: NF.music,
+      desc: "o que está tocando agora",
+      async run() {
+        const wait = line("sintonizando...", "term-dim");
+        try {
+          const res = await fetch("/api/spotify");
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          wait.remove();
+          if (!data.is_playing) return line([ico(NF.music), span("nada tocando agora :c", "term-dim")]);
+          line([ico(NF.music), data.songUrl ? link(data.songUrl, data.title) : span(data.title, "term-accent")]);
+          line([blankIco(), span(data.artist, "term-dim")]);
+          if (data.duration_ms) {
+            const nf = term.classList.contains("term-nf");
+            const width = 20;
+            const filled = Math.round((Math.min(data.progress_ms || 0, data.duration_ms) / data.duration_ms) * width);
+            const time = (ms) => Math.floor(ms / 60000) + ":" + String(Math.floor((ms % 60000) / 1000)).padStart(2, "0");
+            line([blankIco(), span((nf ? "\u2588" : "#").repeat(filled), "term-accent"), span((nf ? "\u2591" : "-").repeat(width - filled), "term-dim"), span("  " + time(data.progress_ms || 0) + " / " + time(data.duration_ms), "term-dim")]);
+          }
+        } catch (_) {
+          wait.textContent = "não consegui ver o que está tocando agora.";
+        }
+      },
+    },
+    fortune: {
+      icon: NF.quote,
+      desc: "o Tux diz uma frase",
+      run() {
+        const text = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
+        // Word wrap at 34 columns, then a cowsay-style balloon above the penguin
+        const rows = [];
+        for (const word of text.split(" ")) {
+          const last = rows[rows.length - 1];
+          if (last !== undefined && (last + " " + word).length <= 34) rows[rows.length - 1] = last + " " + word;
+          else rows.push(word);
+        }
+        const w = Math.max(...rows.map((r) => r.length));
+        const edges = rows.length === 1 ? [["<", ">"]] : rows.map((_, i) => (i === 0 ? ["/", "\\"] : i === rows.length - 1 ? ["\\", "/"] : ["|", "|"]));
+        const balloon = [" " + "_".repeat(w + 2), ...rows.map((r, i) => edges[i][0] + " " + r.padEnd(w) + " " + edges[i][1]), " " + "-".repeat(w + 2)];
+        const art = [...balloon, "      \\", "       \\", ...TUX.map((t) => "        " + t)];
+        line(art.join("\n"), "term-art");
       },
     },
     clear: {

@@ -166,10 +166,13 @@ window.addEventListener("keydown", (e) => {
   }
 
   if (e.key === "Escape") {
-    const activeModals = document.querySelectorAll(".modal-overlay.active");
+    // An enlarged screenshot closes first, leaving its project modal open
+    const viewer = document.querySelector(".shot-viewer.active");
+    const activeModals = viewer ? [viewer] : document.querySelectorAll(".modal-overlay.active");
     if (activeModals.length > 0) {
       activeModals.forEach((modal) => modal.classList.remove("active"));
       if (document.activeElement) document.activeElement.blur();
+      if (!viewer && modalOpener) modalOpener.focus({ preventScroll: true });
       return;
     }
   }
@@ -181,6 +184,27 @@ window.addEventListener("keydown", (e) => {
 
   if (["Enter", " ", "ArrowDown", "PageDown"].includes(e.key)) goToMenu();
   if (["Escape", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) goToHero();
+});
+
+let modalOpener = null;
+
+// Clicking a modal screenshot shows it full size, in the version of the current theme
+const shotViewer = document.createElement("div");
+shotViewer.className = "modal-overlay shot-viewer";
+shotViewer.setAttribute("role", "dialog");
+shotViewer.setAttribute("aria-label", "Imagem ampliada");
+shotViewer.appendChild(document.createElement("img")).alt = "";
+shotViewer.addEventListener("click", () => shotViewer.classList.remove("active"));
+document.body.appendChild(shotViewer);
+
+document.querySelectorAll("button.modal-shot").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const shown = [...btn.querySelectorAll("img")].find((img) => img.offsetWidth) || btn.querySelector("img");
+    const big = shotViewer.firstChild;
+    big.src = shown.currentSrc || shown.src;
+    big.alt = shown.alt;
+    shotViewer.classList.add("active");
+  });
 });
 
 document.querySelectorAll(".projects li").forEach((li) => {
@@ -198,7 +222,15 @@ document.querySelectorAll(".projects li").forEach((li) => {
     if (modalId) {
             // Open modal instantly
       const modal = document.getElementById(modalId);
-      if (modal) modal.classList.add("active");
+      if (modal) {
+        modal.classList.add("active");
+        // Focus goes into the dialog and comes back to the card when Escape closes it
+        modalOpener = li;
+        const close = modal.querySelector(".modal-close");
+        if (close) close.focus({ preventScroll: true });
+        // The other theme's screenshot is hidden, so lazy loading would leave it blank the first time the theme flips
+        modal.querySelectorAll(".modal-shot img").forEach((img) => (img.loading = "eager"));
+      }
       setTimeout(() => li.classList.remove("is-clicked"), 100);
     } else if (url) {
             // Wait for flip animation before external redirect
@@ -213,7 +245,10 @@ document.querySelectorAll(".projects li").forEach((li) => {
     }
   });
   li.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") li.click();
+    if (e.key !== "Enter") return;
+    // Without this the same Enter would also press the modal's close button, which takes the focus on open
+    e.preventDefault();
+    li.click();
   });
 });
 
@@ -486,7 +521,7 @@ themeToggle.addEventListener("click", (e) => {
   document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a, .heat-cell, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .project-meta .chip, .project-status'
+    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .modal-shot, .shot-viewer img, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a, .heat-cell, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .project-meta .chip, .project-status'
   );
   
   const ditherBandRatio = 1 / 1.5;
@@ -582,7 +617,7 @@ themeToggle.addEventListener("click", (e) => {
       if (!flip.flipped && (waveR - ditherBand * flip.lag) > flip.d / size) {
         flip.el.setAttribute("data-theme", newTheme);
         flip.el.style.color = targetTextColor;
-        if (flip.el.matches('.education-card, .mascot-bubble, .btn, .modal-content, .contact-form input, .contact-form textarea, .menu-col, .projects li, .blog-all-btn, .visit-digit, .project-meta .chip')) {
+        if (flip.el.matches('.education-card, .mascot-bubble, .btn, .modal-content, .shot-viewer img, .contact-form input, .contact-form textarea, .menu-col, .projects li, .blog-all-btn, .visit-digit, .project-meta .chip')) {
           flip.el.style.borderColor = targetTextColor;
         }
         if (flip.el.tagName.toLowerCase() === "img") {
@@ -1199,6 +1234,25 @@ async function registerVisit() {
 registerVisit();
 
 // Dynamic latest blog post loader
+// Live status of the projects' public sites (api/status.js); nothing shows until the check answers
+async function fetchProjectStatus() {
+  const chips = document.querySelectorAll(".project-status[data-status]");
+  if (!chips.length) return;
+  try {
+    const res = await fetch("/api/status");
+    if (!res.ok) return;
+    const status = await res.json();
+    chips.forEach((chip) => {
+      const up = status[chip.dataset.status];
+      if (typeof up !== "boolean") return;
+      chip.textContent = up ? chip.dataset.up : "fora do ar";
+      chip.classList.toggle("is-down", !up);
+      chip.hidden = false;
+    });
+  } catch (e) {}
+}
+fetchProjectStatus();
+
 async function initLatestBlogPost() {
   const blogList = document.getElementById("blogList");
   if (!blogList) return;

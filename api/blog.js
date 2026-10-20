@@ -166,7 +166,9 @@ async function renderMarkdownWith(body) {
     renderer: {
       heading({ tokens, text, depth }) {
         const level = Math.max(depth, 2);
-        return `<h${level} id="${escapeHtml(slug(text))}">${this.parser.parseInline(tokens)}</h${level}>\n`;
+        const id = escapeHtml(slug(text));
+        // The "#" after the title copies a link straight to the section (assets/js/blog.js)
+        return `<h${level} id="${id}">${this.parser.parseInline(tokens)}<a class="heading-anchor" href="#${id}" aria-label="Copiar link desta seção" title="Copiar link desta seção">#</a></h${level}>\n`;
       },
       link({ href, title, tokens }) {
         const external = /^https?:\/\//.test(href);
@@ -194,7 +196,7 @@ async function renderMarkdownWith(body) {
       <span class="copy-text">copiar</span>
     </button>
   </div>
-  <pre><code class="language-${escapeHtml(lang)}">${highlighted}</code></pre>
+  <pre tabindex="0"><code class="language-${escapeHtml(lang)}">${highlighted}</code></pre>
 </div>\n`;
       },
       blockquote(token) {
@@ -332,14 +334,21 @@ ${html}
   });
 }
 
-// /uses: the setup page, from blog/_uses.md. "draft: true" in its front matter keeps it out of search engines
-function renderUsesHtml({ meta, html }) {
+// Single pages made from a markdown file in blog/: /uses (blog/_uses.md, the setup) and /colophon (blog/_colophon.md, how the
+// site is made). "draft: true" in the front matter keeps a page out of search engines
+const PAGES = {
+  uses: { file: '_uses.md', title: 'Uses' },
+  colophon: { file: '_colophon.md', title: 'Colophon' },
+};
+
+function renderPageHtml(name, { meta, html }) {
   const draft = meta.draft === 'true';
+  const title = `${PAGES[name].title} | Gabriel Couto`;
   const content = `    <main class="blog-main">
-      <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / uses</nav>
+      <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / ${name}</nav>
       <article class="post">
         <header class="post-header">
-          <h1>uses</h1>
+          <h1>${name}</h1>
           <p class="post-meta">${escapeHtml(meta.description)} Atualizado em <time datetime="${meta.date}">${formatDate(meta.date)}</time>.</p>
         </header>
         <div class="prose">
@@ -348,19 +357,19 @@ ${html}
       </article>
     </main>`;
   return layout({
-    title: 'Uses | Gabriel Couto',
+    title,
     description: meta.description,
-    canonical: `${SITE}/uses/`,
-    bodyClass: 'page-post page-uses',
+    canonical: `${SITE}/${name}/`,
+    bodyClass: `page-post page-${name}`,
     ogType: 'website',
     robots: draft ? 'noindex, follow' : 'index, follow',
     content,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'WebPage',
-      name: 'Uses | Gabriel Couto',
+      name: title,
       description: meta.description,
-      url: `${SITE}/uses/`,
+      url: `${SITE}/${name}/`,
       inLanguage: 'pt-BR',
       dateModified: meta.date,
       author: { '@type': 'Person', name: AUTHOR, url: `${SITE}/` },
@@ -412,7 +421,7 @@ ${JSON.stringify(jsonLd, null, 2)}
     <script src="/assets/js/party.js" defer></script>${extraScripts}
   </head>
   <body class="${bodyClass}">
-    <canvas id="pixel-transition"></canvas>
+    <canvas id="pixel-transition" aria-hidden="true"></canvas>
     <div class="blog-bar-backdrop" aria-hidden="true"></div>
     <header class="blog-bar">
       <nav class="blog-nav-brand">
@@ -489,7 +498,7 @@ function renderPostHtml(post, related = []) {
       <article class="post">
         <header class="post-header">
           <h1 id="${escapeHtml(createSlugger()(meta.title))}">${escapeHtml(meta.title)}</h1>
-          <p class="post-meta"><time datetime="${meta.date}">${formatDate(meta.date)}</time> · ${readingMinutes} min de leitura</p>
+          <p class="post-meta"><time datetime="${meta.date}">${formatDate(meta.date)}</time> · ${readingMinutes} min de leitura<span class="post-views" data-slug="${escapeHtml(slug)}" hidden></span></p>
           <p class="post-tags">${tags}</p>
         </header>
         <div class="prose">
@@ -601,6 +610,8 @@ ${items}
     title: `#${tag.name} | Blog | Gabriel Couto`,
     description,
     canonical: url,
+    // A tag with a single post is a thin copy of that post, so it stays out of search results
+    robots: count < 2 ? 'noindex, follow' : 'index, follow',
     bodyClass: 'page-index page-tag',
     ogType: 'website',
     content,
@@ -872,30 +883,32 @@ async function handler(req, res) {
         return res.status(200).json({ date: meta.date, sections: plainSections(body) });
       }
       const cached = memCache.get('__now__');
-      let nowHtml = cached && cached.hash === file.hash && cached.version === 'v4' ? cached.html : null;
+      let nowHtml = cached && cached.hash === file.hash && cached.version === 'v5' ? cached.html : null;
       if (!nowHtml) {
         const { meta, body } = parseFrontMatter(file.raw);
         nowHtml = renderNowHtml({ meta, html: await renderMarkdownWith(body) });
-        memCache.set('__now__', { hash: file.hash, version: 'v4', html: nowHtml });
+        memCache.set('__now__', { hash: file.hash, version: 'v5', html: nowHtml });
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
       return res.status(200).send(nowHtml);
     }
 
-    if (query.page === 'uses' || (req.url && /[?&]page=uses\b/.test(req.url))) {
-      const file = getFileHashAndMtime(path.join(getBlogDir(), '_uses.md'));
+    const pageName = Object.keys(PAGES).find((name) => query.page === name || (req.url && new RegExp(`[?&]page=${name}\\b`).test(req.url)));
+    if (pageName) {
+      const file = getFileHashAndMtime(path.join(getBlogDir(), PAGES[pageName].file));
       if (!file.exists) return res.status(404).send(render404Html());
-      const cached = memCache.get('__uses__');
-      let usesHtml = cached && cached.hash === file.hash && cached.version === 'v2' ? cached.html : null;
-      if (!usesHtml) {
+      const key = `__${pageName}__`;
+      const cached = memCache.get(key);
+      let pageHtml = cached && cached.hash === file.hash && cached.version === 'v3' ? cached.html : null;
+      if (!pageHtml) {
         const { meta, body } = parseFrontMatter(file.raw);
-        usesHtml = renderUsesHtml({ meta, html: await renderMarkdownWith(body) });
-        memCache.set('__uses__', { hash: file.hash, version: 'v2', html: usesHtml });
+        pageHtml = renderPageHtml(pageName, { meta, html: await renderMarkdownWith(body) });
+        memCache.set(key, { hash: file.hash, version: 'v3', html: pageHtml });
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
-      return res.status(200).send(usesHtml);
+      return res.status(200).send(pageHtml);
     }
 
     // Tag pages: /blog/tag/ (all tags) and /blog/tag/<slug>/
@@ -933,7 +946,7 @@ async function handler(req, res) {
     }
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v22';
+    const TEMPLATE_VERSION = 'v25';
     // Related posts depend on the whole folder, so post caches are tied to its signature too
     const dirSig = getBlogDirSignature();
 

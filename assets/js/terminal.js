@@ -4,7 +4,7 @@
   const startedAt = Date.now();
 
   const SITE_LINKS = {
-    home: "/",
+    home: window.I18N_EN ? "/en/" : "/",
     blog: "/blog/",
     now: "/now/",
     uses: "/uses/",
@@ -21,7 +21,7 @@
     ["OEDLA (Unicamp)", "/blog/oedla-plataforma-editorial/", "portal de notícias de custo zero, com cache na borda (~93% de hit ratio)"],
     ["PremiumUUID", "https://premiumuuid.cotoo.dev", "plugin Paper que aplica o UUID premium da Mojang em servidores offline-mode"],
     ["cotoo.dev", "https://github.com/rouri404/cotoo.dev", "esse portfólio :P"],
-  ];
+  ].map(([name, url, desc]) => [name, url, tr(desc)]);
 
   const STACK = [
     ["sistemas", "Java (JVM/GC), C/C++, QuickFIX/J, Linux Internals, Concorrência"],
@@ -29,7 +29,7 @@
     ["back-end", "Redis, PostgreSQL, Python, TypeScript, GraphQL, Prisma"],
     ["observabilidade", "Grafana, Jaeger, MQTT, GitHub Actions, Shell Scripting"],
     ["front-end", "React, Tailwind CSS, Expo, Canvas Puro"],
-  ];
+  ].map(([area, items]) => [tr(area), tr(items)]);
 
   const FORTUNES = [
     "funciona na minha máquina. então a gente manda a minha máquina pro cliente.",
@@ -46,7 +46,7 @@
     "a melhor linha de código é a que você não precisou escrever.",
     "pausa pro café também é otimização de performance.",
     "o Tux aprova o seu uptime.",
-  ];
+  ].map((text) => tr(text));
 
   const TUX = [
     "    .--.   ",
@@ -75,12 +75,12 @@
   term.setAttribute("aria-label", "Terminal");
   term.setAttribute("aria-hidden", "true");
   term.innerHTML =
-    '<div class="term-bar" title="Arraste para mover. Duplo clique para voltar ao Tux"><span class="term-title"><span class="ico">' + NF.linux + '</span>tux@cotoo.dev: <span class="term-cwd">~</span></span>' +
-    '<button class="term-close" type="button" aria-label="Fechar terminal" title="Fechar (Esc)">x</button></div>' +
+    '<div class="term-bar" title="' + tr("Arraste para mover. Duplo clique para voltar ao Tux") + '"><span class="term-title"><span class="ico">' + NF.linux + '</span>tux@cotoo.dev: <span class="term-cwd">~</span></span>' +
+    '<button class="term-close" type="button" aria-label="' + tr("Fechar terminal") + '" title="' + tr("Fechar (Esc)") + '">x</button></div>' +
     '<div class="term-body" role="log" aria-live="polite"></div>' +
     '<form class="term-form" autocomplete="off"><span class="term-prompt"><span class="nf-off">$</span><span class="ico">' + NF.prompt + '</span></span>' +
     '<span class="term-field"><span class="term-ghost" aria-hidden="true"></span>' +
-    '<input class="term-input" type="text" aria-label="Comando" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="send" /></span></form>';
+    '<input class="term-input" type="text" aria-label="' + tr("Comando") + '" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="send" /></span></form>';
   const waveCanvas = document.createElement("canvas");
   waveCanvas.className = "term-wave";
   term.appendChild(waveCanvas);
@@ -240,14 +240,14 @@
 
   const ago = (iso) => {
     const min = Math.floor((Date.now() - new Date(iso)) / 60000);
-    if (min < 1) return "agora mesmo";
-    if (min < 60) return min + "m atrás";
-    if (min < 1440) return Math.floor(min / 60) + "h atrás";
-    return Math.floor(min / 1440) + "d atrás";
+    if (min < 1) return tr("agora mesmo");
+    if (min < 60) return tr("{n}m atrás", { n: min });
+    if (min < 1440) return tr("{n}h atrás", { n: Math.floor(min / 60) });
+    return tr("{n}d atrás", { n: Math.floor(min / 1440) });
   };
 
   async function printNow() {
-    const wait = line("buscando /now...", "term-dim");
+    const wait = line(tr("buscando /now..."), "term-dim");
     try {
       const data = await getJson("/now/?format=json");
       wait.remove();
@@ -255,10 +255,10 @@
         line([ico(NF.clock), span(title.toLowerCase(), "term-accent")]);
         line("  " + text, "term-dim");
       }
-      line([span("atualizado em " + data.date + "  ", "term-dim"), link(SITE_LINKS.now, "/now/")]);
+      line([span(tr("atualizado em {date}", { date: data.date }) + "  ", "term-dim"), link(SITE_LINKS.now, "/now/")]);
     } catch (_) {
       wait.textContent = "";
-      wait.append(span("não consegui buscar agora. veja em ", "term-dim"), link(SITE_LINKS.now, "/now/"));
+      wait.append(span(tr("não consegui buscar agora. veja em "), "term-dim"), link(SITE_LINKS.now, "/now/"));
     }
   }
 
@@ -385,9 +385,9 @@
       }
       field.replaceChildren(...nodes);
       const touch = isTouch.matches;
-      const hint = touch ? "deslize para virar, toque pausa, o prompt sai" : "setas ou WASD, espaço pausa, Esc sai";
-      const state = g.state === "over" ? "fim de jogo! " + (touch ? "toque no jogo para jogar de novo" : "Enter joga de novo, Esc sai") : g.state === "paused" ? "pausado" : hint;
-      const text = "pontos: " + g.score + "  recorde: " + Math.max(g.best, g.score) + "  " + state;
+      const hint = touch ? tr("deslize para virar, toque pausa, o prompt sai") : tr("setas ou WASD, espaço pausa, Esc sai");
+      const state = g.state === "over" ? tr("fim de jogo! ") + (touch ? tr("toque no jogo para jogar de novo") : tr("Enter joga de novo, Esc sai")) : g.state === "paused" ? tr("pausado") : hint;
+      const text = tr("pontos: {score}  recorde: {best}", { score: g.score, best: Math.max(g.best, g.score) }) + "  " + state;
       if (status.textContent !== text) status.textContent = text;
     }
 
@@ -480,7 +480,7 @@
     clearTimeout(game.timer);
     // The status line must not keep promising "Enter joga de novo" once the game is gone
     game.status.textContent =
-      game.state === "over" ? "pontos: " + game.score + "  recorde: " + Math.max(game.best, game.score) + "  fim de jogo!" : "pontos: " + game.score + "  (saiu do jogo)";
+      game.state === "over" ? tr("pontos: {score}  recorde: {best}", { score: game.score, best: Math.max(game.best, game.score) }) + "  " + tr("fim de jogo!") : tr("pontos: {score}  (saiu do jogo)", { score: game.score });
     game = null;
     if (isOpen) input.focus({ preventScroll: true });
   }
@@ -519,30 +519,30 @@
   const commands = {
     help: {
       icon: NF.help,
-      desc: "mostra esta lista",
+      desc: tr("mostra esta lista"),
       run() {
-        line("comandos disponíveis:");
+        line(tr("comandos disponíveis:"));
         for (const [name, cmd] of Object.entries(commands)) {
           if (cmd.hidden) continue;
           const label = document.createElement("span");
           label.append(span("  "), ico(cmd.icon), span((name + (cmd.args ? " " + cmd.args : "")).padEnd(16), "term-key"));
           row(label, cmd.desc);
         }
-        line("dica: Tab completa, ↑ e ↓ navegam no histórico.", "term-dim");
+        line(tr("dica: Tab completa, ↑ e ↓ navegam no histórico."), "term-dim");
       },
     },
     whoami: {
       icon: NF.user,
-      desc: "quem sou eu",
+      desc: tr("quem sou eu"),
       run() {
         line("Gabriel Couto");
-        line("estudante de Engenharia de Software na FIAP e estagiário de Arquitetura e Tecnologia na Ideal CTVM.", "term-dim");
-        line("gosto de back-end, sistemas e baixa latência.", "term-dim");
+        line(tr("estudante de Engenharia de Software na FIAP e estagiário de Arquitetura e Tecnologia na Ideal CTVM."), "term-dim");
+        line(tr("gosto de back-end, sistemas e baixa latência."), "term-dim");
       },
     },
     projects: {
       icon: NF.folder,
-      desc: "projetos em destaque",
+      desc: tr("projetos em destaque"),
       run() {
         for (const [name, url, desc] of PROJECTS) {
           line([ico(url.includes("github.com") ? NF.github : NF.folder), link(url, name)]);
@@ -552,16 +552,16 @@
     },
     stack: {
       icon: NF.cubes,
-      desc: "stack técnica",
+      desc: tr("stack técnica"),
       run() {
         for (const [area, items] of STACK) iconRow(NF.code, area, items, 16);
       },
     },
     blog: {
       icon: NF.book,
-      desc: "últimos posts",
+      desc: tr("últimos posts"),
       async run() {
-        const wait = line("buscando posts...", "term-dim");
+        const wait = line(tr("buscando posts..."), "term-dim");
         try {
           const res = await fetch("/blog/?format=json", { headers: { Accept: "application/json" } });
           if (!res.ok) throw new Error();
@@ -570,17 +570,17 @@
           for (const { slug, meta } of data.posts) {
             line([ico(NF.file), span(meta.date + "  ", "term-dim"), link(`/blog/${slug}/`, meta.title)]);
           }
-          line([ico(NF.rss), span("rss: ", "term-dim"), link("/blog/rss.xml", "/blog/rss.xml"), span("  todos os posts: ", "term-dim"), link("/blog/", "/blog/")]);
+          line([ico(NF.rss), span("rss: ", "term-dim"), link("/blog/rss.xml", "/blog/rss.xml"), span(tr("  todos os posts: "), "term-dim"), link("/blog/", "/blog/")]);
         } catch (_) {
-          wait.textContent = "não consegui buscar os posts agora. tente em /blog/.";
+          wait.textContent = tr("não consegui buscar os posts agora. tente em /blog/.");
         }
       },
     },
     activity: {
       icon: NF.chart,
-      desc: "atividade no GitHub",
+      desc: tr("atividade no GitHub"),
       async run() {
-        const wait = line("buscando atividade...", "term-dim");
+        const wait = line(tr("buscando atividade..."), "term-dim");
         try {
           const res = await fetch("/api/contributions");
           if (!res.ok) throw new Error();
@@ -605,7 +605,7 @@
             return el;
           };
 
-          const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+          const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"].map((m) => tr(m));
           const header = new Array(fit).fill(" ");
           let lastMonth = -1;
           let freeFrom = 0;
@@ -618,7 +618,7 @@
             freeFrom = w + 4;
           });
 
-          const labels = ["   ", "seg", "   ", "qua", "   ", "sex", "   "];
+          const labels = ["   ", tr("seg"), "   ", tr("qua"), "   ", tr("sex"), "   "];
           const nodes = [span("    " + header.join(""), "term-dim"), "\n"];
           for (let day = 0; day < 7; day++) {
             nodes.push(span(labels[day] + " ", "term-dim"));
@@ -628,23 +628,23 @@
             }
             nodes.push("\n");
           }
-          nodes.push(span("    menos ", "term-dim"), ...[0, 1, 2, 3, 4].map(square), span(" mais", "term-dim"));
+          nodes.push(span(tr("    menos "), "term-dim"), ...[0, 1, 2, 3, 4].map(square), span(tr(" mais"), "term-dim"));
           const chart = line(nodes, "term-art term-chart");
-          line(data.total + " contribuições no último ano", "term-dim");
+          line(tr("{n} contribuições no último ano", { n: data.total }), "term-dim");
           scrollToStart(chart);
         } catch (_) {
-          wait.textContent = "não consegui buscar a atividade agora.";
+          wait.textContent = tr("não consegui buscar a atividade agora.");
         }
       },
     },
     now: {
       icon: NF.clock,
-      desc: "o que estou fazendo agora",
+      desc: tr("o que estou fazendo agora"),
       run: printNow,
     },
     contact: {
       icon: NF.mail,
-      desc: "como falar comigo",
+      desc: tr("como falar comigo"),
       run() {
         iconRow(NF.mail, "email", link("mailto:gabriel@cotoo.dev", "gabriel@cotoo.dev"), 9);
         iconRow(NF.github, "github", link(SITE_LINKS.github, "github.com/rouri404"), 9);
@@ -653,50 +653,50 @@
     },
     open: {
       icon: NF.link,
-      desc: "abre uma página ou um post",
-      args: "<destino>",
+      desc: tr("abre uma página ou um post"),
+      args: tr("<destino>"),
       async run(args) {
         const target = (args[0] || "").toLowerCase().replace(/\.md$/, "");
         if (!SITE_LINKS[target]) {
           const post = target && (await loadPosts()).find((p) => p.slug === target);
           if (post) {
-            line([span("abrindo ", "term-dim"), link(`/blog/${post.slug}/`, post.meta.title)]);
+            line([span(tr("abrindo "), "term-dim"), link(`/blog/${post.slug}/`, post.meta.title)]);
             go(`/blog/${post.slug}/`);
             return;
           }
-          line("uso: open <" + Object.keys(SITE_LINKS).join(" | ") + " | post>");
+          line(tr("uso: open <") + Object.keys(SITE_LINKS).join(" | ") + " | post>");
           if (posts && posts.length) line("posts: " + posts.map((p) => p.slug).join("  "), "term-dim");
           return;
         }
-        line([span("abrindo ", "term-dim"), span(target)]);
+        line([span(tr("abrindo "), "term-dim"), span(target)]);
         if (/^https?:\/\//.test(SITE_LINKS[target])) window.open(SITE_LINKS[target], "_blank", "noopener,noreferrer");
         else go(SITE_LINKS[target]);
       },
     },
     theme: {
       icon: NF.adjust,
-      desc: "troca o tema",
+      desc: tr("troca o tema"),
       args: "[dark|light]",
       run(args) {
         const want = (args[0] || "").toLowerCase();
         if (want && want !== "dark" && want !== "light") {
-          line("uso: theme [dark | light]");
+          line(tr("uso: theme [dark | light]"));
           return;
         }
         const next = want || (currentTheme() === "dark" ? "light" : "dark");
         const toggle = document.getElementById("themeToggle");
         if (next === currentTheme() || !toggle) {
-          line("tema já é " + currentTheme() + ".", "term-dim");
+          line(tr("tema já é {theme}.", { theme: currentTheme() }), "term-dim");
           return;
         }
         // The line goes in first, so it is already in the page when the dither wave starts flipping elements
-        line([ico(next === "dark" ? NF.moon : NF.sun), span("tema: " + next)]);
+        line([ico(next === "dark" ? NF.moon : NF.sun), span(tr("tema: ") + next)]);
         toggle.click();
       },
     },
     neofetch: {
       icon: NF.terminal,
-      desc: "informações do sistema",
+      desc: tr("informações do sistema"),
       run() {
         const mins = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
         const swatch = document.createElement("span");
@@ -712,19 +712,19 @@
           const el = span("...", "term-dim");
           promise.then((data) => {
             const text = format(data);
-            el.textContent = text || "indispon\u00edvel";
+            el.textContent = text || tr("indispon\u00edvel");
             if (text) el.className = "";
-          }, () => (el.textContent = "indispon\u00edvel"));
+          }, () => (el.textContent = tr("indispon\u00edvel")));
           return el;
         };
-        const visits = live(getJson("/api/visits"), (d) => (typeof d.visits === "number" && d.visits > 0 ? d.visits.toLocaleString("pt-BR") : ""));
+        const visits = live(getJson("/api/visits"), (d) => (typeof d.visits === "number" && d.visits > 0 ? d.visits.toLocaleString(LOCALE) : ""));
         const commit = live(getJson("/api/github"), (d) => (d.found ? d.repo + ", " + ago(d.created_at) : ""));
         const postCount = live(loadPosts(), (list) => (list.length ? String(list.length) : ""));
 
         const spotify = live(
           fetch("/api/spotify").then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status)))),
           (d) => {
-            if (!d.is_playing) return "nada no momento :c";
+            if (!d.is_playing) return tr("nada no momento :c");
             const track = (d.artist + " - " + d.title).toLowerCase();
             return track.length > 34 ? track.slice(0, 33) + "\u2026" : track;
           },
@@ -741,15 +741,15 @@
           [null, "tux@cotoo.dev", null],
           [NF.linux, "os", "cotoo.dev"],
           [NF.server, "host", "Vercel"],
-          [NF.adjust, "tema", currentTheme()],
-          [browserGlyph, "navegador", browserName + (browserVersion ? " " + browserVersion : "") + (osName ? " (" + osName + ")" : "")],
+          [NF.adjust, tr("tema"), currentTheme()],
+          [browserGlyph, tr("navegador"), browserName + (browserVersion ? " " + browserVersion : "") + (osName ? " (" + osName + ")" : "")],
           hardware && [NF.chip, "cpu", hardware],
-          [NF.desktop, "tela", window.innerWidth + "x" + window.innerHeight + (dpr > 1 ? " @" + +dpr.toFixed(2) + "x" : "")],
+          [NF.desktop, tr("tela"), window.innerWidth + "x" + window.innerHeight + (dpr > 1 ? " @" + +dpr.toFixed(2) + "x" : "")],
           [NF.clock, "uptime", mins + (mins === 1 ? " min" : " mins")],
-          [NF.user, "visitas", visits],
+          [NF.user, tr("visitas"), visits],
           [NF.github, "commit", commit],
           [NF.book, "posts", postCount],
-          [NF.music, "ouvindo", spotify],
+          [NF.music, tr("ouvindo"), spotify],
           [null, "", swatch],
         ].filter(Boolean);
         const narrow = window.innerWidth < 600;
@@ -772,40 +772,40 @@
     },
     party: {
       icon: NF.rocket,
-      desc: "chama o Tux pra festa",
+      desc: tr("chama o Tux pra festa"),
       run() {
-        line("bora comemorar!", "term-dim");
+        line(tr("bora comemorar!"), "term-dim");
         window.dispatchEvent(new Event("mascot:party"));
       },
     },
     tux: {
       icon: NF.linux,
-      desc: "o mascote",
+      desc: tr("o mascote"),
       args: "[reset | skin]",
       run(args) {
         const sub = (args[0] || "").toLowerCase();
         if (sub === "reset") {
           const detail = {};
           window.dispatchEvent(new CustomEvent("mascot:reset", { detail }));
-          line(detail.moved ? "o Tux voltou pro lugar dele." : "o Tux já está no lugar dele.", "term-dim");
+          line(detail.moved ? tr("o Tux voltou pro lugar dele.") : tr("o Tux já está no lugar dele."), "term-dim");
           return;
         }
         if (sub === "skin") {
           const want = (args[1] || "").toLowerCase();
-          if (!SKIN_NAMES.includes(want)) return line("uso: tux skin <" + SKIN_NAMES.join(" | ") + ">");
+          if (!SKIN_NAMES.includes(want)) return line(tr("uso: tux skin <") + SKIN_NAMES.join(" | ") + ">");
           const detail = { skin: want === "nenhuma" ? "none" : want };
           window.dispatchEvent(new CustomEvent("mascot:skin", { detail }));
-          line("skin do Tux: " + (detail.skin === "none" || !detail.skin ? "nenhuma" : detail.skin) + (want === "auto" ? " (pela data)" : ""), "term-dim");
+          line(tr("skin do Tux: ") + (detail.skin === "none" || !detail.skin ? tr("nenhuma") : detail.skin) + (want === "auto" ? tr(" (pela data)") : ""), "term-dim");
           return;
         }
-        if (sub) return line("uso: tux [reset | skin <nome>]");
-        line("o Tux é o mascote do Linux, desenhado em ASCII a partir de um modelo 3D.");
-        line("no início da home dá pra arrastá-lo; tux reset (ou um duplo clique nele) o devolve ao lugar.", "term-dim");
+        if (sub) return line(tr("uso: tux [reset | skin <nome>]"));
+        line(tr("o Tux é o mascote do Linux, desenhado em ASCII a partir de um modelo 3D."));
+        line(tr("no início da home dá pra arrastá-lo; tux reset (ou um duplo clique nele) o devolve ao lugar."), "term-dim");
       },
     },
     snake: {
       icon: NF.gamepad,
-      desc: "joga a cobrinha (Esc sai)",
+      desc: tr("joga a cobrinha (Esc sai)"),
       run() {
         stopSnake();
         startSnake();
@@ -813,11 +813,11 @@
     },
     grep: {
       icon: NF.search,
-      desc: "busca nos projetos e posts",
-      args: "<termo>",
+      desc: tr("busca nos projetos e posts"),
+      args: tr("<termo>"),
       async run(args) {
         const query = fold(args.join(" ").trim());
-        if (!query) return line("uso: grep <termo>");
+        if (!query) return line(tr("uso: grep <termo>"));
         const sources = [
           ...projectFiles.map((f) => ({ path: "projects/" + f.name, href: f.url, texts: [f.title, f.desc] })),
           ...(await loadPosts()).map((p) => ({ path: "blog/" + p.slug + ".md", href: `/blog/${p.slug}/`, texts: [p.meta.title, p.meta.description || "", (p.meta.tags || []).join(", ")] })),
@@ -833,20 +833,20 @@
             line([path, span(": ", "term-dim"), span(text.slice(0, at), "term-dim"), span(text.slice(at, at + query.length), "term-accent"), span(text.slice(at + query.length), "term-dim")]);
           }
         }
-        line(hits ? hits + (hits === 1 ? " ocorrência" : " ocorrências") : "nada encontrado para \"" + args.join(" ") + "\"", "term-dim");
+        line(hits ? tr(hits === 1 ? "{n} ocorrência" : "{n} ocorrências", { n: hits }) : tr("nada encontrado para \"{query}\"", { query: args.join(" ") }), "term-dim");
       },
     },
     music: {
       icon: NF.music,
-      desc: "o que está tocando agora",
+      desc: tr("o que está tocando agora"),
       async run() {
-        const wait = line("sintonizando...", "term-dim");
+        const wait = line(tr("sintonizando..."), "term-dim");
         try {
           const res = await fetch("/api/spotify");
           if (!res.ok) throw new Error();
           const data = await res.json();
           wait.remove();
-          if (!data.is_playing) return line([ico(NF.music), span("nada tocando agora :c", "term-dim")]);
+          if (!data.is_playing) return line([ico(NF.music), span(tr("nada tocando agora :c"), "term-dim")]);
           line([ico(NF.music), data.songUrl ? link(data.songUrl, data.title) : span(data.title, "term-accent")]);
           line([blankIco(), span(data.artist, "term-dim")]);
           if (data.duration_ms) {
@@ -857,13 +857,13 @@
             line([blankIco(), span((nf ? "\u2588" : "#").repeat(filled), "term-accent"), span((nf ? "\u2591" : "-").repeat(width - filled), "term-dim"), span("  " + time(data.progress_ms || 0) + " / " + time(data.duration_ms), "term-dim")]);
           }
         } catch (_) {
-          wait.textContent = "não consegui ver o que está tocando agora.";
+          wait.textContent = tr("não consegui ver o que está tocando agora.");
         }
       },
     },
     fortune: {
       icon: NF.quote,
-      desc: "o Tux diz uma frase",
+      desc: tr("o Tux diz uma frase"),
       run() {
         const text = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
         // Word wrap at 34 columns, then a cowsay-style balloon above the penguin
@@ -882,57 +882,57 @@
     },
     clear: {
       icon: NF.eraser,
-      desc: "limpa a tela",
+      desc: tr("limpa a tela"),
       run() {
         body.textContent = "";
       },
     },
     exit: {
       icon: NF.signout,
-      desc: "fecha o terminal",
+      desc: tr("fecha o terminal"),
       run() {
         close();
       },
     },
     ls: {
       icon: NF.folder,
-      desc: "lista os arquivos",
-      args: "[pasta]",
+      desc: tr("lista os arquivos"),
+      args: tr("[pasta]"),
       async run(args) {
         const target = args.filter((x) => !x.startsWith("-"))[0];
         const segs = target ? resolvePath(target) : cwd.slice();
         if (segs[0] === "blog") await loadPosts();
         const found = statPath(segs);
-        if (!found) return line([ico(NF.warn), span("ls: " + target + ": arquivo ou diretório inexistente")]);
+        if (!found) return line([ico(NF.warn), span("ls: " + target + tr(": arquivo ou diretório inexistente"))]);
         if (found.kind === "file") return line(segs[segs.length - 1]);
         const entries = entriesOf(segs);
-        line(entries.length ? entryNodes(entries) : span("(vazio)", "term-dim"));
+        line(entries.length ? entryNodes(entries) : span(tr("(vazio)"), "term-dim"));
       },
     },
     cd: {
       icon: NF.folderOpen,
-      desc: "entra numa pasta",
-      args: "<pasta>",
+      desc: tr("entra numa pasta"),
+      args: tr("<pasta>"),
       async run(args) {
         const segs = resolvePath(args[0]);
         if (segs[0] === "blog") await loadPosts();
         const found = statPath(segs);
-        if (!found) return line([ico(NF.warn), span("cd: " + args[0] + ": arquivo ou diretório inexistente")]);
-        if (found.kind === "file") return line([ico(NF.warn), span("cd: " + args[0] + ": não é um diretório")]);
+        if (!found) return line([ico(NF.warn), span("cd: " + args[0] + tr(": arquivo ou diretório inexistente"))]);
+        if (found.kind === "file") return line([ico(NF.warn), span("cd: " + args[0] + tr(": não é um diretório"))]);
         setCwd(segs);
       },
     },
     cat: {
       icon: NF.file,
-      desc: "mostra um arquivo",
-      args: "<arquivo>",
+      desc: tr("mostra um arquivo"),
+      args: tr("<arquivo>"),
       async run(args) {
-        if (!args[0]) return line("uso: cat <arquivo>");
+        if (!args[0]) return line(tr("uso: cat <arquivo>"));
         const segs = resolvePath(args[0]);
         if (segs[0] === "blog") await loadPosts();
         const found = statPath(segs);
-        if (!found) return line([ico(NF.warn), span("cat: " + args[0] + ": arquivo ou diretório inexistente")]);
-        if (found.kind === "dir") return line([ico(NF.warn), span("cat: " + args[0] + ": é um diretório")]);
+        if (!found) return line([ico(NF.warn), span("cat: " + args[0] + tr(": arquivo ou diretório inexistente"))]);
+        if (found.kind === "dir") return line([ico(NF.warn), span("cat: " + args[0] + tr(": é um diretório"))]);
         if (found.home === "about.txt") return commands.whoami.run();
         if (found.home === "stack.txt") return commands.stack.run();
         if (found.home === "contact.txt") return commands.contact.run();
@@ -943,13 +943,13 @@
         }
         const { slug, meta, readingMinutes } = found.post;
         line(link(`/blog/${slug}/`, meta.title));
-        line(meta.date + (readingMinutes ? " · " + readingMinutes + " min de leitura" : ""), "term-dim");
+        line(meta.date + (readingMinutes ? " · " + tr("{n} min de leitura", { n: readingMinutes }) : ""), "term-dim");
         line(meta.description);
       },
     },
     tree: {
       icon: NF.sitemap,
-      desc: "mostra todas as pastas",
+      desc: tr("mostra todas as pastas"),
       async run() {
         await loadPosts();
         const lines = ["~"];
@@ -973,13 +973,13 @@
     sudo: {
       hidden: true,
       run() {
-        line([ico(NF.lock), span("tux não está no arquivo sudoers. Este incidente será reportado.")]);
+        line([ico(NF.lock), span(tr("tux não está no arquivo sudoers. Este incidente será reportado."))]);
       },
     },
     rm: {
       hidden: true,
       run() {
-        line("boa tentativa :)");
+        line(tr("boa tentativa :)"));
       },
     },
   };
@@ -995,7 +995,7 @@
     const [name, ...args] = text.split(/\s+/);
     const cmd = commands[name.toLowerCase()];
     if (!cmd) {
-      line([ico(NF.warn), span("comando não encontrado: " + name + ". Digite help.")]);
+      line([ico(NF.warn), span(tr("comando não encontrado: {name}. Digite help.", { name }))]);
       return;
     }
     return cmd.run(args);
@@ -1156,8 +1156,8 @@
     term.classList.add("is-open");
     if (!booted) {
       booted = true;
-      line("cotoo.dev terminal. Digite help para ver os comandos.");
-      line("Esc fecha.", "term-dim");
+      line(tr("cotoo.dev terminal. Digite help para ver os comandos."));
+      line(tr("Esc fecha."), "term-dim");
       loadNerdFont();
       loadPosts();
     }
@@ -1268,7 +1268,8 @@
   window.addEventListener("terminal:open", open);
   window.addEventListener("terminal:toggle", toggle);
   document.addEventListener("keydown", (e) => {
-    if (e.defaultPrevented || e.target === input) return;
+    // A project modal owns the keyboard until it closes
+    if (e.defaultPrevented || e.target === input || document.body.classList.contains("modal-open")) return;
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) || document.activeElement.isContentEditable;
     // Backquote is the physical key, so it also works on layouts where the backtick is a dead key
     if (e.code === "Backquote" && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) {

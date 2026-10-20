@@ -415,6 +415,7 @@ ${JSON.stringify(jsonLd, null, 2)}
     <link rel="stylesheet" href="/assets/css/blog.css" />
     <link rel="stylesheet" href="/assets/css/mascot.css" />
     <link rel="stylesheet" href="/assets/css/terminal.css" />
+    <script src="/assets/js/i18n.js"></script>
     <script src="/assets/js/blog.js"></script>
     <script src="/assets/js/mascot.js" defer></script>
     <script src="/assets/js/terminal.js" defer></script>
@@ -946,7 +947,7 @@ async function handler(req, res) {
     }
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v25';
+    const TEMPLATE_VERSION = 'v26';
     // Related posts depend on the whole folder, so post caches are tied to its signature too
     const dirSig = getBlogDirSignature();
 

@@ -18,7 +18,7 @@
   const MODEL_URL = "/assets/models/tux.bin";
   const REPO_URL = "https://github.com/rouri404/cotoo.dev";
   // The text he shows by himself; posts have none, only the short comments from say()
-  const BUBBLE_TEXT = isHome ? "curtiu o site? da uma estrelinha lá :p" : isIndex ? "bora ler um post? escolhe um aí :)" : "";
+  const BUBBLE_TEXT = isHome ? tr("curtiu o site? da uma estrelinha lá :p") : isIndex ? tr("bora ler um post? escolhe um aí :)") : "";
   const CREDIT_GAP = 24;
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -58,8 +58,8 @@
         : '<span class="mascot-bubble-text">'
     }<span class="on"></span><span class="off">${BUBBLE_TEXT}</span>${isHome ? "</a>" : "</span>"}</div>` +
     '<canvas id="mascot" class="mascot" aria-hidden="true"></canvas>' +
-    `<button class="mascot-hit" type="button" aria-label="Tux, o mascote do Linux. Clique para abrir ou fechar o terminal${
-      isHome ? ". Arraste para mudar o lugar dele, duplo clique o devolve" : ""
+    `<button class="mascot-hit" type="button" aria-label="${tr("Tux, o mascote do Linux. Clique para abrir ou fechar o terminal")}${
+      isHome ? tr(". Arraste para mudar o lugar dele, duplo clique o devolve") : ""
     }"></button>`;
   document.body.appendChild(box);
 
@@ -148,7 +148,7 @@
   // "pascoa" (Easter week) bunny ears and "junina" (June) a straw hat. The others, "formatura" (graduation cap),
   // "formatura" (graduation cap), "coroa" (crown) and "festa" (party hat) are only worn on request ("tux skin <nome>" in the terminal).
   // "fone" (headphones) is worn on request and whenever Spotify says the owner is listening to something, and
-  // "sono" (a striped nightcap) from midnight to 6 am, local time
+  // "sono" (a striped nightcap) from midnight to 6 am, local time. On the owner's birthday (April 27) he wears "festa" all day
   const SKIN_KEY = "mascot-skin";
   const MUSIC_KEY = "mascot-music";
   // The widget only reports on the home page, so the blog trusts the last report for this long
@@ -166,6 +166,8 @@
     return new Date(y, Math.floor(n / 31) - 1, (n % 31) + 1);
   }
 
+  const birthday = (date) => date.getMonth() === 3 && date.getDate() === 27;
+
   function listening() {
     try {
       return Date.now() - Number(sessionStorage.getItem(MUSIC_KEY)) < MUSIC_TTL;
@@ -181,6 +183,7 @@
     } catch (_) {}
     if (listening()) return "fone";
     const now = new Date();
+    if (birthday(now)) return "festa";
     if (now.getHours() < 6) return "sono";
     const m = now.getMonth();
     const d = now.getDate();
@@ -1027,7 +1030,7 @@
     if (!sleeping) return;
     sleeping = false;
     if (!reduceMotion.matches) spin(performance.now());
-    say(lateNight() ? "hm? tava cochilando... que horas são? o.O" : "opa, voltou amigao? o.O", 2800);
+    say(lateNight() ? tr("hm? tava cochilando... que horas são? o.O") : tr("opa, voltou amigao? o.O"), 2800);
   }
 
   // A greeting by time of day, once per visit
@@ -1039,11 +1042,11 @@
     } catch (_) {}
     if (!chatty()) return;
     const h = new Date().getHours();
-    const text =
-      h < 6 ? "madrugada, hein? eu também não durmo :p" :
-      h < 12 ? "bom dia! o café já tá passado?" :
-      h < 18 ? "boa tarde! bora fuçar o site?" :
-      "boa noite! fica à vontade :)";
+    const text = birthday(new Date()) ? tr("hoje é aniversário do coto! bora comemorar :D") :
+      h < 6 ? tr("madrugada, hein? eu também não durmo :p") :
+      h < 12 ? tr("bom dia! o café já tá passado?") :
+      h < 18 ? tr("boa tarde! bora fuçar o site?") :
+      tr("boa noite! fica à vontade :)");
     sayNext(text, 4000);
   }
 
@@ -1062,7 +1065,7 @@
     if (baseModel && wasListening !== !!key) model = withSkin(baseModel, seasonSkin());
     if (!isNew || sleeping || partyStart >= 0 || !chatty()) return;
     const title = d.title.length > 22 ? d.title.slice(0, 21).trimEnd() + "..." : d.title;
-    sayNext("ouvindo " + title.toLowerCase() + "? boa escolha :)", 4000);
+    sayNext(tr("ouvindo {title}? boa escolha :)", { title: title.toLowerCase() }), 4000);
   });
 
   // Capture phase, so keys typed in the terminal (which stops them) still count
@@ -1081,16 +1084,16 @@
         const p = window.scrollY / max;
         if (!said.half && p >= 0.5) {
           said.half = true;
-          say("metade do post, segura aí :)");
+          say(tr("metade do post, segura aí :)"));
         } else if (!said.end && p >= 0.985) {
           said.end = true;
-          say("acabou! bora pro próximo?");
+          say(tr("acabou! bora pro próximo?"));
         }
       },
       { passive: true }
     );
     document.addEventListener("click", (e) => {
-      if (e.target.closest && e.target.closest(".copy-btn")) say("copiou! confere antes de rodar ;)", 3500);
+      if (e.target.closest && e.target.closest(".copy-btn")) say(tr("copiou! confere antes de rodar ;)"), 3500);
     });
   }
 
@@ -1176,7 +1179,7 @@
     if (partyStart >= 0 && !partyLeaving) partyStart = Math.min(partyStart, performance.now() - (PARTY_MS - LEAVE_MS));
   });
   document.addEventListener("keydown", (e) => {
-    if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) || document.body.classList.contains("modal-open")) return;
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
     konamiAt = key === KONAMI[konamiAt] ? konamiAt + 1 : key === KONAMI[0] ? 1 : 0;
     if (konamiAt === KONAMI.length) {
@@ -1218,7 +1221,7 @@
     try {
       sessionStorage.removeItem(PERCH_KEY);
     } catch (_) {}
-    if (moved && canDrag()) say("de volta pro meu cantinho :)", 2500);
+    if (moved && canDrag()) say(tr("de volta pro meu cantinho :)"), 2500);
     return moved;
   }
 
@@ -1417,7 +1420,7 @@
         if (t >= PARTY_MS) {
           partyStart = -1;
           partyLeaving = false;
-          say("festinha boa slk", 3500);
+          say(tr("festinha boa slk"), 3500);
         } else {
           const k = clamp(t / 900, 0, 1) * clamp((PARTY_MS - t) / LEAVE_MS, 0, 1);
           const beat = t / BEAT_MS;

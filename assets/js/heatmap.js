@@ -7,7 +7,7 @@
 
   const CELL = 10;
   const GAP = 3;
-  const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+  const MONTHS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"].map((m) => tr(m));
 
   let data = null;
   let shown = 0;
@@ -15,7 +15,7 @@
 
   const label = ([date, count]) => {
     const [, m, d] = date.split("-").map(Number);
-    return `${count === 0 ? "nenhuma contribuição" : count === 1 ? "1 contribuição" : count + " contribuições"} em ${d} de ${MONTHS[m - 1]}`;
+    return tr(count === 0 ? "nenhuma contribuição em {day} de {month}" : count === 1 ? "1 contribuição em {day} de {month}" : "{n} contribuições em {day} de {month}", { n: count, day: d, month: MONTHS[m - 1] });
   };
 
   function render() {
@@ -41,7 +41,7 @@
     grid.replaceChildren(frag);
     grid.style.setProperty("--weeks", fit);
     const first = weeks[0][0][0].split("-");
-    summary = `${data.total} contribuições no último ano`;
+    summary = tr("{n} contribuições no último ano", { n: data.total });
     info.textContent = summary;
     grid.setAttribute("aria-label", `${summary}, exibindo desde ${first[2]}/${first[1]}`);
   }

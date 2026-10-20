@@ -77,9 +77,9 @@ const menuStage = document.getElementById("stage-menu");
   labels.forEach(label => {
     if (label) {
       const parts = [];
-      if (years > 0) parts.push(years + (years === 1 ? " ano" : " anos"));
-      if (months > 0) parts.push(months + (months === 1 ? " mês" : " meses"));
-      label.textContent = (parts.length ? parts.join(" e ") : "início") + " — " + pct.toFixed(0) + "% concluído";
+      if (years > 0) parts.push(tr(years === 1 ? "{n} ano" : "{n} anos", { n: years }));
+      if (months > 0) parts.push(tr(months === 1 ? "{n} mês" : "{n} meses", { n: months }));
+      label.textContent = (parts.length ? parts.join(tr(" e ")) : tr("início")) + " — " + tr("{pct}% concluído", { pct: pct.toFixed(0) });
     }
   });
 })();
@@ -107,7 +107,7 @@ window.addEventListener("click", (e) => {
   const sel = window.getSelection ? window.getSelection().toString() : "";
   if (sel && sel.trim().length > 0) return;
 
-  if (e.target.closest("a, button, input, textarea, .top-nav, .theme-toggle, .nav-blog-btn, .modal-content, .custom-notification, .spotify-widget, .mascot, .mascot-bubble, .term, .activity-section")) {
+  if (e.target.closest("a, button, input, textarea, .top-nav, .theme-toggle, .nav-blog-btn, .modal-overlay, .custom-notification, .spotify-widget, .mascot, .mascot-bubble, .term, .activity-section")) {
     return;
   }
 
@@ -121,6 +121,7 @@ window.addEventListener("click", (e) => {
 window.addEventListener(
   "wheel",
   (e) => {
+    if (modalIsOpen()) return;
     const stage = document.body.dataset.stage || "hero";
     if (stage === "hero") {
       if (e.deltaY > 20) goToMenu();
@@ -153,7 +154,7 @@ window.addEventListener("keydown", (e) => {
         _c.onclick = (ev) => ev.stopPropagation();
         const _b = document.createElement("button");
         _b.className = "modal-close";
-        _b.title = "fechar";
+        _b.title = tr("fechar");
         _b.textContent = "x";
         _b.onclick = () => _o.remove();
         _c.appendChild(_b);
@@ -171,11 +172,14 @@ window.addEventListener("keydown", (e) => {
     const activeModals = viewer ? [viewer] : document.querySelectorAll(".modal-overlay.active");
     if (activeModals.length > 0) {
       activeModals.forEach((modal) => modal.classList.remove("active"));
+      // The observer runs later, and an inert card would refuse the focus
+      syncModalInert();
       if (document.activeElement) document.activeElement.blur();
       if (!viewer && modalOpener) modalOpener.focus({ preventScroll: true });
       return;
     }
   }
+  if (modalIsOpen()) return;
 
   const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
   if (activeTag === "input" || activeTag === "textarea") {
@@ -197,12 +201,65 @@ shotViewer.appendChild(document.createElement("img")).alt = "";
 shotViewer.addEventListener("click", () => shotViewer.classList.remove("active"));
 document.body.appendChild(shotViewer);
 
+// "Aa" in each modal swaps the pixel font for a reading font; the choice is shared with the blog's toggle
+function syncFontButtons() {
+  const reading = document.body.classList.contains("reading-mode");
+  document.querySelectorAll(".modal-font").forEach((btn) => {
+    btn.title = reading ? tr("Mudar para fonte pixel") : tr("Mudar para modo de leitura");
+    btn.setAttribute("aria-label", btn.title);
+    btn.setAttribute("aria-pressed", String(reading));
+  });
+}
+try {
+  if (localStorage.getItem("blog_font") === "reading") document.body.classList.add("reading-mode");
+} catch (_) {}
+document.querySelectorAll(".modal-content .modal-close").forEach((close) => {
+  close.setAttribute("aria-label", close.title);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "modal-font";
+  btn.textContent = "Aa";
+  btn.addEventListener("click", () => {
+    const reading = document.body.classList.toggle("reading-mode");
+    try {
+      localStorage.setItem("blog_font", reading ? "reading" : "pixel");
+    } catch (_) {}
+    syncFontButtons();
+  });
+  close.after(btn);
+});
+syncFontButtons();
+
+let shotOpener = null;
+
+// While a modal is open everything behind it is inert: no clicks, focus, hover or screen reader access
+const modalIsOpen = () => !!document.querySelector(".modal-overlay.active");
+function syncModalInert() {
+  const open = modalIsOpen();
+  // An enlarged screenshot also locks the project modal it came from
+  const viewing = shotViewer.classList.contains("active");
+  document.body.classList.toggle("modal-open", open);
+  for (const el of document.body.children) {
+    el.inert = el.classList.contains("modal-overlay") ? viewing && el !== shotViewer : open;
+  }
+  // Only after the project modal stops being inert, or the focus would not land
+  if (!viewing && shotOpener) {
+    shotOpener.focus({ preventScroll: true });
+    shotOpener = null;
+  }
+}
+// Modals open and close through inline handlers too, so watch the overlays rather than every call site
+const modalObserver = new MutationObserver(syncModalInert);
+modalObserver.observe(document.body, { childList: true });
+document.querySelectorAll(".modal-overlay").forEach((el) => modalObserver.observe(el, { attributes: true, attributeFilter: ["class"] }));
+
 document.querySelectorAll("button.modal-shot").forEach((btn) => {
   btn.addEventListener("click", () => {
     const shown = [...btn.querySelectorAll("img")].find((img) => img.offsetWidth) || btn.querySelector("img");
     const big = shotViewer.firstChild;
     big.src = shown.currentSrc || shown.src;
     big.alt = shown.alt;
+    shotOpener = btn;
     shotViewer.classList.add("active");
   });
 });
@@ -283,7 +340,7 @@ if (contactForm) {
     if (!btn) return;
 
     btn.disabled = true;
-    btn.textContent = "enviando...";
+    btn.textContent = tr("enviando...");
     const formData = new FormData(contactForm);
     const data = Object.fromEntries(formData.entries());
 
@@ -297,22 +354,22 @@ if (contactForm) {
       });
 
       if (res.status === 429) {
-        showNotification("Muitas tentativas, tente mais tarde.");
+        showNotification(tr("Muitas tentativas, tente mais tarde."));
       } else if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        showNotification(errorData.error || "Algo deu errado. Tente novamente mais tarde.");
+        showNotification(tr(errorData.error || "Algo deu errado. Tente novamente mais tarde."));
       } else {
-        showNotification("Mensagem enviada com sucesso!");
+        showNotification(tr("Mensagem enviada com sucesso!"));
         contactForm.reset();
         const contactExpandable = document.getElementById("contactExpandable");
         if (contactExpandable) contactExpandable.classList.remove("is-expanded");
       }
     } catch (err) {
       console.error(err);
-      showNotification("Erro de conexão. Tente novamente.");
+      showNotification(tr("Erro de conexão. Tente novamente."));
     } finally {
       btn.disabled = false;
-      btn.textContent = "enviar";
+      btn.textContent = tr("enviar");
       if (typeof turnstile !== "undefined") {
         turnstile.reset();
       }
@@ -476,7 +533,7 @@ const svgMoon = `<svg viewBox="0 0 12 12" style="width:24px; height:24px; displa
 
 function updateThemeIcon() {
   themeToggle.innerHTML = currentTheme === "light" ? svgMoon : svgSun;
-  themeToggle.setAttribute("aria-label", currentTheme === "light" ? "Mudar para o tema escuro" : "Mudar para o tema claro");
+  themeToggle.setAttribute("aria-label", currentTheme === "light" ? tr("Mudar para o tema escuro") : tr("Mudar para o tema claro"));
 }
 
 updateThemeIcon();
@@ -521,7 +578,7 @@ themeToggle.addEventListener("click", (e) => {
   document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .modal-shot, .shot-viewer img, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a, .heat-cell, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .project-meta .chip, .project-status'
+    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, .nav-lang, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .modal-shot, .shot-viewer img, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, .modal-font, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a, .heat-cell, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .project-meta .chip, .project-status'
   );
   
   const ditherBandRatio = 1 / 1.5;
@@ -740,7 +797,7 @@ async function fetchSpotifyCurrentlyPlaying() {
       announceSpotify(data);
       
       if (data.is_playing) {
-        spotifyLabel.textContent = "coto tá ouvindo agora";
+        spotifyLabel.textContent = tr("coto tá ouvindo agora");
         if (progressWrapper) progressWrapper.style.display = "block";
         
                 // Sync local clock with API data
@@ -808,7 +865,7 @@ async function fetchSpotifyCurrentlyPlaying() {
         spotifyWidget.classList.add("active");
         spotifyWidget.classList.add("is-playing");
       } else {
-        spotifyLabel.textContent = "coto tá ouvindo";
+        spotifyLabel.textContent = tr("coto tá ouvindo");
         if (spotifyTime) spotifyTime.textContent = "";
         if (progressWrapper) progressWrapper.classList.remove("is-playing");
                 // Pause local timer
@@ -817,8 +874,8 @@ async function fetchSpotifyCurrentlyPlaying() {
           clearInterval(localTimerInterval);
           localTimerInterval = null;
         }
-        if (spotifyTrack.textContent !== "nada no momento :c") {
-          spotifyTrack.textContent = "nada no momento :c";
+        if (spotifyTrack.textContent !== tr("nada no momento :c")) {
+          spotifyTrack.textContent = tr("nada no momento :c");
           if (spotifyTrack.scrollAnim) {
             spotifyTrack.scrollAnim.cancel();
           }
@@ -833,10 +890,10 @@ async function fetchSpotifyCurrentlyPlaying() {
         spotifyWidget.classList.add("active");
       }
     } else {
-      spotifyLabel.textContent = "coto tá ouvindo";
+      spotifyLabel.textContent = tr("coto tá ouvindo");
       if (spotifyTime) spotifyTime.textContent = "";
-      if (spotifyTrack.textContent !== "nada no momento :c") {
-        spotifyTrack.textContent = "nada no momento :c";
+      if (spotifyTrack.textContent !== tr("nada no momento :c")) {
+        spotifyTrack.textContent = tr("nada no momento :c");
         if (spotifyTrack.scrollAnim) {
           spotifyTrack.scrollAnim.cancel();
         }
@@ -920,7 +977,7 @@ async function handleSpotifyAuthCode() {
   const error = params.get("error");
   
   if (error) {
-    showNotification("Erro na conexão com Spotify: " + error);
+    showNotification(tr("Erro na conexão com Spotify: {error}", { error }));
     const url = new URL(window.location);
     url.searchParams.delete("error");
     window.history.replaceState({}, document.title, url.pathname + url.search);
@@ -952,11 +1009,11 @@ async function handleSpotifyAuthCode() {
         url.searchParams.delete("code");
         window.history.replaceState({}, document.title, url.pathname + url.search);
         
-        showNotification("Spotify conectado com sucesso!");
+        showNotification(tr("Spotify conectado com sucesso!"));
       }
     } catch (err) {
       console.error("Erro ao trocar o código:", err);
-      showNotification("Erro ao conectar com Spotify.");
+      showNotification(tr("Erro ao conectar com Spotify."));
     }
   }
 }
@@ -975,7 +1032,7 @@ if (listenAlongBtn) {
     if (token && expires && Date.now() < parseInt(expires)) {
             // Sync with valid token
       try {
-        listenAlongBtn.textContent = "sincronizando...";
+        listenAlongBtn.textContent = tr("sincronizando...");
         const res = await fetch("https://api.spotify.com/v1/me/player/play", {
           method: "PUT",
           headers: {
@@ -989,9 +1046,9 @@ if (listenAlongBtn) {
         });
         
         if (res.ok || res.status === 204) {
-          listenAlongBtn.textContent = "sincronizado!";
-          showNotification("sincronizado!");
-          setTimeout(() => { listenAlongBtn.textContent = "ouvir com o coto"; }, 3000);
+          listenAlongBtn.textContent = tr("sincronizado!");
+          showNotification(tr("sincronizado!"));
+          setTimeout(() => { listenAlongBtn.textContent = tr("ouvir com o coto"); }, 3000);
         } else {
           const text = await res.text();
           let data = {};
@@ -1000,34 +1057,34 @@ if (listenAlongBtn) {
           } catch(e) {}
           
           if (res.status === 403) {
-            showNotification("o spotify exige conta premium para isso :c");
-            listenAlongBtn.textContent = "ouvir com o coto";
+            showNotification(tr("o spotify exige conta premium para isso :c"));
+            listenAlongBtn.textContent = tr("ouvir com o coto");
           } else if (data.error && data.error.reason === "NO_ACTIVE_DEVICE") {
-            showNotification("abra o Spotify e dê play em algo primeiro!");
-            listenAlongBtn.textContent = "ouvir com o coto";
+            showNotification(tr("abra o Spotify e dê play em algo primeiro!"));
+            listenAlongBtn.textContent = tr("ouvir com o coto");
           } else if (res.status === 401) {
             throw new Error("Token expirado ou revogado");
           } else {
             console.error("Erro da API:", text);
-            showNotification("erro. verifique se o Spotify está aberto.");
-            listenAlongBtn.textContent = "ouvir com o coto";
+            showNotification(tr("erro. verifique se o Spotify está aberto."));
+            listenAlongBtn.textContent = tr("ouvir com o coto");
           }
         }
       } catch (err) {
         console.error("Erro ao sincronizar:", err);
         if (err.message === "Token expirado ou revogado") {
           localStorage.removeItem("visitor_spotify_token");
-          listenAlongBtn.textContent = "ouvir com o coto";
-          showNotification("Sessão expirada. Por favor, conecte de novo.");
+          listenAlongBtn.textContent = tr("ouvir com o coto");
+          showNotification(tr("Sessão expirada. Por favor, conecte de novo."));
         } else {
-          listenAlongBtn.textContent = "ouvir com o coto";
-          showNotification("Falha na sincronização.");
+          listenAlongBtn.textContent = tr("ouvir com o coto");
+          showNotification(tr("Falha na sincronização."));
         }
       }
     } else {
             // Authenticate if token is invalid
       try {
-        listenAlongBtn.textContent = "conectando...";
+        listenAlongBtn.textContent = tr("conectando...");
         const res = await fetch("/api/spotify-client-id");
         const data = await res.json();
         const clientId = data.clientId;
@@ -1040,7 +1097,7 @@ if (listenAlongBtn) {
         window.location.href = authUrl;
       } catch (err) {
         console.error("Erro ao buscar client id:", err);
-        listenAlongBtn.textContent = "ouvir com o coto";
+        listenAlongBtn.textContent = tr("ouvir com o coto");
       }
     }
   });
@@ -1083,14 +1140,14 @@ async function fetchGithubActivity() {
       const diff = Math.floor((new Date() - date) / 60000);
 
       if (diff === 0) {
-        revealStatus(el, `último commit: agora mesmo`);
+        revealStatus(el, tr("último commit: agora mesmo"));
       } else {
         let timeStr = "";
         if (diff < 60) timeStr = `${diff}m`;
         else if (diff < 1440) timeStr = `${Math.floor(diff / 60)}h`;
         else timeStr = `${Math.floor(diff / 1440)}d`;
 
-        revealStatus(el, `último commit: ${timeStr} atrás`);
+        revealStatus(el, tr("último commit: {time} atrás", { time: timeStr }));
       }
     } else {
       el.style.display = "none";
@@ -1215,7 +1272,7 @@ async function registerVisit() {
 
     const text = String(visits).padStart(MIN_DIGITS, "0");
     if (text.length !== digits.length) digits = makeDigits(text.length);
-    el.title = `${visits.toLocaleString("pt-BR")} visitas`;
+    el.title = tr("{n} visitas", { n: visits.toLocaleString(LOCALE) });
 
     // Lock digits one by one, left to right
     digits.forEach((d, i) => {
@@ -1245,7 +1302,7 @@ async function fetchProjectStatus() {
     chips.forEach((chip) => {
       const up = status[chip.dataset.status];
       if (typeof up !== "boolean") return;
-      chip.textContent = up ? chip.dataset.up : "fora do ar";
+      chip.textContent = up ? chip.dataset.up : tr("fora do ar");
       chip.classList.toggle("is-down", !up);
       chip.hidden = false;
     });

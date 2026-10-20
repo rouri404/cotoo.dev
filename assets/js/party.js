@@ -190,10 +190,10 @@
       b.className = "party-btn";
       controls.appendChild(b);
     }
-    stopBtn.textContent = "sair";
-    stopBtn.setAttribute("aria-label", "Encerrar a festa");
+    stopBtn.textContent = tr("sair");
+    stopBtn.setAttribute("aria-label", tr("Encerrar a festa"));
     const showSound = () => {
-      soundBtn.textContent = audio ? "som: on" : "som: off";
+      soundBtn.textContent = audio ? tr("som: on") : tr("som: off");
       soundBtn.setAttribute("aria-pressed", audio ? "true" : "false");
     };
     document.body.appendChild(controls);

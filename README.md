@@ -19,3 +19,4 @@ Página pessoal interativa e minimalista desenvolvida por mim.
 - [Heatmap](docs/heatmap.md): O calendário de atividade do GitHub na home.
 - [Terminal](docs/terminal.md): O terminal em pop-up que sai do Tux, seus comandos e a integração com o tema.
 - [Checagens locais](docs/checks.md): O script de fumaça e desempenho (`scripts/check.js`) e como rodá-lo.
+- [Versão em inglês](docs/i18n.md): Como a home em `/en/` é gerada e como manter as traduções.

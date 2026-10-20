@@ -5,9 +5,14 @@
     },
     "api/views.js": {
       "includeFiles": "blog/**"
+    },
+    "api/en.js": {
+      "includeFiles": "index.html"
     }
   },
   "rewrites": [
+    { "source": "/en", "destination": "/api/en" },
+    { "source": "/en/", "destination": "/api/en" },
     { "source": "/now", "destination": "/api/blog?page=now" },
     { "source": "/now/", "destination": "/api/blog?page=now" },
     { "source": "/uses", "destination": "/api/blog?page=uses" },

@@ -146,14 +146,15 @@
   // Skins: a few extra shapes merged into the model, so the rasterizer draws them like the rest of him.
   // Some follow the calendar: "natal" (Dec 1 to Jan 6) is a Santa hat, "halloween" (Oct 20 to Nov 2) a witch hat,
   // "pascoa" (Easter week) bunny ears and "junina" (June) a straw hat. The others, "formatura" (graduation cap),
-  // "formatura" (graduation cap), "coroa" (crown) and "festa" (party hat) are only worn on request ("tux skin <nome>" in the terminal).
+  // "coroa" (crown), "festa" (party hat) and "rainbow" (no shape, his black feathers drawn in a drifting band of hues)
+  // are only worn on request ("tux skin <nome>" in the terminal).
   // "fone" (headphones) is worn on request and whenever Spotify says the owner is listening to something, and
   // "sono" (a striped nightcap) from midnight to 6 am, local time. On the owner's birthday (April 27) he wears "festa" all day
   const SKIN_KEY = "mascot-skin";
   const MUSIC_KEY = "mascot-music";
   // The widget only reports on the home page, so the blog trusts the last report for this long
   const MUSIC_TTL = 5 * 60 * 1000;
-  const SKINS = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa", "sono"];
+  const SKINS = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa", "sono", "rainbow"];
 
   // Easter Sunday for a year (the Gregorian computus)
   function easter(y) {
@@ -852,6 +853,11 @@
     hbuf = new Uint8Array(SW * SH);
   }
 
+  // The "rainbow" palette: darker hues on the light theme and brighter ones on the dark, so both read against the page
+  const RAINBOW_STEPS = 24;
+  const rainbowPalette = (light) => Array.from({ length: RAINBOW_STEPS }, (_, k) => `hsl(${(k * 360) / RAINBOW_STEPS} 90% ${light}%)`);
+  const RAINBOW = { light: rainbowPalette(40), dark: rainbowPalette(64) };
+
   function render(model, yaw, pitch, lift) {
     if (!cols || !rows) return;
     const style = getComputedStyle(canvas);
@@ -865,6 +871,9 @@
     const theme = canvas.getAttribute("data-theme") || document.documentElement.getAttribute("data-theme") || "light";
     // The party happens on a darkened screen, so he is drawn light on dark whatever the theme
     const isDark = theme === "dark" || partyLook;
+    const rainbow = model.skin === "rainbow" ? RAINBOW[isDark ? "dark" : "light"] : null;
+    // The band drifts a full turn every 3 s; with reduced motion it holds still
+    const drift = rainbow && !reduceMotion.matches ? (performance.now() / 3000) * RAINBOW_STEPS : 0;
 
     const cy = Math.cos(yaw), sy = Math.sin(yaw);
     const cp = Math.cos(pitch), sp = Math.sin(pitch);
@@ -893,8 +902,8 @@
       const diff = Math.max(0, nx1 * LIGHT[0] + ny2 * LIGHT[1] + nz2 * LIGHT[2]);
       const r = 1 - Math.max(0, nz2);
       const m = mats[i];
-      // A black body would vanish on a dark page, so it gets a little more ink there
-      const albedo = isDark && m === 0 ? (partyLook ? 0.7 : 0.3) : ALBEDO[m];
+      // A black body would vanish on a dark page, so it gets a little more ink there (more still in rainbow colours)
+      const albedo = isDark && m === 0 ? (partyLook ? 0.7 : rainbow ? 0.6 : 0.3) : ALBEDO[m];
       lum[i] = albedo * (0.22 + diff * 0.85) + r * r * r * 0.28;
     }
 
@@ -973,7 +982,10 @@
         const ch = RAMP[Math.min(RAMP.length - 1, Math.floor(ink * RAMP.length))];
         if (ch === " ") continue;
 
-        const color = colors[material];
+        // Diagonal stripes, about one spectrum across his body (he fills about a third of the canvas width)
+        const color = rainbow && material === 0
+          ? rainbow[(((Math.floor(((i + j * 0.6) / cols) * RAINBOW_STEPS * 3 - drift)) % RAINBOW_STEPS) + RAINBOW_STEPS) % RAINBOW_STEPS]
+          : colors[material];
         if (color !== lastColor) {
           ctx.fillStyle = color;
           lastColor = color;

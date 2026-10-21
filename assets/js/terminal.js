@@ -317,7 +317,7 @@
   // Snake, drawn as text in one terminal line. Each cell is two characters wide so it comes out square.
   // Its keys are taken in the capture phase (see the keydown listener below), so the page and the Konami code never see them
   // The skins mascot.js knows, plus the two ways to take them off or leave it to the calendar
-  const SKIN_NAMES = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa", "sono", "nenhuma", "auto"];
+  const SKIN_NAMES = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa", "sono", "rainbow", "nenhuma", "auto"];
 
   let game = null;
   const SNAKE_BEST = "snake-best";

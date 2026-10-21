@@ -949,7 +949,8 @@
     // Cells: coverage, average light and the material that covers most of them
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssW, cssH);
-    ctx.font = `${cellH}px ${FONT}`;
+    // Dark glyphs on a light page read thinner than light ones on dark, so the light theme draws them bold
+    ctx.font = `${isDark ? "" : "bold "}${cellH}px ${FONT}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
@@ -978,7 +979,7 @@
         const l = clamp(sum / count + (hash(i, j) - 0.5) * 0.06, lo, 1);
 
         // Dark theme draws light parts with more ink, light theme the opposite
-        const ink = clamp(isDark ? l : 1 - l * 0.92, 0.1, 1);
+        const ink = clamp(isDark ? l : 1 - l * 0.8, 0.1, 1);
         const ch = RAMP[Math.min(RAMP.length - 1, Math.floor(ink * RAMP.length))];
         if (ch === " ") continue;
 

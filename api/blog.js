@@ -28,6 +28,8 @@ const tagSlug = (t) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 const TAG_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// Post slugs are checked before any file lookup: path.join resolves "..", so a crafted slug could reach a real post and be echoed into the page
+const POST_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 // Every tag in use, by slug, with its posts (newest first, like the index)
 function collectTags(posts) {
@@ -388,12 +390,12 @@ function layout({ title, description, canonical, bodyClass, content, jsonLd, ogT
     <meta name="description" content="${escapeHtml(description)}" />
     <meta name="author" content="${AUTHOR}" />
     <meta name="robots" content="${robots}" />
-    <link rel="canonical" href="${canonical}" />
+    <link rel="canonical" href="${escapeHtml(canonical)}" />
     <link rel="alternate" type="application/rss+xml" title="Blog | Gabriel Couto" href="${SITE}/blog/rss.xml" />
 
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
-    <meta property="og:url" content="${canonical}" />
+    <meta property="og:url" content="${escapeHtml(canonical)}" />
     <meta property="og:type" content="${ogType}" />
     <meta property="og:locale" content="pt_BR" />
     <meta property="og:site_name" content="Gabriel Couto | cotoo.dev" />
@@ -406,7 +408,7 @@ function layout({ title, description, canonical, bodyClass, content, jsonLd, ogT
     <meta name="twitter:image" content="${SITE}/assets/img/og-image.png" />
 
     <script type="application/ld+json">
-${JSON.stringify(jsonLd, null, 2)}
+${JSON.stringify(jsonLd, null, 2).replace(/</g, '\\u003c')}
     </script>
     <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
     <link rel="apple-touch-icon" href="/assets/img/icons/apple-touch-icon.png" />
@@ -421,7 +423,7 @@ ${JSON.stringify(jsonLd, null, 2)}
     <script src="/assets/js/terminal.js" defer></script>
     <script src="/assets/js/party.js" defer></script>${extraScripts}
   </head>
-  <body class="${bodyClass}">
+  <body class="${bodyClass} reading-mode">
     <canvas id="pixel-transition" aria-hidden="true"></canvas>
     <div class="blog-bar-backdrop" aria-hidden="true"></div>
     <header class="blog-bar">
@@ -947,12 +949,17 @@ async function handler(req, res) {
     }
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v26';
+    const TEMPLATE_VERSION = 'v27';
     // Related posts depend on the whole folder, so post caches are tied to its signature too
     const dirSig = getBlogDirSignature();
 
     if (slug) {
       const cleanSlug = String(slug).trim().replace(/^\/+|\/+$/g, '');
+      if (cleanSlug.length > 100 || !POST_SLUG_RE.test(cleanSlug)) {
+        if (isJson) return res.status(404).json({ error: 'Post not found' });
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.status(404).send(render404Html());
+      }
       const cacheKey = `cotoo:blog:post:${cleanSlug}`;
       const filePath = resolvePostFilePath(cleanSlug);
       const fileInfo = filePath ? getFileHashAndMtime(filePath) : { exists: false, mtime: 0, hash: '', raw: '' };

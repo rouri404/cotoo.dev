@@ -279,7 +279,7 @@
       });
     }
 
-    // 2. Font mode toggle ("Aa": default text font vs Tiny5 pixel font)
+    // 2. Font mode toggle ("Aa": reading font, the default rendered by the server, vs Tiny5 pixel font)
     const fontToggle = document.getElementById("fontToggle");
 
     function updateFontBtn() {
@@ -292,8 +292,8 @@
     }
 
     try {
-      if (localStorage.getItem("blog_font") === "reading") {
-        document.body.classList.add("reading-mode");
+      if (localStorage.getItem("blog_font") === "pixel") {
+        document.body.classList.remove("reading-mode");
       }
     } catch (_) {}
     updateFontBtn();

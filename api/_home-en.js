@@ -47,9 +47,15 @@ export const HOME_EN = [
   ['Ideal CTVM — dez/2025 - o momento', 'Ideal CTVM — Dec 2025 – present'],
   ['Kumon Brasil — jan/2022 - dez/2025', 'Kumon Brasil — Jan 2022 – Dec 2025'],
   ['<p class="eyebrow">// blog</p>', '<p class="eyebrow">// blog (in Portuguese)</p>'],
+  ['<span class="name">Construindo o OEDLA</span>', '<span class="name">Building OEDLA</span>'],
+  ['Como cache, proxy e roteamento no edge transformaram planos gratuitos numa plataforma editorial rápida e segura, com custo de infraestrutura zero.', 'How edge caching, proxying and routing turned free plans into a fast, secure editorial platform at zero infrastructure cost.'],
+  ['<span class="name">Guia Prático de Docker</span>', '<span class="name">Practical Docker Guide</span>'],
+  ['Guia completo e prático de Docker, da instalação à orquestração com Docker Compose. Imagens, volumes, redes e boas práticas.', 'Hands-on guide to Docker, from installation to orchestration with Docker Compose. Images, volumes, networks and best practices.'],
   ['title="Ver todos os posts"', 'title="See every post"'],
   ['<span>ver todos os posts</span>', '<span>all posts</span>'],
-  ['title="O que estou fazendo agora"', 'title="What I am up to now"'],
+  ['<a href="/now/" class="blog-all-btn" title="O que estou fazendo agora">', '<a href="/en/now/" class="blog-all-btn" title="What I am up to now">'],
+  ['<a href="/uses/" class="blog-all-btn" title="O que eu uso no dia a dia">', '<a href="/en/uses/" class="blog-all-btn" title="What I use every day">'],
+  ['<a href="/colophon/" class="blog-all-btn" title="Como este site é feito">', '<a href="/en/colophon/" class="blog-all-btn" title="How this site is built">'],
   ['<p class="eyebrow">// atividade no github</p>', '<p class="eyebrow">// github activity</p>'],
 
   // Contact

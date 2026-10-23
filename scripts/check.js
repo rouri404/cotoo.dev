@@ -182,7 +182,7 @@ async function runDevice(browser, device, options) {
     check(device, `Tux is not draggable on ${path}`, draggable === false, draggable === null ? "no mascot" : "");
   }
 
-  for (const path of ["/blog/tag/", "/now/", "/uses/", "/manifest.webmanifest"]) {
+  for (const path of ["/blog/tag/", "/now/", "/uses/", "/colophon/", "/en/", "/en/now/", "/en/uses/", "/en/colophon/", "/api/og?slug=oedla-plataforma-editorial", "/manifest.webmanifest"]) {
     const res = await page.request.get(BASE + path);
     check(device, `${path} answers 200`, res.status() === 200, String(res.status()));
   }

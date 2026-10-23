@@ -17,6 +17,7 @@ const ctx = canvas.getContext("2d");
 const FADE_DURATION = 500;
 let pixelSize = 24;
 const activePixels = new Map();
+let trailRaf = 0;
 
 function resize() {
   canvas.width = window.innerWidth;
@@ -39,8 +40,7 @@ function draw(now) {
     }
   }
   ctx.globalAlpha = 1;
-  ctx.globalAlpha = 1;
-  requestAnimationFrame(draw);
+  trailRaf = activePixels.size > 0 ? requestAnimationFrame(draw) : 0;
 }
 
 function handlePointerMove(e) {
@@ -51,6 +51,7 @@ function handlePointerMove(e) {
   const row = Math.floor(e.clientY / pixelSize);
   const key = `${col},${row}`;
   activePixels.set(key, performance.now());
+  if (!trailRaf) trailRaf = requestAnimationFrame(draw);
 }
 
 const heroStage = document.getElementById("stage-hero");
@@ -379,7 +380,6 @@ if (contactForm) {
 
 resize();
 document.body.dataset.stage = "hero";
-requestAnimationFrame(draw);
 class ScrambleText {
   constructor(el) {
     this.el = el;
@@ -582,13 +582,19 @@ themeToggle.addEventListener("click", (e) => {
   );
   
   const ditherBandRatio = 1 / 1.5;
-  const flips = Array.from(elementsToFlip).map(el => {
+  const borderSel = '.education-card, .mascot-bubble, .btn, .modal-content, .shot-viewer img, .contact-form input, .contact-form textarea, .menu-col, .projects li, .blog-all-btn, .visit-digit, .project-meta .chip';
+  const inactiveStage = heroStage.classList.contains("active") ? menuStage : heroStage;
+  const vh = window.innerHeight;
+  const flips = [];
+  for (const el of elementsToFlip) {
+    if (inactiveStage && inactiveStage.contains(el)) continue;
     const rect = el.getBoundingClientRect();
+    if ((!rect.width && !rect.height) || rect.bottom < -100 || rect.top > vh + 100) continue;
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const d = Math.sqrt((window.innerWidth - cx)**2 + cy**2);
-    return { el, d, lag: ditherBandRatio, flipped: false };
-  });
+    flips.push({ el, d, lag: ditherBandRatio, flipped: false, hasBorder: el.matches(borderSel), isImg: el.tagName === "IMG" });
+  }
 
   // Split hero text into letters so each one flips as the wave reaches it
   const splitEls = [];
@@ -674,10 +680,10 @@ themeToggle.addEventListener("click", (e) => {
       if (!flip.flipped && (waveR - ditherBand * flip.lag) > flip.d / size) {
         flip.el.setAttribute("data-theme", newTheme);
         flip.el.style.color = targetTextColor;
-        if (flip.el.matches('.education-card, .mascot-bubble, .btn, .modal-content, .shot-viewer img, .contact-form input, .contact-form textarea, .menu-col, .projects li, .blog-all-btn, .visit-digit, .project-meta .chip')) {
+        if (flip.hasBorder) {
           flip.el.style.borderColor = targetTextColor;
         }
-        if (flip.el.tagName.toLowerCase() === "img") {
+        if (flip.isImg) {
           flip.el.style.filter = targetLogoFilter;
         }
         flip.flipped = true;
@@ -1318,18 +1324,21 @@ async function initLatestBlogPost() {
     const res = await fetch("/api/blog?format=json");
     if (!res.ok) return;
     const data = await res.json();
-    if (data && data.latest) {
-      const p = data.latest;
-      const li = blogList.querySelector("li");
-      if (li) {
-        li.setAttribute("data-url", `/blog/${p.slug}/`);
+    const list = data && Array.isArray(data.posts) && data.posts.length ? data.posts : data && data.latest ? [data.latest] : [];
+    if (list.length) {
+      blogList.querySelectorAll("li").forEach((li, idx) => {
+        const p = list[idx];
+        if (!p) return;
+        const targetUrl = `/blog/${p.slug}/`;
+        if (li.getAttribute("data-url") === targetUrl) return;
+        li.setAttribute("data-url", targetUrl);
         const nameEl = li.querySelector(".name");
         const descEl = li.querySelector(".desc");
         if (nameEl) {
-          wrapLetters3D(nameEl, p.meta.shortTitle || p.meta.title);
+          wrapLetters3D(nameEl, tr(p.meta.shortTitle || p.meta.title));
         }
-        if (descEl) descEl.textContent = p.meta.description;
-      }
+        if (descEl) descEl.textContent = tr(p.meta.description);
+      });
     }
   } catch (_) {
     // Graceful fallback to static markup

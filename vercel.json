@@ -8,11 +8,20 @@
     },
     "api/en.js": {
       "includeFiles": "index.html"
+    },
+    "api/og.js": {
+      "includeFiles": "{blog/**,assets/fonts/Tiny5-Regular.ttf}"
     }
   },
   "rewrites": [
     { "source": "/en", "destination": "/api/en" },
     { "source": "/en/", "destination": "/api/en" },
+    { "source": "/en/now", "destination": "/api/blog?page=now&lang=en" },
+    { "source": "/en/now/", "destination": "/api/blog?page=now&lang=en" },
+    { "source": "/en/uses", "destination": "/api/blog?page=uses&lang=en" },
+    { "source": "/en/uses/", "destination": "/api/blog?page=uses&lang=en" },
+    { "source": "/en/colophon", "destination": "/api/blog?page=colophon&lang=en" },
+    { "source": "/en/colophon/", "destination": "/api/blog?page=colophon&lang=en" },
     { "source": "/now", "destination": "/api/blog?page=now" },
     { "source": "/now/", "destination": "/api/blog?page=now" },
     { "source": "/uses", "destination": "/api/blog?page=uses" },

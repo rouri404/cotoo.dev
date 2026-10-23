@@ -12,13 +12,20 @@
   const isHome = !!hero;
   const isPost = document.body.classList.contains("page-post");
   const isIndex = document.body.classList.contains("page-index");
-  if (!isHome && !isPost && !isIndex) return;
+  const is404 = document.body.classList.contains("page-404");
+  if (!isHome && !isPost && !isIndex && !is404) return;
 
   const STORE_KEY = "mascot-pos";
   const MODEL_URL = "/assets/models/tux.bin";
   const REPO_URL = "https://github.com/rouri404/cotoo.dev";
   // The text he shows by himself; posts have none, only the short comments from say()
-  const BUBBLE_TEXT = isHome ? tr("curtiu o site? da uma estrelinha lá :p") : isIndex ? tr("bora ler um post? escolhe um aí :)") : "";
+  const BUBBLE_TEXT = isHome
+    ? tr("curtiu o site? da uma estrelinha lá :p")
+    : isIndex
+      ? tr("bora ler um post? escolhe um aí :)")
+      : is404
+        ? tr("ué, não tem nada aqui... 404 o.O")
+        : "";
   const CREDIT_GAP = 24;
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -762,7 +769,7 @@
     const text = speech ? speech.text : partyStart >= 0 ? "" : BUBBLE_TEXT;
     const rel = parseFloat(bubble.style.top);
     const top = pos.y + (isNaN(rel) ? -90 : rel);
-    const placed = speech ? true : isHome ? mode === "follow" && now - modeSince > 900 : isIndex && now - modeSince > 1800;
+    const placed = speech ? true : isHome ? mode === "follow" && now - modeSince > 900 : (isIndex || is404) && now - modeSince > 1800;
     const want = !!text && placed && !leaving && !dragging() && onScreen && top > 8 && fitsBeside();
     const isOn = bubble.classList.contains("is-on");
 
@@ -1087,7 +1094,7 @@
   }
   document.addEventListener("visibilitychange", wake);
 
-  if (isPost && !document.body.matches(".page-now, .page-uses")) {
+  if (isPost && !document.body.matches(".page-now, .page-uses, .page-colophon")) {
     const said = { half: false, end: false };
     window.addEventListener(
       "scroll",

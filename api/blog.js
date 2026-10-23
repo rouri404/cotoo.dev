@@ -160,9 +160,14 @@ function createSlugger() {
   };
 }
 
-async function renderMarkdownWith(body) {
+async function renderMarkdownWith(body, lang = 'pt') {
   const Marked = await getMarkedClass();
   const slug = createSlugger();
+  const isEn = lang === 'en';
+  const anchorTitle = isEn ? 'Copy link to this section' : 'Copiar link desta seção';
+  const copyLabel = isEn ? 'Copy code' : 'Copiar código';
+  const copyTitle = isEn ? 'Copy commands' : 'Copiar comandos';
+  const copyText = isEn ? 'copy' : 'copiar';
   const marked = new Marked({
     gfm: true,
     renderer: {
@@ -170,7 +175,7 @@ async function renderMarkdownWith(body) {
         const level = Math.max(depth, 2);
         const id = escapeHtml(slug(text));
         // The "#" after the title copies a link straight to the section (assets/js/blog.js)
-        return `<h${level} id="${id}">${this.parser.parseInline(tokens)}<a class="heading-anchor" href="#${id}" aria-label="Copiar link desta seção" title="Copiar link desta seção">#</a></h${level}>\n`;
+        return `<h${level} id="${id}">${this.parser.parseInline(tokens)}<a class="heading-anchor" href="#${id}" aria-label="${anchorTitle}" title="${anchorTitle}">#</a></h${level}>\n`;
       },
       link({ href, title, tokens }) {
         const external = /^https?:\/\//.test(href);
@@ -192,10 +197,10 @@ async function renderMarkdownWith(body) {
         return `<div class="code-block">
   <div class="code-header">
     <span class="code-lang">${escapeHtml(lang)}</span>
-    <button class="copy-btn" type="button" aria-label="Copiar código" title="Copiar comandos">
+    <button class="copy-btn" type="button" aria-label="${copyLabel}" title="${copyTitle}">
       <svg class="copy-icon" viewBox="0 0 12 12" width="12" height="12" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true"><rect x="4" y="1" width="6" height="1"/><rect x="4" y="1" width="1" height="7"/><rect x="9" y="1" width="1" height="7"/><rect x="4" y="7" width="6" height="1"/><rect x="2" y="4" width="6" height="1"/><rect x="2" y="4" width="1" height="7"/><rect x="7" y="4" width="1" height="7"/><rect x="2" y="10" width="6" height="1"/></svg>
       <svg class="check-icon" viewBox="0 0 12 12" width="12" height="12" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true"><rect x="9" y="2" width="2" height="2"/><rect x="7" y="4" width="2" height="2"/><rect x="5" y="6" width="2" height="2"/><rect x="3" y="8" width="2" height="2"/><rect x="2" y="6" width="2" height="2"/></svg>
-      <span class="copy-text">copiar</span>
+      <span class="copy-text">${copyText}</span>
     </button>
   </div>
   <pre tabindex="0"><code class="language-${escapeHtml(lang)}">${highlighted}</code></pre>
@@ -239,8 +244,8 @@ async function renderMarkdownWith(body) {
   return marked.parse(body);
 }
 
-const formatDate = (iso) =>
-  new Date(`${iso}T12:00:00-03:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+const formatDate = (iso, locale = 'pt-BR') =>
+  new Date(`${iso}T12:00:00-03:00`).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 
 const xmlEscape = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]);
@@ -294,13 +299,35 @@ function plainSections(body) {
     .filter((s) => s.title);
 }
 
-function renderNowHtml({ meta, html }) {
+function renderNowHtml({ meta, html, latestPost = null }, lang = 'pt') {
+  const isEn = lang === 'en';
+  const canonical = isEn ? `${SITE}/en/now/` : `${SITE}/now/`;
+  const homeHref = isEn ? '/en/' : '/';
+  const usesHref = isEn ? '/en/uses/' : '/uses/';
+  const colophonHref = isEn ? '/en/colophon/' : '/colophon/';
+  const navLabel = isEn ? 'Navigation' : 'Navegação';
+  const updatedText = isEn ? 'Updated on' : 'Atualizado em';
+  const liveTitle = isEn ? '// live' : '// ao vivo';
+  const locLabel = isEn ? 'location' : 'local';
+  const locDefault = isEn ? 'São Paulo, Brazil · BRT (UTC-3)' : 'São Paulo, SP · BRT (UTC-3)';
+  const eduLabel = isEn ? 'degree' : 'formação';
+  const eduTitle = isEn ? 'Software Engineering · FIAP (2024–2028)' : 'Engenharia de Software · FIAP (2024–2028)';
+  const eduAria = isEn ? 'Degree progress' : 'Progresso da graduação';
+  const postLabel = isEn ? 'latest post' : 'último post';
+  const nowAboutTitle = isEn ? 'What is a /now page?' : 'O que é uma página /now?';
+  const locale = isEn ? 'en-US' : 'pt-BR';
+  const latestPostRow = latestPost
+    ? `\n          <li class="now-live-item">
+            <span class="now-live-label">${postLabel}</span>
+            <span class="now-live-value"><a href="/blog/${escapeHtml(latestPost.slug)}/">${escapeHtml(latestPost.meta.title)}</a> <span class="now-live-sub">· ${formatDate(latestPost.meta.date, locale)}</span></span>
+          </li>`
+    : '';
   const content = `    <main class="blog-main">
-      <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / now</nav>
+      <nav class="crumbs" aria-label="${navLabel}"><a href="${homeHref}">cotoo.dev</a> / now</nav>
       <article class="post">
         <header class="post-header">
           <h1>now</h1>
-          <p class="post-meta">atualizado em <time datetime="${meta.date}">${formatDate(meta.date)}</time></p>
+          <p class="post-meta">${escapeHtml(meta.description)} ${updatedText} <time id="nowUpdated" datetime="${meta.date}">${formatDate(meta.date, locale)}</time><span id="nowUpdatedAgo"></span>.</p>
         </header>
         <div class="prose">
 ${html}
@@ -308,19 +335,44 @@ ${html}
       </article>
       <section class="post-related now-live" aria-labelledby="nowLiveTitle">
         <hr />
-        <p class="related-title" id="nowLiveTitle">// ao vivo</p>
+        <p class="related-title" id="nowLiveTitle">${liveTitle}</p>
         <ul class="now-live-list">
-          <li id="nowMusic" hidden></li>
-          <li id="nowCommit" hidden></li>
+          <li class="now-live-item">
+            <span class="now-live-label">${locLabel}</span>
+            <span class="now-live-value" id="nowClock">${locDefault}</span>
+          </li>
+          <li class="now-live-item now-live-edu">
+            <span class="now-live-label">${eduLabel}</span>
+            <span class="now-live-value">
+              <span class="now-edu-head">
+                <span class="now-edu-title">${eduTitle}</span>
+                <span class="now-edu-meta" id="nowEduMeta"></span>
+              </span>
+              <span class="now-edu-bar" id="nowEduBar" role="progressbar" aria-label="${eduAria}" aria-valuemin="0" aria-valuemax="100"></span>
+            </span>
+          </li>
+          <li class="now-live-item" id="nowMusic" hidden></li>
+          <li class="now-live-item" id="nowCommit" hidden></li>${latestPostRow}
         </ul>
+        <p class="post-feed">
+          <a class="tag" href="${usesHref}">/uses</a>
+          <a class="tag" href="${colophonHref}">/colophon</a>
+          <a class="tag" href="/blog/">/blog</a>
+          <a class="tag" href="https://nownownow.com/about" target="_blank" rel="noopener noreferrer" title="${nowAboutTitle}">nownownow.com ➚</a>
+        </p>
       </section>
     </main>`;
   return layout({
     title: 'Now | Gabriel Couto',
     description: meta.description,
-    canonical: `${SITE}/now/`,
+    canonical,
     bodyClass: 'page-post page-now',
     ogType: 'website',
+    lang: isEn ? 'en' : 'pt-BR',
+    alternates: { pt: `${SITE}/now/`, en: `${SITE}/en/now/`, xDefault: `${SITE}/now/` },
+    langSwitch: isEn
+      ? { href: '/now/', label: 'pt', hreflang: 'pt-BR', title: 'Versão em português' }
+      : { href: '/en/now/', label: 'en', hreflang: 'en', title: 'English version' },
     content,
     extraScripts: '\n    <script src="/assets/js/now.js" defer></script>',
     jsonLd: {
@@ -328,8 +380,8 @@ ${html}
       '@type': 'WebPage',
       name: 'Now | Gabriel Couto',
       description: meta.description,
-      url: `${SITE}/now/`,
-      inLanguage: 'pt-BR',
+      url: canonical,
+      inLanguage: isEn ? 'en' : 'pt-BR',
       dateModified: meta.date,
       author: { '@type': 'Person', name: AUTHOR, url: `${SITE}/` },
     },
@@ -339,49 +391,108 @@ ${html}
 // Single pages made from a markdown file in blog/: /uses (blog/_uses.md, the setup) and /colophon (blog/_colophon.md, how the
 // site is made). "draft: true" in the front matter keeps a page out of search engines
 const PAGES = {
-  uses: { file: '_uses.md', title: 'Uses' },
-  colophon: { file: '_colophon.md', title: 'Colophon' },
+  uses: { file: '_uses.md', enFile: '_uses.en.md', title: 'Uses' },
+  colophon: { file: '_colophon.md', enFile: '_colophon.en.md', title: 'Colophon' },
 };
 
-function renderPageHtml(name, { meta, html }) {
+function renderPageHtml(name, { meta, html }, lang = 'pt') {
+  const isEn = lang === 'en';
   const draft = meta.draft === 'true';
   const title = `${PAGES[name].title} | Gabriel Couto`;
+  const canonical = isEn ? `${SITE}/en/${name}/` : `${SITE}/${name}/`;
+  const homeHref = isEn ? '/en/' : '/';
+  const nowHref = isEn ? '/en/now/' : '/now/';
+  const otherName = name === 'uses' ? 'colophon' : 'uses';
+  const otherHref = isEn ? `/en/${otherName}/` : `/${otherName}/`;
+  const navLabel = isEn ? 'Navigation' : 'Navegação';
+  const updatedLabel = isEn ? 'Updated on' : 'Atualizado em';
+  const locale = isEn ? 'en-US' : 'pt-BR';
+  const extLink =
+    name === 'uses'
+      ? `<a class="tag" href="https://uses.tech" target="_blank" rel="noopener noreferrer" title="${isEn ? 'What is a /uses page?' : 'O que é uma página /uses?'}">uses.tech ➚</a>`
+      : `<a class="tag" href="https://github.com/rouri404/cotoo.dev" target="_blank" rel="noopener noreferrer" title="${isEn ? 'Source code on GitHub' : 'Código-fonte no GitHub'}">github ➚</a>`;
   const content = `    <main class="blog-main">
-      <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / ${name}</nav>
+      <nav class="crumbs" aria-label="${navLabel}"><a href="${homeHref}">cotoo.dev</a> / ${name}</nav>
       <article class="post">
         <header class="post-header">
           <h1>${name}</h1>
-          <p class="post-meta">${escapeHtml(meta.description)} Atualizado em <time datetime="${meta.date}">${formatDate(meta.date)}</time>.</p>
+          <p class="post-meta">${escapeHtml(meta.description)} ${updatedLabel} <time datetime="${meta.date}">${formatDate(meta.date, locale)}</time>.</p>
         </header>
         <div class="prose">
 ${html}
         </div>
       </article>
+      <aside class="post-related" aria-label="${navLabel}">
+        <hr />
+        <p class="post-feed">
+          <a class="tag" href="${nowHref}">/now</a>
+          <a class="tag" href="${otherHref}">/${otherName}</a>
+          <a class="tag" href="/blog/">/blog</a>
+          ${extLink}
+        </p>
+      </aside>
     </main>`;
   return layout({
     title,
     description: meta.description,
-    canonical: `${SITE}/${name}/`,
+    canonical,
     bodyClass: `page-post page-${name}`,
     ogType: 'website',
     robots: draft ? 'noindex, follow' : 'index, follow',
+    lang: isEn ? 'en' : 'pt-BR',
+    alternates: { pt: `${SITE}/${name}/`, en: `${SITE}/en/${name}/`, xDefault: `${SITE}/${name}/` },
+    langSwitch: isEn
+      ? { href: `/${name}/`, label: 'pt', hreflang: 'pt-BR', title: 'Versão em português' }
+      : { href: `/en/${name}/`, label: 'en', hreflang: 'en', title: 'English version' },
     content,
     jsonLd: {
       '@context': 'https://schema.org',
       '@type': 'WebPage',
       name: title,
       description: meta.description,
-      url: `${SITE}/${name}/`,
-      inLanguage: 'pt-BR',
+      url: canonical,
+      inLanguage: isEn ? 'en' : 'pt-BR',
       dateModified: meta.date,
       author: { '@type': 'Person', name: AUTHOR, url: `${SITE}/` },
     },
   });
 }
 
-function layout({ title, description, canonical, bodyClass, content, jsonLd, ogType, extraScripts = '', robots = 'index, follow' }) {
+function layout({
+  title,
+  description,
+  canonical,
+  bodyClass,
+  content,
+  jsonLd,
+  ogType,
+  ogImage = `${SITE}/assets/img/og-image.png`,
+  extraScripts = '',
+  robots = 'index, follow',
+  lang = 'pt-BR',
+  alternates = null,
+  langSwitch = null,
+}) {
+  const isEn = lang === 'en';
+  const altLinks = alternates
+    ? `\n    <link rel="alternate" hreflang="pt-BR" href="${escapeHtml(alternates.pt)}" />\n    <link rel="alternate" hreflang="en" href="${escapeHtml(alternates.en)}" />\n    <link rel="alternate" hreflang="x-default" href="${escapeHtml(alternates.xDefault)}" />`
+    : '';
+  const ogLocale = isEn
+    ? '<meta property="og:locale" content="en_US" />\n    <meta property="og:locale:alternate" content="pt_BR" />'
+    : '<meta property="og:locale" content="pt_BR" />';
+  const i18nScripts = isEn
+    ? '<script src="/assets/js/i18n-en.js"></script>\n    <script src="/assets/js/i18n.js"></script>'
+    : '<script src="/assets/js/i18n.js"></script>';
+  const homeHref = isEn ? '/en/' : '/';
+  const homeTitle = isEn ? 'Back to cotoo.dev' : 'Voltar para cotoo.dev';
+  const blogTitle = isEn ? 'Go to the blog (in Portuguese)' : 'Ir para o início do blog';
+  const fontTitle = isEn ? 'Toggle font (Pixel / Reading)' : 'Alternar fonte (Pixel / Leitura)';
+  const themeTitle = isEn ? 'Toggle theme' : 'Alternar tema';
+  const langBtn = langSwitch
+    ? `<a class="lang-toggle" href="${escapeHtml(langSwitch.href)}" hreflang="${escapeHtml(langSwitch.hreflang)}" lang="${escapeHtml(langSwitch.hreflang)}" title="${escapeHtml(langSwitch.title)}">${escapeHtml(langSwitch.label)}</a>\n        `
+    : '';
   return `<!doctype html>
-<html lang="pt-BR">
+<html lang="${escapeHtml(lang)}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -390,22 +501,22 @@ function layout({ title, description, canonical, bodyClass, content, jsonLd, ogT
     <meta name="description" content="${escapeHtml(description)}" />
     <meta name="author" content="${AUTHOR}" />
     <meta name="robots" content="${robots}" />
-    <link rel="canonical" href="${escapeHtml(canonical)}" />
+    <link rel="canonical" href="${escapeHtml(canonical)}" />${altLinks}
     <link rel="alternate" type="application/rss+xml" title="Blog | Gabriel Couto" href="${SITE}/blog/rss.xml" />
 
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(canonical)}" />
     <meta property="og:type" content="${ogType}" />
-    <meta property="og:locale" content="pt_BR" />
+    ${ogLocale}
     <meta property="og:site_name" content="Gabriel Couto | cotoo.dev" />
-    <meta property="og:image" content="${SITE}/assets/img/og-image.png" />
+    <meta property="og:image" content="${escapeHtml(ogImage)}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(title)}" />
     <meta name="twitter:description" content="${escapeHtml(description)}" />
-    <meta name="twitter:image" content="${SITE}/assets/img/og-image.png" />
+    <meta name="twitter:image" content="${escapeHtml(ogImage)}" />
 
     <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 2).replace(/</g, '\\u003c')}
@@ -417,7 +528,7 @@ ${JSON.stringify(jsonLd, null, 2).replace(/</g, '\\u003c')}
     <link rel="stylesheet" href="/assets/css/blog.css" />
     <link rel="stylesheet" href="/assets/css/mascot.css" />
     <link rel="stylesheet" href="/assets/css/terminal.css" />
-    <script src="/assets/js/i18n.js"></script>
+    ${i18nScripts}
     <script src="/assets/js/blog.js"></script>
     <script src="/assets/js/mascot.js" defer></script>
     <script src="/assets/js/terminal.js" defer></script>
@@ -428,13 +539,13 @@ ${JSON.stringify(jsonLd, null, 2).replace(/</g, '\\u003c')}
     <div class="blog-bar-backdrop" aria-hidden="true"></div>
     <header class="blog-bar">
       <nav class="blog-nav-brand">
-        <a class="blog-brand-link" href="/" title="Voltar para cotoo.dev">&lt; cotoo.dev</a>
+        <a class="blog-brand-link" href="${homeHref}" title="${homeTitle}">&lt; cotoo.dev</a>
         <span class="blog-nav-slash">/</span>
-        <a class="blog-brand-link" href="/blog/" title="Ir para o início do blog">blog</a>
+        <a class="blog-brand-link" href="/blog/" title="${blogTitle}">blog</a>
       </nav>
       <div class="blog-bar-actions">
-        <button class="font-toggle" id="fontToggle" type="button" title="Alternar fonte (Pixel / Leitura)" aria-label="Alternar fonte">Aa</button>
-        <button class="theme-toggle" id="themeToggle" type="button" title="Alternar tema" aria-label="Alternar tema"></button>
+        ${langBtn}<button class="font-toggle" id="fontToggle" type="button" title="${fontTitle}" aria-label="${fontTitle}">Aa</button>
+        <button class="theme-toggle" id="themeToggle" type="button" title="${themeTitle}" aria-label="${themeTitle}"></button>
       </div>
     </header>
 ${content}
@@ -492,6 +603,7 @@ ${items}
 function renderPostHtml(post, related = []) {
   const { meta, html, slug, readingMinutes } = post;
   const url = `${SITE}/blog/${slug}/`;
+  const ogImage = `${SITE}/api/og?slug=${encodeURIComponent(slug)}`;
   const tags = meta.tags
     .filter((t) => tagSlug(t))
     .map((t) => `<a class="tag" href="/blog/tag/${tagSlug(t)}/" title="Ver posts com a tag ${escapeHtml(t)}">${escapeHtml(t)}</a>`)
@@ -515,6 +627,7 @@ ${html}
     canonical: url,
     bodyClass: 'page-post',
     ogType: 'article',
+    ogImage,
     content,
     extraScripts: '\n    <script src="/assets/js/post-toc.js" defer></script>\n    <script src="/assets/js/post-motion.js" defer></script>' + (html.includes('class="mermaid-block"') ? '\n    <script src="/assets/js/mermaid-block.js" defer></script>' : ''),
     jsonLd: {
@@ -527,7 +640,7 @@ ${html}
       dateModified: meta.updated || meta.date,
       keywords: meta.tags.join(', '),
       mainEntityOfPage: url,
-      image: `${SITE}/assets/img/og-image.png`,
+      image: ogImage,
       author: { '@type': 'Person', name: AUTHOR, url: `${SITE}/` },
       publisher: { '@type': 'Person', name: AUTHOR, url: `${SITE}/` },
     },
@@ -554,7 +667,7 @@ function renderIndexHtml(posts) {
       <header class="post-header">
         <h1>blog</h1>
         <p class="post-meta">Guias e anotações sobre back-end, infraestrutura e sistemas.</p>
-        <p class="post-feed">${feedLink('rss')} <a class="tag" href="/blog/tag/" title="Ver todas as tags">#tags</a></p>
+        <p class="post-feed">${feedLink('rss')} <a class="tag" href="/blog/tag/" title="Ver todas as tags">#tags</a> <a class="tag" href="/now/" title="O que estou fazendo agora">/now</a> <a class="tag" href="/uses/" title="O que eu uso no dia a dia">/uses</a> <a class="tag" href="/colophon/" title="Como este site é feito">/colophon</a></p>
       </header>
       <div class="post-search" hidden>
         <label class="post-search-label" for="postSearch">// buscar</label>
@@ -672,19 +785,27 @@ function renderTagIndexHtml(tags) {
 
 function render404Html() {
   const content = `    <main class="blog-main">
+      <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / 404</nav>
       <header class="post-header">
         <h1>404</h1>
         <p class="post-meta">Publicação não encontrada.</p>
       </header>
       <div class="prose">
-        <p>O artigo que você está procurando não existe ou foi removido.</p>
-        <p><a href="/blog/">&lt; Voltar para a listagem do blog</a></p>
+        <p>O endereço que você abriu não existe ou mudou de lugar. Você pode voltar para o início, explorar os posts ou apertar <code>/</code> (ou clicar no Tux) para abrir o terminal.</p>
+        <p class="post-tags">
+          <a class="tag" href="/">&lt; início</a>
+          <a class="tag" href="/blog/">/blog</a>
+          <a class="tag" href="/now/">/now</a>
+          <a class="tag" href="/uses/">/uses</a>
+          <a class="tag" href="/colophon/">/colophon</a>
+        </p>
       </div>
     </main>`;
   return layout({
-    title: '404 Não Encontrado | Blog',
-    description: 'Publicação não encontrada no blog.',
+    title: '404 Não Encontrado | cotoo.dev',
+    description: 'Página ou publicação não encontrada em cotoo.dev.',
     canonical: `${SITE}/blog/`,
+    robots: 'noindex, follow',
     bodyClass: 'page-404',
     ogType: 'website',
     content,
@@ -863,34 +984,41 @@ async function handler(req, res) {
     let slug = query.slug;
     let format = query.format;
     let refresh = query.refresh;
+    let lang = query.lang;
 
-    if (!slug && req.url) {
+    if (req.url) {
       try {
         const parsedUrl = new URL(req.url, 'http://localhost');
         slug = slug || parsedUrl.searchParams.get('slug');
         format = format || parsedUrl.searchParams.get('format');
         refresh = refresh || parsedUrl.searchParams.get('refresh');
+        lang = lang || parsedUrl.searchParams.get('lang');
       } catch (_) {}
     }
 
     // Only the query string picks JSON, so the CDN never caches it under the HTML URL
     const isJson = format === 'json';
     const forceRefresh = refresh === '1' || refresh === 'true';
+    const pageLang = lang === 'en' ? 'en' : 'pt';
 
     if (query.page === 'now' || (req.url && /[?&]page=now\b/.test(req.url))) {
-      const file = getFileHashAndMtime(path.join(getBlogDir(), '_now.md'));
+      const nowFile = pageLang === 'en' ? '_now.en.md' : '_now.md';
+      const file = getFileHashAndMtime(path.join(getBlogDir(), nowFile));
       if (!file.exists) return res.status(404).send(render404Html());
       if (format === 'json') {
         const { meta, body } = parseFrontMatter(file.raw);
         res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
         return res.status(200).json({ date: meta.date, sections: plainSections(body) });
       }
-      const cached = memCache.get('__now__');
-      let nowHtml = cached && cached.hash === file.hash && cached.version === 'v5' ? cached.html : null;
+      const cacheKey = `__now_${pageLang}__`;
+      const cached = memCache.get(cacheKey);
+      const dirSig = getBlogDirSignature();
+      let nowHtml = cached && cached.hash === file.hash && cached.signature === dirSig.signature && cached.version === 'v7' ? cached.html : null;
       if (!nowHtml) {
         const { meta, body } = parseFrontMatter(file.raw);
-        nowHtml = renderNowHtml({ meta, html: await renderMarkdownWith(body) });
-        memCache.set('__now__', { hash: file.hash, version: 'v5', html: nowHtml });
+        const posts = getLocalPosts();
+        nowHtml = renderNowHtml({ meta, html: await renderMarkdownWith(body, pageLang), latestPost: posts[0] || null }, pageLang);
+        memCache.set(cacheKey, { hash: file.hash, signature: dirSig.signature, version: 'v7', html: nowHtml });
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
@@ -899,15 +1027,21 @@ async function handler(req, res) {
 
     const pageName = Object.keys(PAGES).find((name) => query.page === name || (req.url && new RegExp(`[?&]page=${name}\\b`).test(req.url)));
     if (pageName) {
-      const file = getFileHashAndMtime(path.join(getBlogDir(), PAGES[pageName].file));
+      const targetFile = pageLang === 'en' ? PAGES[pageName].enFile : PAGES[pageName].file;
+      const file = getFileHashAndMtime(path.join(getBlogDir(), targetFile));
       if (!file.exists) return res.status(404).send(render404Html());
-      const key = `__${pageName}__`;
+      if (format === 'json') {
+        const { meta, body } = parseFrontMatter(file.raw);
+        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+        return res.status(200).json({ date: meta.date, sections: plainSections(body) });
+      }
+      const key = `__${pageName}_${pageLang}__`;
       const cached = memCache.get(key);
-      let pageHtml = cached && cached.hash === file.hash && cached.version === 'v3' ? cached.html : null;
+      let pageHtml = cached && cached.hash === file.hash && cached.version === 'v5' ? cached.html : null;
       if (!pageHtml) {
         const { meta, body } = parseFrontMatter(file.raw);
-        pageHtml = renderPageHtml(pageName, { meta, html: await renderMarkdownWith(body) });
-        memCache.set(key, { hash: file.hash, version: 'v3', html: pageHtml });
+        pageHtml = renderPageHtml(pageName, { meta, html: await renderMarkdownWith(body, pageLang) }, pageLang);
+        memCache.set(key, { hash: file.hash, version: 'v5', html: pageHtml });
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
@@ -949,7 +1083,7 @@ async function handler(req, res) {
     }
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v27';
+    const TEMPLATE_VERSION = 'v28';
     // Related posts depend on the whole folder, so post caches are tied to its signature too
     const dirSig = getBlogDirSignature();
 

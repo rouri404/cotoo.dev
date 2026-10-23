@@ -6,9 +6,9 @@
   const SITE_LINKS = {
     home: window.I18N_EN ? "/en/" : "/",
     blog: "/blog/",
-    now: "/now/",
-    uses: "/uses/",
-    colophon: "/colophon/",
+    now: window.I18N_EN ? "/en/now/" : "/now/",
+    uses: window.I18N_EN ? "/en/uses/" : "/uses/",
+    colophon: window.I18N_EN ? "/en/colophon/" : "/colophon/",
     rss: "/blog/rss.xml",
     github: "https://github.com/rouri404",
     linkedin: "https://linkedin.com/in/gabricouto",
@@ -213,7 +213,7 @@
   // Lower case without accents, so "seguranca" finds "Segurança". Each character keeps its position
   const fold = (text) => text.split("").map((c) => c.normalize("NFD")[0].toLowerCase()).join("");
   const projectFiles = PROJECTS.map(([name, url, desc]) => ({ name: slugify(name) + ".md", title: name, url, desc }));
-  const HOME_FILES = ["about.txt", "stack.txt", "contact.txt", "now.md"];
+  const HOME_FILES = ["about.txt", "stack.txt", "contact.txt", "now.md", "uses.md"];
 
   async function loadPosts() {
     if (posts) return posts;
@@ -249,16 +249,32 @@
   async function printNow() {
     const wait = line(tr("buscando /now..."), "term-dim");
     try {
-      const data = await getJson("/now/?format=json");
+      const data = await getJson(SITE_LINKS.now + "?format=json");
       wait.remove();
       for (const { title, text } of data.sections) {
         line([ico(NF.clock), span(title.toLowerCase(), "term-accent")]);
         line("  " + text, "term-dim");
       }
-      line([span(tr("atualizado em {date}", { date: data.date }) + "  ", "term-dim"), link(SITE_LINKS.now, "/now/")]);
+      line([span(tr("atualizado em {date}", { date: data.date }) + "  ", "term-dim"), link(SITE_LINKS.now, SITE_LINKS.now)]);
     } catch (_) {
       wait.textContent = "";
-      wait.append(span(tr("não consegui buscar agora. veja em "), "term-dim"), link(SITE_LINKS.now, "/now/"));
+      wait.append(span(tr("não consegui buscar agora. veja em "), "term-dim"), link(SITE_LINKS.now, SITE_LINKS.now));
+    }
+  }
+
+  async function printUses() {
+    const wait = line(tr("buscando /uses..."), "term-dim");
+    try {
+      const data = await getJson(SITE_LINKS.uses + "?format=json");
+      wait.remove();
+      for (const { title, text } of data.sections) {
+        line([ico(NF.desktop), span(title.toLowerCase(), "term-accent")]);
+        line("  " + text, "term-dim");
+      }
+      line([span(tr("atualizado em {date}", { date: data.date }) + "  ", "term-dim"), link(SITE_LINKS.uses, SITE_LINKS.uses)]);
+    } catch (_) {
+      wait.textContent = "";
+      wait.append(span(tr("não consegui buscar agora. veja em "), "term-dim"), link(SITE_LINKS.uses, SITE_LINKS.uses));
     }
   }
 
@@ -642,6 +658,11 @@
       desc: tr("o que estou fazendo agora"),
       run: printNow,
     },
+    uses: {
+      icon: NF.desktop,
+      desc: tr("o que eu uso no dia a dia"),
+      run: printUses,
+    },
     contact: {
       icon: NF.mail,
       desc: tr("como falar comigo"),
@@ -937,6 +958,7 @@
         if (found.home === "stack.txt") return commands.stack.run();
         if (found.home === "contact.txt") return commands.contact.run();
         if (found.home === "now.md") return printNow();
+        if (found.home === "uses.md") return printUses();
         if (found.project) {
           line([ico(found.project.url.includes("github.com") ? NF.github : NF.folder), link(found.project.url, found.project.title)]);
           return line(found.project.desc, "term-dim");

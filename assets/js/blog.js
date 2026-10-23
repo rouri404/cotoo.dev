@@ -43,7 +43,7 @@
     function updateThemeIcon() {
       if (themeToggle) {
         themeToggle.innerHTML = currentTheme === "light" ? svgMoon : svgSun;
-        themeToggle.setAttribute("aria-label", currentTheme === "light" ? "Mudar para o tema escuro" : "Mudar para o tema claro");
+        themeToggle.setAttribute("aria-label", currentTheme === "light" ? tr("Mudar para o tema escuro") : tr("Mudar para o tema claro"));
       }
       if (metaTheme) {
         metaTheme.setAttribute("content", currentTheme === "dark" ? "#121212" : "#e3ecd7");
@@ -100,7 +100,7 @@
         window.addEventListener("scroll", clipMainBelowHeader, { passive: true });
 
         const elementsToFlip = document.querySelectorAll(
-          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .mascot, .mascot-bubble, .mascot-bubble a, .mermaid-zoom-title, .mermaid-zoom-btn, .mermaid-zoom-stage, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .rss-link'
+          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .lang-toggle, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, #nowUpdatedAgo, .now-live-label, .now-live-value, .now-live-sub, .now-edu-title, .now-edu-meta, .now-edu-seg, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .mascot, .mascot-bubble, .mascot-bubble a, .mermaid-zoom-title, .mermaid-zoom-btn, .mermaid-zoom-stage, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .rss-link'
         );
 
         const flips = Array.from(elementsToFlip).map((el) => {
@@ -113,7 +113,7 @@
 
         // Split header text into letters so each one flips as the wave reaches it
         const splitEls = [];
-        document.querySelectorAll(".blog-brand-link, .blog-nav-slash, .blog-nav-current, .font-toggle").forEach((el) => {
+        document.querySelectorAll(".blog-brand-link, .blog-nav-slash, .blog-nav-current, .lang-toggle, .font-toggle").forEach((el) => {
           if (el.children.length) return;
           const text = el.textContent;
           el.textContent = "";
@@ -286,7 +286,7 @@
       const isReading = document.body.classList.contains("reading-mode");
       if (fontToggle) {
         fontToggle.textContent = "Aa";
-        fontToggle.title = isReading ? "Mudar para fonte pixel" : "Mudar para modo de leitura";
+        fontToggle.title = isReading ? tr("Mudar para fonte pixel") : tr("Mudar para modo de leitura");
         fontToggle.setAttribute("aria-label", fontToggle.title);
       }
     }
@@ -367,10 +367,10 @@
         .then(() => {
           btn.classList.add("copied");
           const span = btn.querySelector(".copy-text");
-          if (span) span.textContent = "copiado!";
+          if (span) span.textContent = tr("copiado!");
           setTimeout(() => {
             btn.classList.remove("copied");
-            if (span) span.textContent = "copiar";
+            if (span) span.textContent = tr("copiar");
           }, 2000);
         })
         .catch((err) => {

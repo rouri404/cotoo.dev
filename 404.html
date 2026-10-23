@@ -1,14 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex" />
-    <meta http-equiv="refresh" content="0; url=/" />
-    <title>cotoo.dev</title>
-    <script>
-      location.replace("/");
-    </script>
+    <meta name="theme-color" content="#121212" id="meta-theme-color" />
+    <title>404 Não Encontrado | cotoo.dev</title>
+    <meta name="description" content="Página não encontrada em cotoo.dev." />
+    <meta name="robots" content="noindex, follow" />
+    <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/assets/img/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preload" href="/assets/fonts/Tiny5-subset.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/blog.css" />
+    <link rel="stylesheet" href="/assets/css/mascot.css" />
+    <link rel="stylesheet" href="/assets/css/terminal.css" />
+    <script src="/assets/js/i18n.js"></script>
+    <script src="/assets/js/blog.js"></script>
+    <script src="/assets/js/mascot.js" defer></script>
+    <script src="/assets/js/terminal.js" defer></script>
+    <script src="/assets/js/party.js" defer></script>
   </head>
-  <body></body>
+  <body class="page-404 reading-mode">
+    <canvas id="pixel-transition" aria-hidden="true"></canvas>
+    <div class="blog-bar-backdrop" aria-hidden="true"></div>
+    <header class="blog-bar">
+      <nav class="blog-nav-brand">
+        <a class="blog-brand-link" href="/" title="Voltar para cotoo.dev">&lt; cotoo.dev</a>
+        <span class="blog-nav-slash">/</span>
+        <a class="blog-brand-link" href="/blog/" title="Ir para o início do blog">blog</a>
+      </nav>
+      <div class="blog-bar-actions">
+        <button class="font-toggle" id="fontToggle" type="button" title="Alternar fonte (Pixel / Leitura)" aria-label="Alternar fonte">Aa</button>
+        <button class="theme-toggle" id="themeToggle" type="button" title="Alternar tema" aria-label="Alternar tema"></button>
+      </div>
+    </header>
+    <main class="blog-main">
+      <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / 404</nav>
+      <header class="post-header">
+        <h1>404</h1>
+        <p class="post-meta">Página não encontrada.</p>
+      </header>
+      <div class="prose">
+        <p>O endereço que você abriu não existe ou mudou de lugar. Você pode voltar para o início, explorar os posts ou apertar <code>/</code> (ou clicar no Tux) para abrir o terminal.</p>
+        <p class="post-tags">
+          <a class="tag" href="/">&lt; início</a>
+          <a class="tag" href="/blog/">/blog</a>
+          <a class="tag" href="/now/">/now</a>
+          <a class="tag" href="/uses/">/uses</a>
+          <a class="tag" href="/colophon/">/colophon</a>
+        </p>
+      </div>
+    </main>
+  </body>
 </html>

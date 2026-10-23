@@ -17,7 +17,7 @@ const en = window.I18N_EN;
 // Keys that are code or names, not text
 const SKIP = new Set(["/home/tux", "Gabriel Couto", "MMMMMMMMMM", "rss: "]);
 const untranslated = new Set();
-for (const file of ["script.js", "terminal.js", "mascot.js", "party.js", "heatmap.js"]) {
+for (const file of ["script.js", "blog.js", "now.js", "terminal.js", "mascot.js", "party.js", "heatmap.js"]) {
   const src = read("assets/js/" + file);
   // tr("..."), and both branches of tr(cond ? "..." : "...")
   for (const m of src.matchAll(/tr\((?:[^()"]*\?\s*)?"((?:[^"\\]|\\.)*)"(?:\s*:\s*"((?:[^"\\]|\\.)*)")?/g)) {

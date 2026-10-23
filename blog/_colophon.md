@@ -32,7 +32,7 @@ date: 2026-10-20
 ## O blog
 
 - **Markdown:** cada post é um arquivo `.md` no repositório. Uma função converte para HTML na hora do pedido e guarda o resultado no Redis e na borda, então o post só é processado de novo quando o arquivo muda.
-- **Extras:** sumário com títulos que grudam no topo, blocos de código com destaque de sintaxe, diagramas Mermaid, feed RSS e um link `#` em cada seção.
+- **Extras:** sumário com títulos que grudam no topo, blocos de código com destaque de sintaxe, diagramas Mermaid, feed RSS, imagens Open Graph dinâmicas e um link `#` em cada seção.
 
 ## Cuidados
 

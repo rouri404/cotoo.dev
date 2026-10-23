@@ -336,7 +336,8 @@ code {
 
 #stage-menu.active #experienceList li:nth-child(1) { animation-delay: 0.85s; }
 #stage-menu.active #experienceList li:nth-child(2) { animation-delay: 0.95s; }
-#stage-menu.active #blogList li:nth-child(1) { animation-delay: 1.05s; }
+#stage-menu.active #blogList li:nth-child(1) { animation-delay: 1.0s; }
+#stage-menu.active #blogList li:nth-child(2) { animation-delay: 1.08s; }
 #stage-menu.active .blog-all-btn { animation: listItemIn 0.5s ease 1.15s backwards; }
 
 /* Hovering a project turns its letters one after the other (0.5 s each, 0.03 s apart) and leaving turns them back right to

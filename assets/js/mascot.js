@@ -4,7 +4,8 @@
 // One fixed layer that moves around the screen:
 //   home hero    -> bottom center
 //   home menu    -> waits at the end of the page, with a speech bubble
-//   blog         -> bottom left corner, out of the way (or at the end of the page on narrow screens)
+//   blog         -> bottom left corner, out of the way (or at the end of the page on narrow screens); on /uses he
+//                   sits at an old CRT computer, typing
 //   dragged      -> on the home hero only, he stays wherever he was dropped until the tab is closed; the menu and the blog always send him back to their own spot
 // Pages are separate documents, so the last position is kept in sessionStorage and Tux glides from there.
 (function () {
@@ -14,6 +15,7 @@
   const isIndex = document.body.classList.contains("page-index");
   const is404 = document.body.classList.contains("page-404");
   if (!isHome && !isPost && !isIndex && !is404) return;
+  const atDesk = document.body.classList.contains("page-uses");
 
   const STORE_KEY = "mascot-pos";
   const MODEL_URL = "/assets/models/tux.bin";
@@ -93,8 +95,9 @@
   const RAMP = " .,:;i1tfLCG08@";
   const FONT = 'ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace';
 
-  // Material: 0 black, 1 white, 2 accent (beak and feet), 3 seasonal colour (the Santa hat)
-  const ALBEDO = [0.16, 0.95, 0.62, 0.55];
+  // Material: 0 black, 1 white, 2 accent (beak and feet), 3 seasonal colour (the Santa hat), 4 the screen of his
+  // computer on /uses, drawn as scrolling code instead of shading
+  const ALBEDO = [0.16, 0.95, 0.62, 0.55, 0.3];
 
   // Subsamples per cell side: they give the edges a coverage instead of a hard cut
   const SS = 2;
@@ -162,6 +165,21 @@
   // The widget only reports on the home page, so the blog trusts the last report for this long
   const MUSIC_TTL = 5 * 60 * 1000;
   const SKINS = ["natal", "halloween", "pascoa", "junina", "formatura", "fone", "coroa", "festa", "sono", "rainbow"];
+
+  // The /uses scene. The desk is laid out around Tux, who faces +z: the keyboard right in front of his belly, at the
+  // height his flippers reach, and an old CRT on his right turning its screen to him. Then he leans a little, the
+  // scene turns by "face" (three quarters, like the old GIF), moves to "tux" (seen from above as [x, z]) and is
+  // shrunk into his box. Any hat goes along with him.
+  // His flippers swing from the shoulders ("arm"): turned in and forward onto the keys at rest, and raised further
+  // between taps ("lift"). They are short for that, so they also stretch forward a little ("reach"); more than that
+  // and seen from the side he looks fat
+  const DESK = {
+    face: 0.35, tux: [-0.75, -0.3], floor: -1.3, lean: 0.06, top: -0.3, pitch: 0.22,
+    board: { x0: -0.65, x1: 1.95, z0: 0.56, z1: 1.45 },
+    keyboard: [0, 0.7], monitor: [1.25, 1.05], monitorScale: 0.85,
+    shift: [0.1, -0.1], scale: 0.8,
+    arm: { x: 0.5, y: 0.3, z: -0.05, inward: 0.12, rest: -0.3, lift: -0.8, reach: 0.05 },
+  };
 
   // Easter Sunday for a year (the Gregorian computus)
   function easter(y) {
@@ -300,6 +318,8 @@
     // Rotations about a pivot, and a way to chain them
     const rotZ = (a, px, py) => ([x, y, z]) => [px + (x - px) * Math.cos(a) - (y - py) * Math.sin(a), py + (x - px) * Math.sin(a) + (y - py) * Math.cos(a), z];
     const rotX = (a, py, pz) => ([x, y, z]) => [x, py + (y - py) * Math.cos(a) - (z - pz) * Math.sin(a), pz + (y - py) * Math.sin(a) + (z - pz) * Math.cos(a)];
+    // About the vertical axis through the origin, turning +z towards +x
+    const rotY = (a) => ([x, y, z]) => [x * Math.cos(a) + z * Math.sin(a), y, -x * Math.sin(a) + z * Math.cos(a)];
     const chain = (...fs) => (p) => fs.reduce((q, f) => f(q), p);
 
     if (skin === "natal") {
@@ -429,29 +449,127 @@
       cone(0, 1.06, 0, 0.36, 0.95, (p, u, t) => (Math.floor(t * 7) % 2 ? 1 : 3), frame);
       const tip = frame([0, 2.01, 0]);
       sphere(tip[0], tip[1], tip[2], 0.1, 0.1, 0.1, 1);
+    } else if (skin === "pc") {
+      // Not a skin: his desk on /uses, laid out around him (see DESK). A board on four legs, an old CRT with its
+      // screen turned to him (bezel, glass, the deep tube behind and a stand), and a keyboard with three rows of keys
+      const top = DESK.top;
+      const { x0, x1, z0, z1 } = DESK.board;
+      slab((x0 + x1) / 2, top - 0.03, (z0 + z1) / 2, (x1 - x0) / 2, 0.03, (z1 - z0) / 2, 2);
+      for (const [x, z] of [[x0 + 0.08, z0 + 0.08], [x1 - 0.08, z0 + 0.08], [x0 + 0.08, z1 - 0.08], [x1 - 0.08, z1 - 0.08]]) {
+        slab(x, (DESK.floor + top - 0.06) / 2, z, 0.035, (top - 0.06 - DESK.floor) / 2, 0.035, 2);
+      }
+      const [mx, mz] = DESK.monitor;
+      const k = DESK.monitorScale;
+      const monitor = chain(([x, y, z]) => [x * k, y * k, z * k], rotY(Math.atan2(-mx, -mz)), ([x, y, z]) => [x + mx, y + top, z + mz]);
+      slab(0, 0.6, 0, 0.62, 0.5, 0.14, 1, monitor);
+      slab(0, 0.62, 0.12, 0.5, 0.4, 0.05, 4, monitor);
+      slab(0, 0.6, -0.4, 0.46, 0.4, 0.3, 1, monitor);
+      slab(0, 0.05, -0.12, 0.36, 0.05, 0.34, 1, monitor);
+      const [kx, kz] = DESK.keyboard;
+      const keyboard = ([x, y, z]) => [x + kx, y + top, z + kz];
+      slab(0, 0.035, 0, 0.74, 0.035, 0.12, 0, keyboard);
+      for (const z of [-0.06, 0, 0.06]) slab(0, 0.075, z, 0.68, 0.012, 0.022, 1, keyboard);
     }
     return { pos, nor, mats, idx };
   }
 
   function withSkin(base, skin) {
-    if (!skin) return base;
-    const extra = buildSkin(skin);
-    const V = base.V + extra.pos.length / 3;
-    const T = base.T + extra.idx.length / 3;
+    if (!skin && !atDesk) return base;
+    const parts = [base];
+    if (skin) parts.push(buildSkin(skin));
+    // Vertices before bobV are Tux and his hat, the only ones that nod while he types
+    const bobV = parts.reduce((n, p) => n + p.pos.length / 3, 0);
+    if (atDesk) parts.push(buildSkin("pc"));
+    const V = parts.reduce((n, p) => n + p.pos.length / 3, 0);
+    const T = parts.reduce((n, p) => n + p.idx.length / 3, 0);
     const pos = new Float32Array(V * 3);
     const nor = new Float32Array(V * 3);
     const mats = new Uint8Array(V);
     const idx = new Uint16Array(T * 3);
-    pos.set(base.pos);
-    pos.set(extra.pos, base.V * 3);
-    nor.set(base.nor);
-    nor.set(extra.nor, base.V * 3);
-    mats.set(base.mats);
-    mats.set(extra.mats, base.V);
-    idx.set(base.idx);
-    idx.set(extra.idx.map((i) => i + base.V), base.T * 3);
+    let v0 = 0, t0 = 0;
+    for (const p of parts) {
+      pos.set(p.pos, v0 * 3);
+      nor.set(p.nor, v0 * 3);
+      mats.set(p.mats, v0);
+      idx.set(v0 ? Array.from(p.idx, (i) => i + v0) : p.idx, t0 * 3);
+      v0 += p.pos.length / 3;
+      t0 += p.idx.length / 3;
+    }
+
+    // At the desk each flipper vertex keeps two poses: "pos" on the keys and "alt" raised (flip: 1 left, 2 right)
+    let flip = null, alt = null;
+    if (atDesk) {
+      flip = new Uint8Array(V);
+      alt = new Float32Array(V * 3);
+      const A = DESK.arm;
+      // How much a vertex of his black body belongs to a flipper: they hang on his sides, outside the body (which
+      // narrows towards the shoulders), down to just above the feet. The weight fades in over a short band, so the
+      // body bends there instead of tearing
+      const weight = (x, y, z) => {
+        if (y > 0.36 || y < -0.55) return 0;
+        const inner = 0.4 + (0.2 - y) * 0.42;
+        return clamp((Math.abs(x) - inner) / 0.1, 0, 1) * clamp((0.36 - y) / 0.14, 0, 1) * clamp((z + 0.3) / 0.15, 0, 1);
+      };
+      // Turn in about the z axis and forward about the x axis, both through the shoulder, and stretch forward
+      // (o = 0 for a normal, which only turns)
+      const swing = (out, x, y, z, side, k, reach, o) => {
+        const a = -side * A.inward * k, b = reach * k;
+        x -= side * A.x * o;
+        y -= A.y * o;
+        z -= A.z * o;
+        const x1 = x * Math.cos(a) - y * Math.sin(a);
+        const y1 = x * Math.sin(a) + y * Math.cos(a);
+        out[0] = x1 + side * A.x * o;
+        out[1] = y1 * Math.cos(b) - z * Math.sin(b) + A.y * o;
+        out[2] = y1 * Math.sin(b) + z * Math.cos(b) + (A.z + A.reach * k) * o;
+      };
+      const p = [0, 0, 0];
+      for (let i = 0; i < base.V; i++) {
+        const k = i * 3;
+        const x = pos[k], y = pos[k + 1], z = pos[k + 2];
+        const w = mats[i] === 0 ? weight(x, y, z) : 0;
+        if (!w) continue;
+        const side = x < 0 ? -1 : 1;
+        flip[i] = side < 0 ? 1 : 2;
+        swing(p, x, y, z, side, w, A.lift, 1);
+        alt.set(p, k);
+        swing(p, x, y, z, side, w, A.rest, 1);
+        pos.set(p, k);
+        swing(p, nor[k], nor[k + 1], nor[k + 2], side, w, A.rest, 0);
+        nor.set(p, k);
+      }
+
+      // Then Tux (and his hat) lean about the feet, everything turns by "face", moves to his spot and shrinks into his box
+      const cl = Math.cos(DESK.lean), sl = Math.sin(DESK.lean);
+      const cf = Math.cos(DESK.face), sf = Math.sin(DESK.face);
+      const place = (a, k, lean, normal) => {
+        let y = a[k + 1], z = a[k + 2];
+        if (lean) {
+          const foot = normal ? 0 : DESK.floor;
+          const y1 = foot + (y - foot) * cl - z * sl;
+          z = (y - foot) * sl + z * cl;
+          y = y1;
+        }
+        const x = a[k] * cf + z * sf;
+        z = -a[k] * sf + z * cf;
+        if (normal) {
+          a[k] = x;
+          a[k + 1] = y;
+          a[k + 2] = z;
+          return;
+        }
+        a[k] = (x + DESK.tux[0] + DESK.shift[0]) * DESK.scale;
+        a[k + 1] = (y + DESK.shift[1]) * DESK.scale;
+        a[k + 2] = (z + DESK.tux[1]) * DESK.scale;
+      };
+      for (let i = 0; i < V; i++) {
+        place(pos, i * 3, i < bobV, false);
+        place(nor, i * 3, i < bobV, true);
+        if (flip[i]) place(alt, i * 3, true, false);
+      }
+    }
     return {
-      V, T, pos, nor, mats, idx, skin,
+      V, T, pos, nor, mats, idx, skin, bobV: atDesk ? bobV : 0, flip, alt,
       sx: new Float32Array(V), sy: new Float32Array(V), sz: new Float32Array(V), lum: new Float32Array(V),
     };
   }
@@ -847,8 +965,10 @@
     cssH = h;
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
-    // The party's big Tux gets more characters rather than bigger ones: about 140 columns instead of 72
-    cellW = Math.max(4, Math.round(cssW / PAD / (boosted ? 140 : 72)));
+    // Small characters for detail: 2 px cells on sharp screens, 3 px on the others, where 2 px would blur. The
+    // party's big Tux keeps about 160 columns, so his characters grow a little and the frame costs what it used to
+    const minCell = dpr >= 2 ? 2 : 3;
+    cellW = boosted ? Math.max(minCell, Math.round(cssW / PAD / 160)) : minCell;
     cellH = Math.round(cellW * 1.7);
     cols = Math.floor(cssW / cellW);
     rows = Math.floor(cssH / cellH);
@@ -865,7 +985,18 @@
   const rainbowPalette = (light) => Array.from({ length: RAINBOW_STEPS }, (_, k) => `hsl(${(k * 360) / RAINBOW_STEPS} 90% ${light}%)`);
   const RAINBOW = { light: rainbowPalette(40), dark: rainbowPalette(64) };
 
-  function render(model, yaw, pitch, lift) {
+  // A line of make-believe code on his computer's screen, read at column c: some lines are empty, the others are
+  // indented and of varying length
+  const CODE = "{}()[]<>=+-*/;:.#$&|01abcdefnrstx";
+  function screenGlyph(c, line) {
+    if (hash(line, 2.3) < 0.2) return "";
+    const indent = 1 + Math.floor(hash(line, 4.1) * 3) * 2;
+    const len = 3 + Math.floor(hash(line, 6.7) * 9);
+    if (c < indent || c >= indent + len) return "";
+    return CODE[Math.floor(hash(c, line) * CODE.length)];
+  }
+
+  function render(model, yaw, pitch, lift, bob = 0, raise = null) {
     if (!cols || !rows) return;
     const style = getComputedStyle(canvas);
     const textColor = style.color;
@@ -886,14 +1017,23 @@
     const cp = Math.cos(pitch), sp = Math.sin(pitch);
     const aspect = (cols * cellW) / (rows * cellH);
     const half = HALF * PAD;
-    const { V, T, pos: P, nor, mats, idx, sx, sy: sY, sz, lum } = model;
+    const { V, T, pos: P, nor, mats, idx, sx, sy: sY, sz, lum, bobV = 0, flip, alt } = model;
+    // The code on the screen moves up a line every 170 ms
+    const scroll = reduceMotion.matches ? 0 : Math.floor(performance.now() / 170);
 
     // Vertices: turn the model, project it and light it once per vertex
     for (let i = 0; i < V; i++) {
-      const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
+      let x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2];
+      // At the desk, a flipper rises from the keys towards its raised pose
+      const up = flip && raise && flip[i] ? raise[flip[i] - 1] : 0;
+      if (up) {
+        x += (alt[i * 3] - x) * up;
+        y += (alt[i * 3 + 1] - y) * up;
+        z += (alt[i * 3 + 2] - z) * up;
+      }
       const z1 = -x * sy + z * cy;
       const x1 = x * cy + z * sy;
-      const y2 = y * cp - z1 * sp + lift;
+      const y2 = y * cp - z1 * sp + lift + (i < bobV ? bob : 0);
       const z2 = y * sp + z1 * cp;
       const depth = CAM_Z - z2;
       const k = CAM_Z / depth;
@@ -966,8 +1106,10 @@
     let lastColor = "";
 
     for (let j = 0; j < rows; j++) {
+      // The first screen cell of the row, where its line of code starts
+      let screenAt = -1;
       for (let i = 0; i < cols; i++) {
-        let count = 0, sum = 0, m0 = 0, m1 = 0, m2 = 0, m3 = 0;
+        let count = 0, sum = 0, m0 = 0, m1 = 0, m2 = 0, m3 = 0, m4 = 0;
         for (let v = 0; v < SS; v++) {
           for (let u = 0; u < SS; u++) {
             const p = (j * SS + v) * SW + i * SS + u;
@@ -975,25 +1117,35 @@
             count++;
             sum += lbuf[p];
             const m = mbuf[p];
-            if (m === 0) m0++; else if (m === 1) m1++; else if (m === 2) m2++; else m3++;
+            if (m === 0) m0++; else if (m === 1) m1++; else if (m === 2) m2++; else if (m === 3) m3++; else m4++;
           }
         }
         if (count < 2) continue;
 
         let material = m1 >= m0 && m1 >= m2 ? 1 : m2 > m0 ? 2 : 0;
         if (m3 > m0 && m3 > m1 && m3 > m2) material = 3;
-        const lo = isDark ? 0.14 : 0;
-        const l = clamp(sum / count + (hash(i, j) - 0.5) * 0.06, lo, 1);
+        let ch;
+        if (m4 > m0 && m4 > m1 && m4 > m2 && m4 > m3) {
+          material = 4;
+          if (screenAt < 0) screenAt = i;
+          ch = screenGlyph(i - screenAt, j + scroll);
+          if (!ch) continue;
+        } else {
+          const lo = isDark ? 0.14 : 0;
+          const l = clamp(sum / count + (hash(i, j) - 0.5) * 0.06, lo, 1);
 
-        // Dark theme draws light parts with more ink, light theme the opposite
-        const ink = clamp(isDark ? l : 1 - l * 0.8, 0.1, 1);
-        const ch = RAMP[Math.min(RAMP.length - 1, Math.floor(ink * RAMP.length))];
-        if (ch === " ") continue;
+          // Dark theme draws light parts with more ink, light theme the opposite
+          const ink = clamp(isDark ? l : 1 - l * 0.8, 0.1, 1);
+          ch = RAMP[Math.min(RAMP.length - 1, Math.floor(ink * RAMP.length))];
+          if (ch === " ") continue;
+        }
 
         // Diagonal stripes, about one spectrum across his body (he fills about a third of the canvas width)
-        const color = rainbow && material === 0
-          ? rainbow[(((Math.floor(((i + j * 0.6) / cols) * RAINBOW_STEPS * 3 - drift)) % RAINBOW_STEPS) + RAINBOW_STEPS) % RAINBOW_STEPS]
-          : colors[material];
+        const color = material === 4
+          ? colors[2]
+          : rainbow && material === 0
+            ? rainbow[(((Math.floor(((i + j * 0.6) / cols) * RAINBOW_STEPS * 3 - drift)) % RAINBOW_STEPS) + RAINBOW_STEPS) % RAINBOW_STEPS]
+            : colors[material];
         if (color !== lastColor) {
           ctx.fillStyle = color;
           lastColor = color;
@@ -1012,6 +1164,9 @@
   let lastMove = -1e9;
   let last = 0;
   let acc = 0;
+
+  // How far each flipper is raised off the keys, left and right (0 on the keys, 1 raised)
+  const raise = [0, 0];
 
   const SPIN_MS = 1200;
   const FLIP_MS = 650;
@@ -1398,9 +1553,11 @@
     let lift = 0;
     let spinYaw = 0;
     let flipPitch = 0;
+    let bob = 0;
     if (!reduceMotion.matches) {
       const t = now / 1000;
-      let targetYaw = 0.45 * Math.sin(t * 0.7) - 0.15;
+      // At his computer he is busy, so he sways less
+      let targetYaw = atDesk ? 0.12 * Math.sin(t * 0.5) - 0.1 : 0.45 * Math.sin(t * 0.7) - 0.15;
       let targetPitch = 0.04 * Math.sin(t * 1.3);
 
       if (sleeping) {
@@ -1456,6 +1613,14 @@
       // A small bob to the music, about 120 bpm
       if (music && !sleeping && partyStart < 0) lift = Math.max(lift, Math.abs(Math.sin((now / 500) * Math.PI)) * 0.06);
 
+      // He types in bursts, each flipper tapping at its own pace with a small nod, and stops now and then to read the screen
+      raise[0] = raise[1] = 0;
+      if (atDesk && !sleeping && partyStart < 0 && hash(Math.floor(now / 1100), 0.5) > 0.35) {
+        raise[0] = Math.max(0, Math.sin(now / 70));
+        raise[1] = Math.max(0, Math.sin(now / 57 + 2));
+        bob = Math.max(raise[0], raise[1]) * 0.03;
+      }
+
       if (flipStart >= 0 && now >= flipStart) {
         const p = (now - flipStart) / FLIP_MS;
         if (p >= 1) {
@@ -1468,9 +1633,11 @@
     } else {
       yaw = -0.35;
       pitch = 0;
+      raise[0] = raise[1] = 0;
     }
 
-    render(model, yaw + spinYaw, pitch + flipPitch, lift);
+    // The desk is seen a little from above, so the keyboard under his flippers shows
+    render(model, yaw + spinYaw, pitch + flipPitch + (atDesk ? DESK.pitch : 0), lift, bob, raise);
   }
 
   measure();
@@ -1535,6 +1702,11 @@
       // A hello spin when he first shows up
       if (!saved && !reduceMotion.matches) setTimeout(() => spin(performance.now()), 600);
       setTimeout(greet, saved ? 600 : 1600);
+      if (atDesk) {
+        setTimeout(() => {
+          if (!sleeping && chatty()) sayNext(tr("anotando meu setup aqui, não repara a bagunça :p"), 4000);
+        }, saved ? 1200 : 2800);
+      }
     })
     .catch(() => box.remove());
 

@@ -101,6 +101,7 @@ window.I18N_EN = {
   "metade do post, segura aí :)": "halfway there, hang on :)",
   "acabou! bora pro próximo?": "done! on to the next one?",
   "copiou! confere antes de rodar ;)": "copied! read it before you run it ;)",
+  "anotando meu setup aqui, não repara a bagunça :p": "writing down my setup, excuse the mess :p",
   "de volta pro meu cantinho :)": "back to my little corner :)",
   "festinha boa slk": "what a party",
   "sair": "leave",

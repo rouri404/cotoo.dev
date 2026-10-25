@@ -20,6 +20,7 @@
     ["Grabtext", "https://github.com/rouri404/grabtext", "OCR local de baixa latência no clipboard GNU/Linux"],
     ["OEDLA (Unicamp)", "/blog/oedla-plataforma-editorial/", "portal de notícias de custo zero, com cache na borda (~93% de hit ratio)"],
     ["PremiumUUID", "https://premiumuuid.cotoo.dev", "plugin Paper que aplica o UUID premium da Mojang em servidores offline-mode"],
+    ["Dorsal", "https://dorsal.cotoo.dev", "configurador do teclado Attack Shark X85 Pro no Linux, via WebHID"],
     ["cotoo.dev", "https://github.com/rouri404/cotoo.dev", "esse portfólio :P"],
   ].map(([name, url, desc]) => [name, url, tr(desc)]);
 

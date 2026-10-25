@@ -15,7 +15,7 @@ A single desktop that has to handle containers, emulators and builds running at 
 
 ## Peripherals
 
-- **Keyboard:** X85 Pro with XDA-profile keycaps, flat and uniform, between low and medium height.
+- **Keyboard:** X85 Pro with XDA-profile keycaps, flat and uniform, between low and medium height. I configure it on Linux with [Dorsal](https://dorsal.cotoo.dev), which I wrote because the official configurator only runs on Windows.
 - **Mouse:** ATK A9 Plus.
 - **RGB:** all the lighting runs through [OpenRGB](https://openrgb.org), so I don't need each vendor's software. And it stays plain white.
 

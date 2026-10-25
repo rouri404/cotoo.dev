@@ -234,6 +234,7 @@ window.I18N_EN = {
   "OCR local de baixa latência no clipboard GNU/Linux": "low-latency local OCR to the clipboard on GNU/Linux",
   "portal de notícias de custo zero, com cache na borda (~93% de hit ratio)": "zero-cost news portal with edge caching (~93% hit ratio)",
   "plugin Paper que aplica o UUID premium da Mojang em servidores offline-mode": "Paper plugin that applies Mojang's premium UUID on offline-mode servers",
+  "configurador do teclado Attack Shark X85 Pro no Linux, via WebHID": "Attack Shark X85 Pro keyboard configurator for Linux, over WebHID",
   "esse portfólio :P": "this portfolio :P",
   "sistemas": "systems",
   "redes": "networking",

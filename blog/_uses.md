@@ -15,7 +15,7 @@ Um desktop só, que precisa dar conta de containers, emuladores e builds rodando
 
 ## Periféricos
 
-- **Teclado:** X85 Pro com keycaps de perfil XDA, baixas e retas, entre o perfil baixo e o médio.
+- **Teclado:** X85 Pro com keycaps de perfil XDA, baixas e retas, entre o perfil baixo e o médio. Configuro ele no Linux pelo [Dorsal](https://dorsal.cotoo.dev), que escrevi porque o configurador oficial só roda no Windows.
 - **Mouse:** ATK A9 Plus.
 - **RGB:** a iluminação fica toda no [OpenRGB](https://openrgb.org), sem instalar o software de cada fabricante. E fica no branco mesmo.
 

@@ -1,7 +1,7 @@
 ---
 title: now
 description: O que o Gabriel Couto está fazendo, estudando, construindo e ouvindo agora.
-date: 2026-10-23
+date: 2026-10-25
 ---
 
 ## Trabalhando
@@ -15,6 +15,8 @@ Cursando **Engenharia de Software na FIAP** (ago/2024 a jul/2028). Fora da grade
 ## Construindo
 
 Mantendo a arquitetura e a operação do **[OEDLA](/blog/oedla-plataforma-editorial/)** (portal editorial na Unicamp que roda com ~93% de cache hit no edge e custo zero de infraestrutura) e o plugin **[PremiumUUID](https://premiumuuid.cotoo.dev)** em Java para servidores Paper de Minecraft.
+
+Acabei de lançar o **[Dorsal](https://dorsal.cotoo.dev)**, um configurador aberto para o meu teclado, o Attack Shark X85 Pro, que oficialmente só se configura no Windows. Reimplementei o protocolo HID dele por engenharia reversa, e o mesmo código roda no navegador via WebHID e como AppImage.
 
 Nas horas vagas, continuo lapidando este **[cotoo.dev](/colophon/)**: blog bilíngue feito do zero sem frameworks, mascote Tux em ASCII 3D, terminal Unix interativo (aperte `/` ou clique no Tux), cartões Open Graph gerados em pixel art e transição de tema com Bayer dither.
 

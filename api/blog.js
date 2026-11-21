@@ -974,6 +974,53 @@ function resolvePostFilePath(cleanSlug) {
   return null;
 }
 
+// Shown when the handler fails. It looks like 404.html and reads nothing from disk, since the failure may be there
+const ERROR_PAGE = `<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#121212" id="meta-theme-color" />
+    <title>500 Erro | cotoo.dev</title>
+    <meta name="robots" content="noindex, follow" />
+    <link rel="icon" type="image/png" href="/assets/img/favicon.png" />
+    <link rel="preload" href="/assets/fonts/Tiny5-subset.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/assets/css/blog.css" />
+    <script src="/assets/js/i18n.js"></script>
+    <script src="/assets/js/blog.js"></script>
+  </head>
+  <body class="page-404 reading-mode">
+    <canvas id="pixel-transition" aria-hidden="true"></canvas>
+    <div class="blog-bar-backdrop" aria-hidden="true"></div>
+    <header class="blog-bar">
+      <nav class="blog-nav-brand">
+        <a class="blog-brand-link" href="/" title="Voltar para cotoo.dev">&lt; cotoo.dev</a>
+        <span class="blog-nav-slash">/</span>
+        <a class="blog-brand-link" href="/blog/" title="Ir para o início do blog">blog</a>
+      </nav>
+      <div class="blog-bar-actions">
+        <button class="font-toggle" id="fontToggle" type="button" title="Alternar fonte (Pixel / Leitura)" aria-label="Alternar fonte">Aa</button>
+        <button class="theme-toggle" id="themeToggle" type="button" title="Alternar tema" aria-label="Alternar tema"></button>
+      </div>
+    </header>
+    <main class="blog-main">
+      <nav class="crumbs" aria-label="Navegação"><a href="/">cotoo.dev</a> / 500</nav>
+      <header class="post-header">
+        <h1>500</h1>
+        <p class="post-meta">Algo deu errado do lado de cá.</p>
+      </header>
+      <div class="prose">
+        <p>Esta página falhou ao carregar. Costuma ser passageiro: tente de novo em instantes.</p>
+        <p class="post-tags">
+          <a class="tag" href="">tentar de novo</a>
+          <a class="tag" href="/">&lt; início</a>
+          <a class="tag" href="/blog/">/blog</a>
+        </p>
+      </div>
+    </main>
+  </body>
+</html>`;
+
 async function handler(req, res) {
   try {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -1259,7 +1306,7 @@ async function handler(req, res) {
         return res.status(500).json({ error: 'Internal Server Error' });
       }
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.status(500).send('<!doctype html><html><head><meta charset="utf-8"><title>Erro no Blog</title></head><body style="background:#121212;color:#8fbc8b;font-family:sans-serif;padding:2rem;"><h1 style="font-family:monospace;">500 - Erro no Blog</h1><p>Ocorreu uma falha temporária ao carregar a página. Tente novamente em instantes.</p><p><a href="/" style="color:#8fbc8b;">&lt; Voltar para a home</a></p></body></html>');
+      return res.status(500).send(ERROR_PAGE);
     }
   }
 }

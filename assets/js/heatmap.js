@@ -77,11 +77,21 @@
     resizeTimer = setTimeout(() => data && !section.hidden && render(), 150);
   });
 
+  // After a language switch the grid is drawn at once from the other page's data (langSwap and widgetData are in script.js)
+  const resumed = typeof langSwap !== "undefined" && langSwap && langSwap.heatmap;
+  if (resumed) {
+    data = widgetData.heatmap = resumed;
+    section.hidden = false;
+    render();
+    return;
+  }
+
   fetch("/api/contributions")
     .then((r) => (r.ok ? r.json() : Promise.reject()))
     .then((json) => {
       if (!json.weeks || !json.weeks.length) return;
       data = json;
+      if (typeof widgetData !== "undefined") widgetData.heatmap = json;
       section.hidden = false;
       render();
       if (document.body.dataset.stage === "menu") play();

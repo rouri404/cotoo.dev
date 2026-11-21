@@ -1,3 +1,33 @@
+/* Language switch resumes the page as it was (classes set by the inline script in <head>). "lang-swap" lives two frames
+   and holds the stages in place; "lang-resume" skips the menu's entry animations until the stage changes, since they
+   would otherwise restart as soon as they are allowed again. The widgets resume in script.js */
+.lang-swap *,
+.lang-swap *::before,
+.lang-swap *::after {
+  transition: none !important;
+}
+
+.lang-swap #stage-hero {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.lang-swap #stage-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+}
+
+.lang-resume #stage-menu.active .projects li,
+.lang-resume #stage-menu.active .blog-all-btn,
+.lang-resume #stage-menu.active .mobile-edu,
+.lang-resume #stage-menu.active .contact-email,
+.lang-resume #stage-menu.active #contactExpandBtn,
+.lang-resume .heatmap.is-playing .heat-cell {
+  animation: none;
+}
+
 /* Tiny5 (OFL), Latin subset of assets/fonts/Tiny5-Regular.ttf, self-hosted */
 @font-face {
   font-family: "Tiny5";

@@ -4,6 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#121212" id="meta-theme-color" />
+    <script>
+      // Before the first paint: the saved theme, and the classes that resume a language switch (see lang-switch.js)
+      try {
+        const theme = localStorage.getItem("theme");
+        if (theme === "dark" || (!theme && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.setAttribute("data-theme", "dark");
+      } catch (_) {}
+      let swap = null;
+      try {
+        swap = JSON.parse(sessionStorage.getItem("lang_swap") || "null");
+        if (!swap || Date.now() - swap.t >= 10000) swap = null;
+      } catch (_) {}
+      if (swap) {
+        document.documentElement.classList.add("lang-resume");
+        if (swap.stage === "menu") document.documentElement.classList.add("lang-swap");
+      }
+      // Deferred, so it runs after every script at the end of <body>. After a switch it also blocks rendering until then,
+      // so the page never shows before it is resumed (only a parser-inserted script can block, hence document.write)
+      document.write('<script src="/assets/js/lang-switch.js" defer' + (swap ? ' blocking="render"' : "") + "></scr" + "ipt>");
+    </script>
     <meta
       name="description"
       content="Gabriel Couto — Architecture and Technology IT Intern na Ideal CTVM, estudante de Engenharia de Software na FIAP. Projetos de back-end, infraestrutura e sistemas."

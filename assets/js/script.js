@@ -57,6 +57,19 @@ function handlePointerMove(e) {
 const heroStage = document.getElementById("stage-hero");
 const menuStage = document.getElementById("stage-menu");
 
+// Coming from the other language (see lang-switch.js): the stage and the widgets' last data, to resume without reloading them
+const langSwap = (() => {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem("lang_swap") || "null");
+    sessionStorage.removeItem("lang_swap");
+    return saved && Date.now() - saved.t < 10000 ? saved : null;
+  } catch (_) {
+    return null;
+  }
+})();
+// Also filled by heatmap.js, which shares these globals
+const widgetData = { github: null, visits: null, spotify: null, status: null, heatmap: null };
+
 // Education progress (FIAP Aug 2024 – Jul 2028)
 (function initEducationProgress() {
   const start = new Date(2024, 7, 1);  // Aug 1, 2024
@@ -88,6 +101,8 @@ const menuStage = document.getElementById("stage-menu");
 function goToMenu() {
   if (document.body.dataset.stage === "menu") return;
   document.body.dataset.stage = "menu";
+  // Only the resumed menu skips its entry animations
+  if (!document.documentElement.classList.contains("lang-swap")) document.documentElement.classList.remove("lang-resume");
   heroStage.classList.remove("active");
   menuStage.classList.add("active");
   const wrapper = document.querySelector(".scroll-wrapper");
@@ -97,6 +112,7 @@ function goToMenu() {
 function goToHero() {
   if (document.body.dataset.stage === "hero") return;
   document.body.dataset.stage = "hero";
+  document.documentElement.classList.remove("lang-resume");
   menuStage.classList.remove("active");
   heroStage.classList.add("active");
 }
@@ -791,12 +807,13 @@ function announceSpotify(data) {
   window.dispatchEvent(new CustomEvent("spotify:update", { detail }));
 }
 
-async function fetchSpotifyCurrentlyPlaying() {
+async function fetchSpotifyCurrentlyPlaying(cached) {
   try {
-    const res = await fetch("/api/spotify");
-    
+    const res = cached ? { ok: true, json: async () => cached } : await fetch("/api/spotify");
+
     if (res.ok) {
       const data = await res.json();
+      widgetData.spotify = data;
       const spotifyLabel = document.querySelector(".spotify-label");
       const spotifyTime = document.getElementById("spotifyTime");
       const progressWrapper = document.querySelector(".spotify-progress-wrapper");
@@ -896,6 +913,7 @@ async function fetchSpotifyCurrentlyPlaying() {
         spotifyWidget.classList.add("active");
       }
     } else {
+      widgetData.spotify = { is_playing: false };
       spotifyLabel.textContent = tr("coto tá ouvindo");
       if (spotifyTime) spotifyTime.textContent = "";
       if (spotifyTrack.textContent !== tr("nada no momento :c")) {
@@ -918,8 +936,16 @@ async function fetchSpotifyCurrentlyPlaying() {
   }
 }
 
-fetchSpotifyCurrentlyPlaying();
-setInterval(fetchSpotifyCurrentlyPlaying, 2500);
+// After a language switch the widget starts from the other page's data, already risen (a zero-length rise ends at once,
+// and restoring its length later does not replay it)
+if (langSwap && langSwap.spotify) {
+  spotifyWidget.style.animationDuration = "0s";
+  fetchSpotifyCurrentlyPlaying(langSwap.spotify);
+  setTimeout(() => (spotifyWidget.style.animationDuration = ""), 1000);
+} else {
+  fetchSpotifyCurrentlyPlaying();
+}
+setInterval(() => fetchSpotifyCurrentlyPlaying(), 2500);
 
 // Notification System
 let notificationTimeout;
@@ -1126,9 +1152,27 @@ function revealStatus(el, text) {
   }, 250);
 }
 
+function githubText(data) {
+  const diff = Math.floor((new Date() - new Date(data.created_at)) / 60000);
+  if (diff === 0) return tr("último commit: agora mesmo");
+  let timeStr = "";
+  if (diff < 60) timeStr = `${diff}m`;
+  else if (diff < 1440) timeStr = `${Math.floor(diff / 60)}h`;
+  else timeStr = `${Math.floor(diff / 1440)}d`;
+  return tr("último commit: {time} atrás", { time: timeStr });
+}
+
 async function fetchGithubActivity() {
   const el = document.getElementById("githubStatus");
   if (!el) return;
+
+  // After a language switch, show what the other page had, with no loading dots
+  if (langSwap && langSwap.github) {
+    widgetData.github = langSwap.github;
+    el.classList.remove("loading");
+    el.textContent = githubText(langSwap.github);
+    return;
+  }
   const startedAt = Date.now();
 
   try {
@@ -1142,19 +1186,8 @@ async function fetchGithubActivity() {
     await new Promise((r) => setTimeout(r, wait));
 
     if (data.found) {
-      const date = new Date(data.created_at);
-      const diff = Math.floor((new Date() - date) / 60000);
-
-      if (diff === 0) {
-        revealStatus(el, tr("último commit: agora mesmo"));
-      } else {
-        let timeStr = "";
-        if (diff < 60) timeStr = `${diff}m`;
-        else if (diff < 1440) timeStr = `${Math.floor(diff / 60)}h`;
-        else timeStr = `${Math.floor(diff / 1440)}d`;
-
-        revealStatus(el, tr("último commit: {time} atrás", { time: timeStr }));
-      }
+      widgetData.github = data;
+      revealStatus(el, githubText(data));
     } else {
       el.style.display = "none";
     }
@@ -1253,6 +1286,20 @@ async function registerVisit() {
     });
   };
 
+  // After a language switch, the number the other page showed, already settled
+  if (langSwap && typeof langSwap.visits === "number") {
+    widgetData.visits = langSwap.visits;
+    const text = String(langSwap.visits).padStart(MIN_DIGITS, "0");
+    makeDigits(text.length).forEach((d, i) => {
+      d.textContent = text[i];
+      d.classList.remove("rolling");
+    });
+    el.title = tr("{n} visitas", { n: langSwap.visits.toLocaleString(LOCALE) });
+    el.style.animation = "none";
+    el.hidden = false;
+    return;
+  }
+
   // Slot-machine roll while waiting for the API
   let digits = makeDigits(MIN_DIGITS);
   el.hidden = false;
@@ -1271,6 +1318,7 @@ async function registerVisit() {
 
     const { visits } = await res.json();
     sessionStorage.setItem("visitCounted", "1");
+    widgetData.visits = visits;
 
     // Keep the roll visible for a minimum time so it never just pops in
     const wait = Math.max(0, 700 - (Date.now() - startedAt));
@@ -1302,9 +1350,10 @@ async function fetchProjectStatus() {
   const chips = document.querySelectorAll(".project-status[data-status]");
   if (!chips.length) return;
   try {
-    const res = await fetch("/api/status");
-    if (!res.ok) return;
-    const status = await res.json();
+    // After a language switch, the chips the other page showed
+    const status = langSwap && langSwap.status ? langSwap.status : await fetch("/api/status").then((res) => (res.ok ? res.json() : null));
+    if (!status) return;
+    widgetData.status = status;
     chips.forEach((chip) => {
       const up = status[chip.dataset.status];
       if (typeof up !== "boolean") return;
@@ -1390,5 +1439,3 @@ initLatestBlogPost();
     navBlogBtn.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
   }
 })();
-
-

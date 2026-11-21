@@ -156,7 +156,7 @@
   // Skins: a few extra shapes merged into the model, so the rasterizer draws them like the rest of him.
   // Some follow the calendar: "natal" (Dec 1 to Jan 6) is a Santa hat, "halloween" (Oct 20 to Nov 2) a witch hat,
   // "pascoa" (Easter week) bunny ears and "junina" (June) a straw hat. The others, "formatura" (graduation cap),
-  // "coroa" (crown), "festa" (party hat) and "rainbow" (no shape, his black feathers drawn in a drifting band of hues)
+  // "coroa" (crown), "festa" (party hat, with a balloon) and "rainbow" (no shape, his black feathers drawn in a drifting band of hues)
   // are only worn on request ("tux skin <nome>" in the terminal).
   // "fone" (headphones) is worn on request and whenever Spotify says the owner is listening to something, and
   // "sono" (a striped nightcap) from midnight to 6 am, local time. On the owner's birthday (April 27) he wears "festa" all day
@@ -180,6 +180,19 @@
     shift: [0.1, -0.1], scale: 0.8,
     arm: { x: 0.5, y: 0.3, z: -0.05, inward: 0.12, rest: -0.3, lift: -0.8, reach: 0.05 },
   };
+
+  // How much a vertex of his black body belongs to a flipper: they hang on his sides, outside the body (which narrows
+  // towards the shoulders), down to just above the feet. The weight fades in over a short band, so the body bends there
+  // instead of tearing
+  const flipperInner = (y) => 0.4 + (0.2 - y) * 0.42;
+  const flipperWeight = (x, y, z) => {
+    if (y > 0.36 || y < -0.55) return 0;
+    return clamp((Math.abs(x) - flipperInner(y)) / 0.1, 0, 1) * clamp((0.36 - y) / 0.14, 0, 1) * clamp((z + 0.3) / 0.15, 0, 1);
+  };
+
+  // Holding the balloon: his right flipper is folded into his side (it is part of the body mesh, so bending it would
+  // drag the side along) and drawn again on its own, slim and raised from the shoulder to "hand"
+  const HOLD = { shoulder: [0.48, 0.28, 0.12], hand: [1.15, -0.3, 0.32] };
 
   // Easter Sunday for a year (the Gregorian computus)
   function easter(y) {
@@ -224,6 +237,8 @@
 
   function buildSkin(skin) {
     const pos = [], nor = [], mats = [], idx = [];
+    // How much each vertex sways with the balloon (only the balloon has it)
+    let sway = null;
 
     // A grid over a parametric surface f(u, v) -> [x, y, z]. Normals come from its derivatives and point away from
     // center(u, v); each triangle is wound so its face normal agrees with them (the model's own convention)
@@ -449,6 +464,47 @@
       cone(0, 1.06, 0, 0.36, 0.95, (p, u, t) => (Math.floor(t * 7) % 2 ? 1 : 3), frame);
       const tip = frame([0, 2.01, 0]);
       sphere(tip[0], tip[1], tip[2], 0.1, 0.1, 0.1, 1);
+    } else if (skin === "balao") {
+      // Not a skin: the balloon. His raised right flipper (see HOLD), a flat oval along the line from the shoulder to the
+      // hand, and a red balloon beside his head (no higher, so the big party Tux keeps it on screen and under the
+      // title), tied to a white string that rises from the hand in a slight curve
+      const { shoulder, hand } = HOLD;
+      const d = hand.map((h, k) => h - shoulder[k]);
+      const len = Math.hypot(d[0], d[1], d[2]);
+      const turn = Math.atan2(-d[0], d[1]);
+      const flipper = ([x, y, z]) => [
+        (shoulder[0] + hand[0]) / 2 + x * Math.cos(turn) - y * Math.sin(turn),
+        (shoulder[1] + hand[1]) / 2 + x * Math.sin(turn) + y * Math.cos(turn),
+        (shoulder[2] + hand[2]) / 2 + z + (y / len) * d[2],
+      ];
+      // Broad at the shoulder and narrowing to a rounded tip, like his own flippers
+      const taper = ([x, y, z]) => {
+        const k = 1 - 0.5 * clamp((y + len / 2) / len, 0, 1);
+        return flipper([x * k, y, z * k]);
+      };
+      sphere(0, 0, 0, 0.18, len / 2 + 0.06, 0.09, 0, taper);
+      const knot = [1.38, 0.54, 0.2], bend = [1.3, 0.2, 0.3];
+      const at = (u) => hand.map((h, k) => (1 - u) * (1 - u) * h + 2 * (1 - u) * u * bend[k] + u * u * knot[k]);
+      const string0 = pos.length / 3;
+      surface(
+        (u, v) => {
+          const c = at(u), b = v * TAU;
+          return [c[0] + 0.03 * Math.cos(b), c[1], c[2] + 0.03 * Math.sin(b)];
+        },
+        12, 6, at, () => 1
+      );
+      const string1 = pos.length / 3;
+      cone(knot[0], knot[1] - 0.02, knot[2], 0.06, 0.08, 3);
+      // Narrower towards the knot, like a balloon, with a white glint on its upper left
+      const drop = ([x, y, z]) => {
+        const k = y < 0.9 ? 1 - 0.25 * ((0.9 - y) / 0.34) ** 2 : 1;
+        return [1.42 + (x - 1.42) * k, y, 0.2 + (z - 0.2) * k];
+      };
+      sphere(1.42, 0.9, 0.2, 0.27, 0.34, 0.27, 3, drop);
+      sphere(1.33, 1.03, 0.42, 0.05, 0.08, 0.03, 1);
+      // The string sways more the further it is from his hand (rows of 13 vertices along it), the balloon all of it
+      sway = new Float32Array(pos.length / 3);
+      for (let k = string0; k < sway.length; k++) sway[k] = k < string1 ? ((k - string0) % 13) / 12 : 1;
     } else if (skin === "pc") {
       // Not a skin: his desk on /uses, laid out around him (see DESK). A board on four legs, an old CRT with its
       // screen turned to him (bezel, glass, the deep tube behind and a stand), and a keyboard with three rows of keys
@@ -470,14 +526,17 @@
       slab(0, 0.035, 0, 0.74, 0.035, 0.12, 0, keyboard);
       for (const z of [-0.06, 0, 0.06]) slab(0, 0.075, z, 0.68, 0.012, 0.022, 1, keyboard);
     }
-    return { pos, nor, mats, idx };
+    return { pos, nor, mats, idx, sway };
   }
 
-  function withSkin(base, skin) {
-    if (!skin && !atDesk) return base;
+  function withSkin(base, skin, party = false) {
+    // He holds a balloon at the party and with the party hat, except at the desk, where his flippers are on the keys
+    const balloon = (party || skin === "festa") && !atDesk;
+    if (!skin && !atDesk && !balloon) return base;
     const parts = [base];
     if (skin) parts.push(buildSkin(skin));
-    // Vertices before bobV are Tux and his hat, the only ones that nod while he types
+    if (balloon) parts.push(buildSkin("balao"));
+    // Vertices before bobV are Tux, his hat and the balloon, the only ones that nod while he types
     const bobV = parts.reduce((n, p) => n + p.pos.length / 3, 0);
     if (atDesk) parts.push(buildSkin("pc"));
     const V = parts.reduce((n, p) => n + p.pos.length / 3, 0);
@@ -486,8 +545,10 @@
     const nor = new Float32Array(V * 3);
     const mats = new Uint8Array(V);
     const idx = new Uint16Array(T * 3);
+    const sway = balloon ? new Float32Array(V) : null;
     let v0 = 0, t0 = 0;
     for (const p of parts) {
+      if (p.sway) sway.set(p.sway, v0);
       pos.set(p.pos, v0 * 3);
       nor.set(p.nor, v0 * 3);
       mats.set(p.mats, v0);
@@ -496,20 +557,22 @@
       t0 += p.idx.length / 3;
     }
 
+    // The right flipper folds into his side, where the body would be without it; the raised one is in the balloon
+    if (balloon) {
+      for (let i = 0; i < base.V; i++) {
+        const k = i * 3;
+        const x = pos[k], y = pos[k + 1], z = pos[k + 2];
+        const w = mats[i] === 0 && x > 0 ? flipperWeight(x, y, z) : 0;
+        if (w) pos[k] = x - (x - flipperInner(y)) * w;
+      }
+    }
+
     // At the desk each flipper vertex keeps two poses: "pos" on the keys and "alt" raised (flip: 1 left, 2 right)
     let flip = null, alt = null;
     if (atDesk) {
       flip = new Uint8Array(V);
       alt = new Float32Array(V * 3);
       const A = DESK.arm;
-      // How much a vertex of his black body belongs to a flipper: they hang on his sides, outside the body (which
-      // narrows towards the shoulders), down to just above the feet. The weight fades in over a short band, so the
-      // body bends there instead of tearing
-      const weight = (x, y, z) => {
-        if (y > 0.36 || y < -0.55) return 0;
-        const inner = 0.4 + (0.2 - y) * 0.42;
-        return clamp((Math.abs(x) - inner) / 0.1, 0, 1) * clamp((0.36 - y) / 0.14, 0, 1) * clamp((z + 0.3) / 0.15, 0, 1);
-      };
       // Turn in about the z axis and forward about the x axis, both through the shoulder, and stretch forward
       // (o = 0 for a normal, which only turns)
       const swing = (out, x, y, z, side, k, reach, o) => {
@@ -527,7 +590,7 @@
       for (let i = 0; i < base.V; i++) {
         const k = i * 3;
         const x = pos[k], y = pos[k + 1], z = pos[k + 2];
-        const w = mats[i] === 0 ? weight(x, y, z) : 0;
+        const w = mats[i] === 0 ? flipperWeight(x, y, z) : 0;
         if (!w) continue;
         const side = x < 0 ? -1 : 1;
         flip[i] = side < 0 ? 1 : 2;
@@ -569,7 +632,7 @@
       }
     }
     return {
-      V, T, pos, nor, mats, idx, skin, bobV: atDesk ? bobV : 0, flip, alt,
+      V, T, pos, nor, mats, idx, skin, bobV: atDesk ? bobV : 0, flip, alt, sway,
       sx: new Float32Array(V), sy: new Float32Array(V), sz: new Float32Array(V), lum: new Float32Array(V),
     };
   }
@@ -1017,7 +1080,10 @@
     const cp = Math.cos(pitch), sp = Math.sin(pitch);
     const aspect = (cols * cellW) / (rows * cellH);
     const half = HALF * PAD;
-    const { V, T, pos: P, nor, mats, idx, sx, sy: sY, sz, lum, bobV = 0, flip, alt } = model;
+    const { V, T, pos: P, nor, mats, idx, sx, sy: sY, sz, lum, bobV = 0, flip, alt, sway } = model;
+    // The balloon swings on its string about his hand, side to side and a little back and forth, slower than the beat
+    const swayT = reduceMotion.matches ? 0 : performance.now();
+    const swing = Math.sin(swayT / 1300) * 0.12, nod = Math.sin(swayT / 1900 + 1) * 0.08;
     // The code on the screen moves up a line every 170 ms
     const scroll = reduceMotion.matches ? 0 : Math.floor(performance.now() / 170);
 
@@ -1030,6 +1096,16 @@
         x += (alt[i * 3] - x) * up;
         y += (alt[i * 3 + 1] - y) * up;
         z += (alt[i * 3 + 2] - z) * up;
+      }
+      const s = sway ? sway[i] : 0;
+      if (s) {
+        const [hx, hy, hz] = HOLD.hand;
+        const a = swing * s, b = nod * s;
+        const dx = x - hx, dy = y - hy, dz = z - hz;
+        const dy1 = dx * Math.sin(a) + dy * Math.cos(a);
+        x = hx + dx * Math.cos(a) - dy * Math.sin(a);
+        y = hy + dy1 * Math.cos(b) - dz * Math.sin(b);
+        z = hz + dy1 * Math.sin(b) + dz * Math.cos(b);
       }
       const z1 = -x * sy + z * cy;
       const x1 = x * cy + z * sy;
@@ -1050,7 +1126,8 @@
       const r = 1 - Math.max(0, nz2);
       const m = mats[i];
       // A black body would vanish on a dark page, so it gets a little more ink there (more still in rainbow colours)
-      const albedo = isDark && m === 0 ? (partyLook ? 0.7 : rainbow ? 0.6 : 0.3) : ALBEDO[m];
+      // At the party the red (the balloon, the party hat's stripes) is lit up too, so it does not fade into the dark
+      const albedo = isDark && m === 0 ? (partyLook ? 0.7 : rainbow ? 0.6 : 0.3) : partyLook && m === 3 ? 0.9 : ALBEDO[m];
       lum[i] = albedo * (0.22 + diff * 0.85) + r * r * r * 0.28;
     }
 
@@ -1179,17 +1256,20 @@
   const LOOK_END_MS = 400;
   let partyLeaving = false;
   let partyLook = false;
-  // On the darkened screen he keeps to his own colours, only lighter: pale body, white belly, yellow beak and feet
+  // On the darkened screen he keeps to his own colours, only lighter: pale body, white belly, yellow beak and feet, and
+  // a bright red balloon
   function partyColors(on) {
     if (!on) {
       canvas.style.color = "";
       canvas.style.removeProperty("--mascot-white");
       canvas.style.removeProperty("--mascot-accent");
+      canvas.style.removeProperty("--mascot-red");
       return;
     }
     canvas.style.color = "#d6d9e8";
     canvas.style.setProperty("--mascot-white", "#ffffff");
     canvas.style.setProperty("--mascot-accent", "#ffd21f");
+    canvas.style.setProperty("--mascot-red", "#ff3b5c");
   }
   let partyStart = -1;
 
@@ -1237,7 +1317,7 @@
       if (key) sessionStorage.setItem(MUSIC_KEY, String(Date.now()));
       else sessionStorage.removeItem(MUSIC_KEY);
     } catch (_) {}
-    if (baseModel && wasListening !== !!key) model = withSkin(baseModel, seasonSkin());
+    if (baseModel && wasListening !== !!key) model = dressed();
     if (!isNew || sleeping || partyStart >= 0 || !chatty()) return;
     const title = d.title.length > 22 ? d.title.slice(0, 21).trimEnd() + "..." : d.title;
     sayNext(tr("ouvindo {title}? boa escolha :)", { title: title.toLowerCase() }), 4000);
@@ -1341,6 +1421,7 @@
     partyLook = true;
     partyColors(true);
     lastActive = partyStart;
+    if (baseModel) model = dressed();
     sleeping = false;
     confetti();
     growTux();
@@ -1597,6 +1678,7 @@
         if (t >= PARTY_MS) {
           partyStart = -1;
           partyLeaving = false;
+          if (baseModel) model = dressed();
           say(tr("festinha boa slk"), 3500);
         } else {
           const k = clamp(t / 900, 0, 1) * clamp((PARTY_MS - t) / LEAVE_MS, 0, 1);
@@ -1671,6 +1753,8 @@
   }
 
   let baseModel = null;
+  // His model with today's skin, and a balloon while the party lasts
+  const dressed = () => withSkin(baseModel, seasonSkin(), partyStart >= 0);
   // "tux skin" in the terminal previews a skin for the rest of the visit ("auto" goes back to the calendar)
   window.addEventListener("mascot:skin", (e) => {
     const want = e.detail && e.detail.skin;
@@ -1678,14 +1762,14 @@
       if (want === "auto") sessionStorage.removeItem(SKIN_KEY);
       else sessionStorage.setItem(SKIN_KEY, want || "none");
     } catch (_) {}
-    if (baseModel) model = withSkin(baseModel, seasonSkin());
+    if (baseModel) model = dressed();
     if (e.detail) e.detail.skin = seasonSkin();
   });
 
   loadModel()
     .then((m) => {
       baseModel = m;
-      model = withSkin(m, seasonSkin());
+      model = dressed();
 
       // Start where he was, or rise from below the screen
       if (!pos) pos = { x: targetFor().x, y: vh + 40 };

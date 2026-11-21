@@ -281,7 +281,15 @@ document.querySelectorAll("button.modal-shot").forEach((btn) => {
   });
 });
 
+// A project's screenshots start loading when the pointer or the focus reaches its card, so they are there when it opens
+function warmModal(modal) {
+  if (modal) modal.querySelectorAll(".modal-shot img").forEach((img) => (img.loading = "eager"));
+}
+
 document.querySelectorAll(".projects li").forEach((li) => {
+  const warm = () => warmModal(document.getElementById(li.getAttribute("data-modal")));
+  li.addEventListener("pointerenter", warm, { once: true });
+  li.addEventListener("focus", warm, { once: true });
   li.addEventListener("click", (e) => {
     const sel = window.getSelection ? window.getSelection().toString() : "";
     if (sel && sel.trim().length > 0) return;
@@ -303,7 +311,7 @@ document.querySelectorAll(".projects li").forEach((li) => {
         const close = modal.querySelector(".modal-close");
         if (close) close.focus({ preventScroll: true });
         // The other theme's screenshot is hidden, so lazy loading would leave it blank the first time the theme flips
-        modal.querySelectorAll(".modal-shot img").forEach((img) => (img.loading = "eager"));
+        warmModal(modal);
       }
       setTimeout(() => li.classList.remove("is-clicked"), 100);
     } else if (url) {
@@ -346,7 +354,19 @@ if (contactEmail && contactExpandable) {
   contactEmail.addEventListener("click", (e) => {
     e.preventDefault();
     contactExpandable.classList.toggle("is-expanded");
+    loadTurnstile();
   });
+}
+
+// The anti-spam check only loads once the form is opened, not on every visit (it renders the .cf-turnstile box by itself)
+let turnstileLoading = false;
+function loadTurnstile() {
+  if (turnstileLoading) return;
+  turnstileLoading = true;
+  const script = document.createElement("script");
+  script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+  script.async = true;
+  document.head.appendChild(script);
 }
 
 const contactForm = document.getElementById("contactForm");
@@ -503,7 +523,7 @@ function wrapLetters3D(el, textContent) {
   (el.closest("li") || el).style.setProperty("--n", globalIndex);
 }
 
-document.querySelectorAll(".projects .name").forEach((el) => {
+document.querySelectorAll(".projects li:not(.static) .name").forEach((el) => {
   wrapLetters3D(el);
 });
 
@@ -945,7 +965,13 @@ if (langSwap && langSwap.spotify) {
 } else {
   fetchSpotifyCurrentlyPlaying();
 }
-setInterval(() => fetchSpotifyCurrentlyPlaying(), 2500);
+// Only while the tab is visible; coming back refreshes it at once
+setInterval(() => {
+  if (!document.hidden) fetchSpotifyCurrentlyPlaying();
+}, 2500);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) fetchSpotifyCurrentlyPlaying();
+});
 
 // Notification System
 let notificationTimeout;

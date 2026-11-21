@@ -124,7 +124,6 @@
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/mascot.css" />
     <link rel="stylesheet" href="assets/css/terminal.css" />
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </head>
   <body onclick="">
     <canvas id="pixel-trail" aria-hidden="true"></canvas>
@@ -142,22 +141,8 @@
     </div>
 
     <div class="stage active" id="stage-hero" role="banner">
-      <div class="education-section desktop-edu">
-        <p class="eyebrow">// formação</p>
-        <a href="https://www.fiap.com.br/graduacao/bacharelado/engenharia-de-software/" target="_blank" rel="noopener noreferrer" class="education-card">
-          <span class="education-info">
-            <span class="education-name">Engenharia de Software</span>
-            <span class="education-institution">FIAP — ago/2024 – jul/2028</span>
-          </span>
-          <div class="education-progress-wrapper">
-            <div class="education-progress-bg"></div>
-            <div class="education-progress-bar education-progress-bar-fill"></div>
-          </div>
-          <span class="education-elapsed education-elapsed-text"></span>
-        </a>
-      </div>
       <h1>Gabriel Couto</h1>
-      <p>cotoo.dev</p>
+      <p class="role">engenheiro de software</p>
       <p class="hint">role ou clique para continuar</p>
     </div>
 
@@ -256,35 +241,35 @@
         <div class="menu-col">
           <p class="eyebrow">// stack técnica</p>
           <ul class="projects" id="techList">
-            <li tabindex="0" data-url="https://github.com/rouri404">
+            <li class="static">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Sistemas &amp; Baixa Latência</span>
                 <span class="desc">Java (JVM/GC), C/C++, QuickFIX/J, Linux Internals, Concorrência</span>
               </span>
             </li>
-            <li tabindex="0" data-url="https://github.com/rouri404">
+            <li class="static">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Redes &amp; Infraestrutura</span>
                 <span class="desc">Sockets (TCP/UDP), Protocolo FIX, Docker, Kubernetes, AWS, Cloudflare</span>
               </span>
             </li>
-            <li tabindex="0" data-url="https://github.com/rouri404">
+            <li class="static">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Back-end &amp; Dados</span>
                 <span class="desc">Redis (In-Memory), PostgreSQL, Python, TypeScript, GraphQL, Prisma</span>
               </span>
             </li>
-            <li tabindex="0" data-url="https://github.com/rouri404">
+            <li class="static">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Observabilidade &amp; Automação</span>
                 <span class="desc">Grafana, Jaeger, MQTT, GitHub Actions, Shell Scripting</span>
               </span>
             </li>
-            <li tabindex="0" data-url="https://github.com/rouri404">
+            <li class="static">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Front-end &amp; Interfaces</span>
@@ -314,6 +299,20 @@
                 </span>
               </li>
             </ul>
+            <div class="education-section">
+              <p class="eyebrow">// formação</p>
+              <a href="https://www.fiap.com.br/graduacao/bacharelado/engenharia-de-software/" target="_blank" rel="noopener noreferrer" class="education-card">
+                <span class="education-info">
+                  <span class="education-name">Engenharia de Software</span>
+                  <span class="education-institution">FIAP — ago/2024 – jul/2028</span>
+                </span>
+                <span class="education-progress-wrapper">
+                  <span class="education-progress-bg"></span>
+                  <span class="education-progress-bar education-progress-bar-fill"></span>
+                </span>
+                <span class="education-elapsed education-elapsed-text"></span>
+              </a>
+            </div>
           </div>
           <div class="menu-col experience-col">
             <p class="eyebrow">// blog</p>
@@ -362,20 +361,6 @@
           </div>
         </div>
 
-        <div class="education-section mobile-edu">
-          <p class="eyebrow">// formação</p>
-          <div class="education-card">
-            <span class="education-info">
-              <span class="education-name">Engenharia de Software</span>
-              <span class="education-institution">FIAP — ago/2024 – jul/2028</span>
-            </span>
-            <div class="education-progress-wrapper">
-              <div class="education-progress-bg"></div>
-              <div class="education-progress-bar education-progress-bar-fill"></div>
-            </div>
-            <span class="education-elapsed education-elapsed-text"></span>
-          </div>
-        </div>
         <div class="contact-section">
           <p class="eyebrow">// contato</p>
           <a class="contact-email" href="mailto:gabriel@cotoo.dev" target="_blank" rel="noopener">gabriel@cotoo.dev</a>

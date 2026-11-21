@@ -21,7 +21,7 @@
 
 .lang-resume #stage-menu.active .projects li,
 .lang-resume #stage-menu.active .blog-all-btn,
-.lang-resume #stage-menu.active .mobile-edu,
+.lang-resume #stage-menu.active .education-section,
 .lang-resume #stage-menu.active .contact-email,
 .lang-resume #stage-menu.active #contactExpandBtn,
 .lang-resume .heatmap.is-playing .heat-cell {
@@ -132,8 +132,8 @@ body {
 
 #stage-menu {
   display: block;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, transparent 40px, black 70px, black calc(100% - 140px), transparent calc(100% - 90px), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0px, transparent 40px, black 70px, black calc(100% - 140px), transparent calc(100% - 90px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, transparent 68px, black 108px, black calc(100% - 140px), transparent calc(100% - 90px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0px, transparent 68px, black 108px, black calc(100% - 140px), transparent calc(100% - 90px), transparent 100%);
 }
 
 .scroll-wrapper {
@@ -143,7 +143,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 10vh 2rem 150px 2rem;
+  padding: calc(10vh + 32px) 2rem 150px 2rem;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -323,6 +323,15 @@ code {
   align-items: flex-start;
   gap: 0.8rem;
   text-align: left;
+}
+
+/* The stack is a plain list: no pointer, no square, no turning letters */
+.projects li.static {
+  cursor: default;
+}
+
+.projects li.static .sq {
+  visibility: hidden;
 }
 
 @keyframes listItemIn {
@@ -598,33 +607,15 @@ code {
   width: 100%;
 }
 
-.desktop-edu {
-  position: absolute;
-  top: 2.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 320px;
-  width: 90%;
-  text-align: center;
+/* The course sits under the experience, aligned with its text */
+.education-section {
+  margin-top: 3rem;
 }
 
-.desktop-edu .eyebrow {
-  display: none;
-}
-
-.desktop-edu .education-card {
-  align-items: center;
-}
-
-.desktop-edu .education-progress-bar {
-  transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s;
-}
-
-.mobile-edu {
-  max-width: 1200px;
-  margin: 4rem auto 0;
-  padding-left: calc(10px + 0.8rem);
-  display: none;
+.education-section .education-card {
+  margin-left: calc(10px + 0.8rem);
+  align-items: flex-start;
+  text-align: left;
 }
 
 @keyframes blockIn {
@@ -637,7 +628,7 @@ code {
   }
 }
 
-#stage-menu.active .mobile-edu {
+#stage-menu.active .education-section {
   animation: blockIn 0.6s ease 1.3s backwards;
 }
 
@@ -796,17 +787,15 @@ code {
 }
 
 @media (max-width: 900px) {
-  .desktop-edu {
-    display: none;
-  }
-  .mobile-edu {
+  .education-section {
     display: flex;
-    padding-left: 0;
     flex-direction: column;
     align-items: center;
   }
-  .education-card {
+  .education-section .education-card {
+    margin-left: 0;
     align-items: center;
+    text-align: center;
   }
   .education-progress-wrapper {
     max-width: 300px;
@@ -1454,7 +1443,7 @@ body.is-transitioning *::after {
   scrollbar-width: thin;
   scrollbar-color: var(--text-color) transparent;
   position: relative;
-  text-align: justify;
+  text-align: left;
   transform: translateY(20px);
   transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -1466,9 +1455,17 @@ body.is-transitioning *::after {
 }
 
 .modal-content p {
-  font-size: clamp(0.7rem, 1.2vw, 0.95rem);
-  line-height: 1.6;
+  font-size: clamp(0.85rem, 1.25vw, 1rem);
+  line-height: 1.65;
   margin: 0;
+}
+
+/* The first line of each modal is its title */
+.modal-content p > strong:first-child {
+  display: inline-block;
+  padding-right: 4.5rem;
+  font-size: 1.25em;
+  line-height: 1.3;
 }
 
 /* Screenshots sit side by side as small thumbnails and open full size in .shot-viewer. Each one may come in a light and a
@@ -1505,6 +1502,12 @@ body.is-transitioning *::after {
   aspect-ratio: auto;
   cursor: auto;
   opacity: 1;
+}
+
+/* Closed modals are only invisible, so their lazy screenshots would all load with the page; without a box they wait
+   (script.js loads a project's images when its card is hovered or focused) */
+.modal-overlay:not(.active) .modal-shot img[loading="lazy"] {
+  display: none;
 }
 
 .modal-shot img {

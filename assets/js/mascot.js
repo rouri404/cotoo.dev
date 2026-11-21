@@ -694,13 +694,13 @@
       if (heroActive()) {
         if (vh < 560) return { mode: "away", x: (vw - W) / 2, y: vh + 40 };
         if (vw < 700) {
-          // On phones he sits halfway between the hint and the Spotify widget
+          // On phones he stands just above the Spotify widget, leaving room under the hint for his speech bubble
           const hint = hero.querySelector(".hint");
           const widget = document.querySelector(".spotify-widget");
           if (hint && widget) {
             const top = hint.getBoundingClientRect().bottom;
             const bottom = widget.getBoundingClientRect().top;
-            return { mode: "fixed", x: (vw - W) / 2, y: Math.max(top, (top + bottom - H) / 2) };
+            return { mode: "fixed", x: (vw - W) / 2, y: Math.max(top, bottom - H - 12) };
           }
         }
         return { mode: "fixed", x: (vw - W) / 2, y: vh - H - CREDIT_GAP - (vw < 700 ? 100 : 48) };
@@ -746,6 +746,8 @@
   // Thought bubble: a pixel-art cloud up and to the side of his head, joined to it by a trail of dots
   const CELL = 2;
   const ANGLE = (38 * Math.PI) / 180;
+  // Flatter ones, tried in order when the usual angle would cover the hero's hint or be pushed back into the screen
+  const LOW_ANGLES = [24, 10, 0].map((d) => (d * Math.PI) / 180);
   const SVG_NS = "http://www.w3.org/2000/svg";
 
   // The trail: distance from the cloud's edge in px, and radius in cells
@@ -884,23 +886,43 @@
     const a = bw / 2, b = bh / 2;
     // Where his head is inside the layer
     const hx = W / 2, hy = H * 0.2, rh = H * 0.15;
-    const ang = isHome ? ANGLE : (72 * Math.PI) / 180;
-    const re = 1 / Math.hypot(Math.cos(ang) / a, Math.sin(ang) / b);
-    const dist = re + rh + TRAIL;
+    // Where the cloud goes for a given angle above the horizontal, and how far keeping it on screen had to push it
+    const spotAt = (ang) => {
+      const re = 1 / Math.hypot(Math.cos(ang) / a, Math.sin(ang) / b);
+      const dist = re + rh + TRAIL;
+      // Some slack before it goes back to the right, so it does not flip back and forth while he walks
+      const room = vw - 8 - (pos.x + hx + dist * Math.cos(ang) + a);
+      const side = room < 0 ? -1 : room > 48 ? 1 : bubbleSide;
+      const cx = hx + side * dist * Math.cos(ang);
+      const absLeft = pos.x + cx - a;
+      let maxLeft = vw - 8 - bw;
+      const main = !isHome && mode === "fixed" && document.querySelector(".blog-main");
+      if (main) maxLeft = Math.min(maxLeft, main.getBoundingClientRect().left - 16 - bw);
+      const shift = clamp(absLeft, 8, Math.max(8, maxLeft)) - absLeft;
+      return { side, cx: cx + shift, cy: hy - dist * Math.sin(ang), shift };
+    };
 
-    // Some slack before it goes back to the right, so it does not flip back and forth while he walks
-    const room = vw - 8 - (pos.x + hx + dist * Math.cos(ang) + a);
-    if (room < 0) bubbleSide = -1;
-    else if (room > 48) bubbleSide = 1;
-    let cx = hx + bubbleSide * dist * Math.cos(ang);
-    const cy = hy - dist * Math.sin(ang);
-
-    // Keep it inside the screen
-    const absLeft = pos.x + cx - a;
-    let maxLeft = vw - 8 - bw;
-    const main = !isHome && mode === "fixed" && document.querySelector(".blog-main");
-    if (main) maxLeft = Math.min(maxLeft, main.getBoundingClientRect().left - 16 - bw);
-    cx += clamp(absLeft, 8, Math.max(8, maxLeft)) - absLeft;
+    // On the home hero the "scroll or click" hint is right above him: the cloud tilts down to his side when it would
+    // cover it, as long as there is room there
+    const hint = isHome && heroActive() ? hero.querySelector(".hint") : null;
+    const hr = hint && hint.getBoundingClientRect();
+    const coversHint = (p) => {
+      if (!hr || !hr.width) return false;
+      const left = pos.x + p.cx - a, top = pos.y + p.cy - b;
+      return left < hr.right && left + bw > hr.left && top < hr.bottom && top + bh > hr.top;
+    };
+    let place = spotAt(isHome ? ANGLE : (72 * Math.PI) / 180);
+    if (coversHint(place)) {
+      for (const ang of LOW_ANGLES) {
+        const low = spotAt(ang);
+        if (!coversHint(low) && Math.abs(low.shift) < 12) {
+          place = low;
+          break;
+        }
+      }
+    }
+    bubbleSide = place.side;
+    const { cx, cy } = place;
 
     bubble.style.left = Math.round(cx - a) + "px";
     bubble.style.top = Math.round(cy - b) + "px";

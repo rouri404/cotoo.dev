@@ -19,6 +19,7 @@ export const HOME_EN = [
   ['<span class="education-name">Engenharia de Software</span>', '<span class="education-name">Software Engineering</span>'],
   ['FIAP — ago/2024 – jul/2028', 'FIAP — Aug 2024 – Jul 2028'],
   ['<p class="hint">role ou clique para continuar</p>', '<p class="hint">scroll or click to continue</p>'],
+  ['<p class="role">engenheiro de software</p>', '<p class="role">software engineer</p>'],
 
   // Projects
   ['<p class="eyebrow">// projetos</p>', '<p class="eyebrow">// projects</p>'],

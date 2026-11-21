@@ -293,6 +293,13 @@ code {
   animation: fade 2.4s ease-in-out infinite;
 }
 
+/* Tux's cloud sits on it on narrow phones (mascot.js) */
+.hint.is-covered {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
 @keyframes fade {
   50% {
     opacity: 0.15;

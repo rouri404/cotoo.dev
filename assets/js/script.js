@@ -828,14 +828,14 @@ function announceSpotify(data) {
 }
 
 async function fetchSpotifyCurrentlyPlaying(cached) {
+  const spotifyLabel = document.querySelector(".spotify-label");
+  const spotifyTime = document.getElementById("spotifyTime");
   try {
     const res = cached ? { ok: true, json: async () => cached } : await fetch("/api/spotify");
 
     if (res.ok) {
       const data = await res.json();
       widgetData.spotify = data;
-      const spotifyLabel = document.querySelector(".spotify-label");
-      const spotifyTime = document.getElementById("spotifyTime");
       const progressWrapper = document.querySelector(".spotify-progress-wrapper");
       announceSpotify(data);
       

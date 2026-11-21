@@ -628,6 +628,7 @@ ${html}
     bodyClass: 'page-post',
     ogType: 'article',
     ogImage,
+    robots: meta.draft === 'true' ? 'noindex, follow' : 'index, follow',
     content,
     extraScripts: '\n    <script src="/assets/js/post-toc.js" defer></script>\n    <script src="/assets/js/post-motion.js" defer></script>' + (html.includes('class="mermaid-block"') ? '\n    <script src="/assets/js/mermaid-block.js" defer></script>' : ''),
     jsonLd: {
@@ -875,6 +876,8 @@ function getLocalPosts() {
       const fullPath = path.join(blogDir, file);
       const raw = fs.readFileSync(fullPath, 'utf8');
       const { meta, body } = parseFrontMatter(raw);
+      // A draft opens by its link but stays out of every list (index, tags, RSS, the JSON the home and the terminal read)
+      if (meta.draft === 'true') continue;
       const slug = (meta.slug || file.replace(/\.md$/, '')).trim().replace(/^\/+|\/+$/g, '');
       const words = body.replace(/```[\s\S]*?```/g, ' ').split(/\s+/).filter(Boolean).length;
       const stat = fs.statSync(fullPath);
@@ -1130,7 +1133,7 @@ async function handler(req, res) {
     }
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v28';
+    const TEMPLATE_VERSION = 'v29';
     // Related posts depend on the whole folder, so post caches are tied to its signature too
     const dirSig = getBlogDirSignature();
 

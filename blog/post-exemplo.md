@@ -4,6 +4,7 @@ description: Publicação de teste com texto genérico, imagens, tabelas, diagra
 date: 2026-10-11
 tags: Demonstração, Teste, Pixel Art, Componentes
 slug: post-exemplo
+draft: true
 ---
 
 ## Introdução

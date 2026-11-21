@@ -922,6 +922,8 @@
       }
     }
     bubbleSide = place.side;
+    // On narrow phones no spot misses it, so the hint steps aside while the cloud is up
+    setHintCovered(coversHint(place));
     const { cx, cy } = place;
 
     bubble.style.left = Math.round(cx - a) + "px";
@@ -930,6 +932,27 @@
     if (key !== drawnKey) {
       drawnKey = key;
       drawBubble(hx - cx, hy - cy);
+    }
+  }
+
+  // The hint hides at once, but comes back only after 320ms clear (the cloud's exit, as in leftAt), so it never blinks
+  // while the cloud settles
+  let hintCovered = false;
+  let hintTimer = 0;
+  function setHintCovered(on) {
+    if (!isHome) return;
+    const hint = hero.querySelector(".hint");
+    if (on) {
+      clearTimeout(hintTimer);
+      hintTimer = 0;
+      if (!hintCovered && hint) hint.classList.add("is-covered");
+      hintCovered = true;
+    } else if (hintCovered && !hintTimer) {
+      hintTimer = setTimeout(() => {
+        hintTimer = 0;
+        hintCovered = false;
+        if (hint) hint.classList.remove("is-covered");
+      }, 320);
     }
   }
 
@@ -1019,6 +1042,7 @@
       bubble.classList.remove("is-on", "is-swapping");
       swapAt = 0;
       leftAt = now;
+      setHintCovered(false);
     }
     if (!want) return;
     // He keeps moving while the cloud is up, so it is placed again every frame

@@ -1,3 +1,7 @@
+// The access token lasts an hour, so a warm instance reuses it instead of asking Spotify for a new one on every poll
+let cachedToken = null;
+let cachedUntil = 0;
+
 export default async function handler(req, res) {
   const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN } = process.env;
 
@@ -23,12 +27,20 @@ export default async function handler(req, res) {
   };
 
   try {
-    const { access_token } = await getAccessToken();
+    if (!cachedToken || Date.now() >= cachedUntil) {
+      const { access_token, expires_in } = await getAccessToken();
+      if (!access_token) throw new Error("No access token");
+      cachedToken = access_token;
+      // A minute early, so a token never expires between the check and the request
+      cachedUntil = Date.now() + (Number(expires_in) || 3600) * 1000 - 60000;
+    }
     const response = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
       headers: {
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${cachedToken}`,
       },
     });
+    // A revoked token is dropped, so the next poll asks for a new one
+    if (response.status === 401) cachedToken = null;
 
     res.setHeader("Cache-Control", "s-maxage=2, stale-while-revalidate=5");
 

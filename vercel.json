@@ -13,6 +13,11 @@
       "includeFiles": "{blog/**,assets/fonts/Tiny5-Regular.ttf}"
     }
   },
+  "headers": [
+    { "source": "/assets/fonts/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=2592000" }] },
+    { "source": "/assets/models/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }] },
+    { "source": "/assets/img/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }] }
+  ],
   "rewrites": [
     { "source": "/en", "destination": "/api/en" },
     { "source": "/en/", "destination": "/api/en" },

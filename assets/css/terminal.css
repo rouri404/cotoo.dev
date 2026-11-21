@@ -7,7 +7,12 @@
   font-display: swap;
 }
 
+/* A window of glass: the theme's terminal colour, slightly see-through and blurring the page behind it. Its border and
+   lines are the text colour, faded. The same mixes are used for the old colours while the theme wave runs (see below) */
 .term {
+  --term-alpha: 84%;
+  --term-radius: 12px;
+  --term-line: color-mix(in srgb, var(--text-color) 22%, transparent);
   position: fixed;
   left: 0;
   top: 0;
@@ -17,8 +22,12 @@
   box-sizing: border-box;
   width: min(560px, calc(100vw - 16px));
   height: min(400px, 70vh);
-  border: 2px solid var(--text-color);
-  background: var(--term-bg);
+  border: 1px solid color-mix(in srgb, var(--text-color) 40%, transparent);
+  border-radius: var(--term-radius);
+  background: color-mix(in srgb, var(--term-bg) var(--term-alpha), transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--text-color) 10%, transparent) inset, 0 20px 60px rgba(0, 0, 0, 0.28);
   color: var(--text-color);
   font-family: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace;
   font-size: 0.8rem;
@@ -114,8 +123,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 0.45rem;
-  padding-bottom: 0.3rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--term-line);
 }
 
 .term-bar {
@@ -133,30 +143,35 @@
 }
 
 .term-close {
-  width: 1.3rem;
-  height: 1.3rem;
+  width: 1.5rem;
+  height: 1.5rem;
   padding: 0;
-  border: 2px solid currentColor;
+  border: 0;
+  border-radius: 6px;
   background: transparent;
   color: inherit;
   font: inherit;
   line-height: 1;
+  opacity: 0.7;
   cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
 }
 
 .term-close:hover,
 .term-close:focus-visible {
-  background: var(--text-color);
-  color: var(--bg-color);
+  background: color-mix(in srgb, var(--text-color) 16%, transparent);
+  opacity: 1;
+  outline: none;
 }
 
 .term-body {
+  padding-top: 0.5rem;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: var(--text-color) transparent;
+  scrollbar-color: color-mix(in srgb, var(--text-color) 35%, transparent) transparent;
 }
 
 .term-line {
@@ -218,8 +233,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding-top: 0.35rem;
+  padding-top: 0.5rem;
   padding-bottom: 0.6rem;
+  border-top: 1px solid var(--term-line);
 }
 
 /* The suggestion sits under the input in the same grid cell, so both share one baseline */
@@ -249,40 +265,24 @@
   font: inherit;
 }
 
-/* While the dither wave runs, the pop-up paints its background and border in two layers: the old colours,
-   and the new colours on a canvas holding the dither cells swept so far (window.paintTermWave, called by the
-   transition scripts every frame; the old colours come from --tr-old-* on the root) */
-body.is-transitioning .term {
+/* While the dither wave runs, the pop-up's own background and border step aside and a canvas paints the whole window: the
+   old colours (from --tr-old-* on the root) and, in the dither cells swept so far, the new ones (window.paintTermWave,
+   called by the transition scripts every frame) */
+body.is-transitioning .term,
+body.is-transitioning .term-bar,
+body.is-transitioning .term-form {
   background: transparent;
   border-color: transparent;
 }
 
-.term::before {
-  content: "";
-  display: none;
-  position: absolute;
-  inset: -2px;
-  z-index: -1;
-  box-sizing: border-box;
-  border: 2px solid;
-  pointer-events: none;
-}
-
-body.is-transitioning .term::before {
-  display: block;
-}
-
-.term::before {
-  background: var(--tr-old-term-bg);
-  border-color: var(--tr-old-fg);
-}
-
+/* The canvas is clipped to the same rounded corners (terminal.js paints the background and border with the same alphas) */
 .term-wave {
   display: none;
   position: absolute;
-  left: -2px;
-  top: -2px;
+  left: -1px;
+  top: -1px;
   z-index: -1;
+  border-radius: var(--term-radius);
   pointer-events: none;
 }
 

@@ -87,37 +87,88 @@
   term.appendChild(waveCanvas);
   document.body.appendChild(term);
 
-  // Called by the theme transition every frame: paints the new colours on the window wherever the dither has
-  // reached, in the same cells as the page canvas (offsetY is the grid shift the blog uses)
+  // Same values as terminal.css: --term-alpha, the 40% border and --term-radius
+  const TERM_ALPHA = 0.84;
+  const TERM_BORDER_ALPHA = 0.4;
+  const TERM_RADIUS = 12;
+  // The 22% lines under the title bar and over the prompt (--term-line)
+  const TERM_LINE_ALPHA = 0.22;
+  // Off-screen layers for the wave: the swept cells, and the window in the new colours
+  const waveCells = document.createElement("canvas");
+  const waveNew = document.createElement("canvas");
+  const sized = (cv, w, h) => {
+    if (cv.width !== w || cv.height !== h) {
+      cv.width = w;
+      cv.height = h;
+    }
+    return cv.getContext("2d");
+  };
+
+  // Called by the theme transition every frame: paints the whole window, in the old colours and, wherever the dither
+  // has reached, the new ones, in the same cells as the page canvas (offsetY is the grid shift the blog uses)
   window.paintTermWave = ({ size, cols, ditherBand, waveR, bayer, offsetY = 0, bg, fg }) => {
     if (!term.classList.contains("is-open")) return;
     const w = term.offsetWidth;
     const h = term.offsetHeight;
-    if (waveCanvas.width !== w || waveCanvas.height !== h) {
-      waveCanvas.width = w;
-      waveCanvas.height = h;
-    }
-    const c = waveCanvas.getContext("2d");
-    c.clearRect(0, 0, w, h);
+    sized(waveCanvas, w, h);
     const r = term.getBoundingClientRect();
     const gx0 = Math.floor(r.left / size);
     const gx1 = Math.floor(r.right / size);
     const gy0 = Math.floor((r.top - offsetY) / size);
     const gy1 = Math.floor((r.bottom - offsetY) / size);
-    c.fillStyle = bg;
+
+    // The cells the wave has swept so far
+    const cells = sized(waveCells, w, h);
+    cells.clearRect(0, 0, w, h);
     for (let gx = gx0; gx <= gx1; gx++) {
       for (let gy = gy0; gy <= gy1; gy++) {
         const threshold = (waveR - Math.sqrt((cols - gx) ** 2 + gy ** 2)) / ditherBand;
         if (threshold <= 0) continue;
         if (threshold < 1 && threshold <= bayer[((gy % 4) + 4) % 4][((gx % 4) + 4) % 4] / 16) continue;
-        c.fillRect(gx * size - r.left - 0.5, gy * size + offsetY - r.top - 0.5, size + 1, size + 1);
+        cells.fillRect(gx * size - r.left - 0.5, gy * size + offsetY - r.top - 0.5, size + 1, size + 1);
       }
     }
-    // The border only takes the new colour inside the painted cells
-    c.globalCompositeOperation = "source-atop";
-    c.strokeStyle = fg;
-    c.lineWidth = 2;
-    c.strokeRect(1, 1, w - 2, h - 2);
+
+    // The whole window in the old colours, and the new window cut to the swept cells on top. Both are opaque here; the
+    // window's alpha and rounded corners are applied once at the end, so the old colours never show through the new ones
+    const paintWindow = (cx, background, border) => {
+      cx.globalCompositeOperation = "source-over";
+      cx.clearRect(0, 0, w, h);
+      cx.fillStyle = background;
+      cx.fillRect(0, 0, w, h);
+      cx.globalAlpha = TERM_BORDER_ALPHA;
+      cx.strokeStyle = border;
+      cx.lineWidth = 1;
+      cx.beginPath();
+      cx.roundRect(0.5, 0.5, w - 1, h - 1, TERM_RADIUS);
+      cx.stroke();
+      cx.globalAlpha = TERM_LINE_ALPHA;
+      cx.beginPath();
+      for (const y of lines) {
+        cx.moveTo(1, y);
+        cx.lineTo(w - 1, y);
+      }
+      cx.stroke();
+      cx.globalAlpha = 1;
+    };
+    // Canvas coordinates include the 1px border; the lines sit at the bar's bottom edge and the form's top edge
+    const bar = term.querySelector(".term-bar");
+    const formEl = term.querySelector(".term-form");
+    const lines = [1 + bar.offsetTop + bar.offsetHeight - 0.5, 1 + formEl.offsetTop + 0.5];
+    const root = getComputedStyle(document.documentElement);
+    const c = waveCanvas.getContext("2d");
+    paintWindow(c, root.getPropertyValue("--tr-old-term-bg").trim() || bg, root.getPropertyValue("--tr-old-fg").trim() || fg);
+    const fresh = sized(waveNew, w, h);
+    paintWindow(fresh, bg, fg);
+    fresh.globalCompositeOperation = "destination-in";
+    fresh.drawImage(waveCells, 0, 0);
+    fresh.globalCompositeOperation = "source-over";
+    c.drawImage(waveNew, 0, 0);
+    c.globalCompositeOperation = "destination-in";
+    c.fillStyle = `rgba(0, 0, 0, ${TERM_ALPHA})`;
+    c.beginPath();
+    c.roundRect(0, 0, w, h, TERM_RADIUS);
+    c.fill();
     c.globalCompositeOperation = "source-over";
   };
 

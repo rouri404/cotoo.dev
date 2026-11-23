@@ -279,7 +279,7 @@ body.is-transitioning .blog-bar {
 .font-toggle {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0;
 }
 
@@ -438,7 +438,7 @@ body.reading-mode .font-toggle {
 
 .post-search-input::placeholder {
   color: var(--text-color);
-  opacity: 0.45;
+  opacity: 0.72;
 }
 
 .post-search-input {
@@ -456,7 +456,7 @@ body.reading-mode .font-toggle {
 
 .post-search-empty {
   margin: 0 0 1.5rem;
-  opacity: 0.6;
+  opacity: 0.72;
 }
 
 .post-search-empty:not([hidden]) {
@@ -469,7 +469,7 @@ body.reading-mode .font-toggle {
     transform: translateY(6px);
   }
   to {
-    opacity: 0.6;
+    opacity: 0.72;
     transform: none;
   }
 }
@@ -990,8 +990,15 @@ body.is-transitioning .reading-progress {
   text-underline-offset: 3px;
 }
 
+/* Tiny5 has one weight, so its emphasis is a marker instead of a synthesized bold */
 .prose strong {
-  font-weight: 700;
+  font-weight: 400;
+  background: color-mix(in srgb, var(--text-color) 16%, transparent);
+}
+
+body.reading-mode .prose strong {
+  font-weight: 600;
+  background: none;
 }
 
 .prose hr {
@@ -1038,8 +1045,7 @@ body.reading-mode .prose :not(pre) > code {
 
 .code-lang {
   opacity: 0.75;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
 }
 
 .copy-btn,
@@ -1208,7 +1214,6 @@ body.reading-mode .code-block pre code {
 
 .callout-title {
   letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .callout-body {
@@ -1330,8 +1335,7 @@ body.reading-mode .prose th {
 
 .mermaid-label {
   opacity: 0.75;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
 }
 
 .mermaid-toggle {
@@ -1629,8 +1633,7 @@ body.reading-mode .mermaid-source code {
 }
 
 .mermaid-zoom-title {
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   opacity: 0.75;
   font-size: 0.95rem;
 }

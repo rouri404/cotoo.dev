@@ -227,9 +227,12 @@ function syncFontButtons() {
     btn.setAttribute("aria-pressed", String(reading));
   });
 }
+// Reading is the default, as in the blog
+let savedFont = null;
 try {
-  if (localStorage.getItem("blog_font") === "reading") document.body.classList.add("reading-mode");
+  savedFont = localStorage.getItem("blog_font");
 } catch (_) {}
+if (savedFont !== "pixel") document.body.classList.add("reading-mode");
 document.querySelectorAll(".modal-content .modal-close").forEach((close) => {
   close.setAttribute("aria-label", close.title);
   const btn = document.createElement("button");

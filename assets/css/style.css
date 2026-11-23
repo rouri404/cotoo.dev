@@ -43,8 +43,8 @@
   --term-bg: #d3e1c4;
   --text-color: #1c2e1c;
   --logo-filter: brightness(0) invert(10%) sepia(100%) saturate(150%) hue-rotate(72deg) brightness(130%);
-  --label-opacity: 0.7;
-  --time-opacity: 0.6;
+  --label-opacity: 0.72;
+  --time-opacity: 0.72;
   --progress-bg-opacity: 0.15;
   --shimmer-color: #4d9a4d;
   --shot-light: block;
@@ -56,8 +56,8 @@
   --term-bg: #0b140b;
   --text-color: #8fbc8b;
   --logo-filter: brightness(0) invert(81%) sepia(23%) saturate(440%) hue-rotate(68deg) brightness(82%) contrast(91%);
-  --label-opacity: 0.55;
-  --time-opacity: 0.4;
+  --label-opacity: 0.72;
+  --time-opacity: 0.72;
   --progress-bg-opacity: 0.25;
   --shimmer-color: #fff;
   --shot-light: none;
@@ -240,7 +240,7 @@ body {
   margin: 0.8rem 0 0;
   min-height: 1.4em;
   font-size: clamp(0.75rem, 2vw, 1rem);
-  opacity: 0.6;
+  opacity: 0.72;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -288,22 +288,14 @@ code {
 
 .hint {
   margin-top: 3rem;
-  font-size: clamp(0.7rem, 2vw, 1.1rem);
-  opacity: 0.55;
-  animation: fade 2.4s ease-in-out infinite;
+  font-size: clamp(0.75rem, 2vw, 1.1rem);
+  opacity: 0.72;
 }
 
 /* Tux's cloud sits on it on narrow phones (mascot.js) */
 .hint.is-covered {
-  animation: none;
   opacity: 0;
   transition: opacity 0.2s ease;
-}
-
-@keyframes fade {
-  50% {
-    opacity: 0.15;
-  }
 }
 
 .eyebrow {
@@ -760,8 +752,8 @@ code {
 }
 
 .education-institution {
-  font-size: clamp(0.7rem, 1.6vw, 0.95rem);
-  opacity: 0.55;
+  font-size: clamp(0.75rem, 1.6vw, 0.95rem);
+  opacity: 0.72;
 }
 
 .education-progress-wrapper {
@@ -788,8 +780,8 @@ code {
 }
 
 .education-elapsed {
-  font-size: clamp(0.65rem, 1.4vw, 0.8rem);
-  opacity: 0.4;
+  font-size: clamp(0.75rem, 1.4vw, 0.8rem);
+  opacity: 0.72;
   font-variant-numeric: tabular-nums;
 }
 
@@ -831,7 +823,7 @@ code {
 .github-status {
   font-size: 0.75rem;
   color: var(--text-color);
-  opacity: 0.6;
+  opacity: 0.72;
   text-align: right;
   pointer-events: none;
 }
@@ -851,7 +843,7 @@ code {
 }
 
 .visit-label {
-  opacity: 0.6;
+  opacity: 0.72;
 }
 
 .visit-digits {
@@ -916,7 +908,7 @@ code {
 /* Slides in from the right; uses `translate` so mobile's centering `transform` is untouched */
 @keyframes statusReveal {
   from { opacity: 0; translate: 40px 0; }
-  to { opacity: 0.6; translate: 0 0; }
+  to { opacity: 0.72; translate: 0 0; }
 }
 
 .socials a {
@@ -1150,14 +1142,14 @@ body.is-transitioning *::after {
 }
 
 .spotify-label {
-  font-size: clamp(0.7rem, 2vw, 0.9rem);
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
   opacity: var(--label-opacity);
   line-height: 1;
   white-space: nowrap;
 }
 
 .spotify-time {
-  font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+  font-size: clamp(0.75rem, 1.8vw, 0.8rem);
   opacity: var(--time-opacity);
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -1327,7 +1319,7 @@ body.is-transitioning *::after {
     height: 1.5rem;
     display: flex;
     align-items: center;
-    font-size: 0.68rem;
+    font-size: 0.75rem;
   }
   .visit-counter {
     position: fixed;
@@ -1343,10 +1335,10 @@ body.is-transitioning *::after {
   }
   .visit-label {
     position: static;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
   }
   .visit-digit {
-    font-size: 0.68rem;
+    font-size: 0.75rem;
     min-width: 1em;
     padding: 0.15em 0.1em;
   }
@@ -1384,7 +1376,7 @@ body.is-transitioning *::after {
     left: auto;
     right: auto;
     width: 100%;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     padding: 0;
     justify-content: center;
     margin: 0;
@@ -1404,10 +1396,17 @@ body.is-transitioning *::after {
     max-width: none;
   }
   .spotify-label {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
   .spotify-track {
     font-size: 0.9rem;
+  }
+}
+
+/* The commit status needs the room on the narrowest phones */
+@media (max-width: 360px) {
+  .visit-label {
+    display: none;
   }
 }
 
@@ -1610,7 +1609,7 @@ body.is-transitioning *::after {
   border: none;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5;
   cursor: pointer;
   opacity: 0.6;
@@ -1633,6 +1632,24 @@ body.reading-mode .modal-content p {
   font-size: clamp(0.85rem, 1.3vw, 1rem);
   line-height: 1.7;
   letter-spacing: normal;
+}
+
+body.reading-mode .modal-content strong {
+  font-weight: 600;
+}
+
+/* Tiny5 has one weight, so its emphasis is a marker instead of a synthesized bold */
+body:not(.reading-mode) .modal-content strong {
+  font-weight: 400;
+  background: color-mix(in srgb, var(--text-color) 16%, transparent);
+}
+
+/* The title stays in the pixel font in both modes */
+body.reading-mode .modal-content p > strong:first-child,
+body:not(.reading-mode) .modal-content p > strong:first-child {
+  font-family: "Tiny5", sans-serif;
+  font-weight: 400;
+  background: none;
 }
 
 /* Fix hover flickering on buttons */
@@ -1724,7 +1741,7 @@ body.reading-mode .modal-content p {
 .contact-form input::placeholder,
 .contact-form textarea::placeholder {
   color: var(--text-color);
-  opacity: 0.5;
+  opacity: 0.72;
   transition: color 0.2s;
 }
 

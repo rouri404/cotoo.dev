@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { highlightCode } = require('./_highlight.js');
 
 let MarkedClass = null;
 async function getMarkedClass() {
@@ -44,22 +45,6 @@ function collectTags(posts) {
     }
   }
   return tags;
-}
-
-// Highlight comments in code blocks to provide crisp retro syntax contrast
-function highlightCode(rawText) {
-  const lines = rawText.split('\n');
-  return lines
-    .map((line) => {
-      const commentIdx = line.search(/(?<!["'\\])#/);
-      if (commentIdx !== -1) {
-        const codePart = escapeHtml(line.slice(0, commentIdx));
-        const commentPart = escapeHtml(line.slice(commentIdx));
-        return `${codePart}<span class="code-comment">${commentPart}</span>`;
-      }
-      return escapeHtml(line);
-    })
-    .join('\n');
 }
 
 // Diagram placeholder: the source stays in the HTML (SEO, no-JS fallback) and mermaid-block.js renders it
@@ -193,7 +178,7 @@ async function renderMarkdownWith(body, lang = 'pt') {
       code(token) {
         const lang = (token.lang || 'terminal').trim().split(/\s+/)[0];
         if (lang === 'mermaid') return renderMermaidBlock(token.text);
-        const highlighted = highlightCode(token.text);
+        const highlighted = highlightCode(token.text, token.lang ? lang : '', escapeHtml);
         return `<div class="code-block">
   <div class="code-header">
     <span class="code-lang">${escapeHtml(lang)}</span>
@@ -319,7 +304,7 @@ function renderNowHtml({ meta, html, latestPost = null }, lang = 'pt') {
   const latestPostRow = latestPost
     ? `\n          <li class="now-live-item">
             <span class="now-live-label">${postLabel}</span>
-            <span class="now-live-value"><a href="/blog/${escapeHtml(latestPost.slug)}/">${escapeHtml(latestPost.meta.title)}</a> <span class="now-live-sub">· ${formatDate(latestPost.meta.date, locale)}</span></span>
+            <span class="now-live-value"><a href="/blog/${escapeHtml(latestPost.slug)}/">${escapeHtml((isEn && latestPost.meta.titleEn) || latestPost.meta.title)}</a> <span class="now-live-sub">· ${formatDate(latestPost.meta.date, locale)}</span></span>
           </li>`
     : '';
   const content = `    <main class="blog-main">
@@ -1133,7 +1118,7 @@ async function handler(req, res) {
     }
 
     const redis = await getRedisClient();
-    const TEMPLATE_VERSION = 'v29';
+    const TEMPLATE_VERSION = 'v31';
     // Related posts depend on the whole folder, so post caches are tied to its signature too
     const dirSig = getBlogDirSignature();
 

@@ -124,6 +124,18 @@
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/mascot.css" />
     <link rel="stylesheet" href="assets/css/terminal.css" />
+    <noscript>
+      <style>
+        html, body { height: auto; overflow: auto; }
+        .stage { position: static; opacity: 1; visibility: visible; transform: none; pointer-events: auto; }
+        #stage-hero { padding: 6rem 2rem 2rem; }
+        #stage-menu { -webkit-mask-image: none; mask-image: none; }
+        .scroll-wrapper { height: auto; overflow: visible; padding: 2rem 2rem 4rem; }
+        .socials { position: static; align-items: center; padding-bottom: 2rem; }
+        .hint, .theme-toggle, .contact-expandable, .spotify-widget, .visit-counter, .github-status, #pixel-trail, #pixel-transition { display: none; }
+        .projects li { cursor: default; }
+      </style>
+    </noscript>
   </head>
   <body onclick="">
     <canvas id="pixel-trail" aria-hidden="true"></canvas>
@@ -143,6 +155,7 @@
     <div class="stage active" id="stage-hero" role="banner">
       <h1>Gabriel Couto</h1>
       <p class="role">cotoo.dev</p>
+      <p class="tagline">back-end e infraestrutura, hoje perto de sistemas de trading</p>
       <p class="hint">role ou clique para continuar</p>
     </div>
 
@@ -152,11 +165,30 @@
         <div class="menu-col">
           <p class="eyebrow">// projetos</p>
           <ul class="projects" id="projectList">
-            <li tabindex="0" data-modal="protechModal">
+            <li class="featured" tabindex="0" data-modal="dorsalModal">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">Dorsal</span>
+                <span class="desc">Configurador do Attack Shark X85 Pro no Linux, com o protocolo HID refeito do zero</span>
+                <span class="project-proof">teclas, luz e tela sem Windows e sem driver</span>
+                <span class="project-meta" aria-label="Stack e status"><span class="chip">TypeScript</span><span class="chip">React</span><span class="chip">Three.js</span><span class="chip">WebHID</span><span class="chip">Electron</span><span class="project-status">no ar</span></span>
+              </span>
+            </li>
+            <li class="featured" tabindex="0" data-modal="oedlaModal">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">OEDLA (Unicamp)</span>
+                <span class="desc">Portal de notícias acadêmico com cache na borda da Vercel</span>
+                <span class="project-proof">R$ 0 por mês, cerca de 93% servido do cache</span>
+                <span class="project-meta" aria-label="Stack e status"><span class="chip">Flask</span><span class="chip">React</span><span class="chip">MongoDB</span><span class="chip">Redis</span><span class="chip">Cloudinary</span><span class="chip">Vercel</span><span class="project-status">no ar</span></span>
+              </span>
+            </li>
+            <li class="featured" tabindex="0" data-modal="protechModal">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Protech The Future</span>
                 <span class="desc">Telemetria e detecção de enchentes em tempo real (Edge/IoT) — <span class="shimmer">1º lugar</span> FIAP GS 2025</span>
+                <span class="project-proof">&lt; R$ 300 por unidade, contra cerca de R$ 15 mil</span>
                 <span class="project-meta" aria-label="Stack e status"><span class="chip">Django</span><span class="chip">Fiware</span><span class="chip">ESP32</span><span class="chip">Chart.js</span><span class="chip">Leaflet</span><span class="chip">Tailwind</span><span class="chip">Docker</span>
               </span>
             </li>
@@ -204,28 +236,12 @@
                 <span class="desc">hardware (esp32) + visão computacional (ocr) + sync em tempo real</span>
               </span>
             </li> -->
-            <li tabindex="0" data-modal="oedlaModal">
-              <span class="sq"></span>
-              <span class="label">
-                <span class="name">OEDLA (Unicamp)</span>
-                <span class="desc">Portal de notícias com custo zero e cache na borda (~93% hit ratio)</span>
-                <span class="project-meta" aria-label="Stack e status"><span class="chip">Flask</span><span class="chip">React</span><span class="chip">MongoDB</span><span class="chip">Redis</span><span class="chip">Cloudinary</span><span class="chip">Vercel</span><span class="project-status">no ar</span></span>
-              </span>
-            </li>
             <li tabindex="0" data-modal="premiumModal">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">PremiumUUID</span>
                 <span class="desc">Plugin de Minecraft que dá a cada jogador premium o UUID certo, mesmo em servidor offline-mode</span>
                 <span class="project-meta" aria-label="Stack e status"><span class="chip">Java</span><span class="chip">Paper</span><span class="chip">Spigot</span><span class="project-status">no Modrinth</span></span>
-              </span>
-            </li>
-            <li tabindex="0" data-modal="dorsalModal">
-              <span class="sq"></span>
-              <span class="label">
-                <span class="name">Dorsal</span>
-                <span class="desc">Configurador do Attack Shark X85 Pro no Linux, com o protocolo HID refeito do zero</span>
-                <span class="project-meta" aria-label="Stack e status"><span class="chip">TypeScript</span><span class="chip">React</span><span class="chip">Three.js</span><span class="chip">WebHID</span><span class="chip">Electron</span><span class="project-status">no ar</span></span>
               </span>
             </li>
             <li tabindex="0" data-url="https://github.com/rouri404/cotoo.dev">
@@ -317,18 +333,18 @@
           <div class="menu-col experience-col">
             <p class="eyebrow">// blog</p>
             <ul class="projects" id="blogList">
+              <li tabindex="0" data-url="/blog/dorsal-engenharia-reversa-x85/">
+                <span class="sq"></span>
+                <span class="label">
+                  <span class="name">Decifrando o X85 Pro</span>
+                  <span class="desc">Como reconstruí o protocolo HID do Attack Shark X85 Pro para configurar teclas, luz e tela no Linux, sem Windows e sem driver.</span>
+                </span>
+              </li>
               <li tabindex="0" data-url="/blog/oedla-plataforma-editorial/">
                 <span class="sq"></span>
                 <span class="label">
                   <span class="name">Construindo o OEDLA</span>
                   <span class="desc">Como cache, proxy e roteamento no edge transformaram planos gratuitos numa plataforma editorial rápida e segura, com custo de infraestrutura zero.</span>
-                </span>
-              </li>
-              <li tabindex="0" data-url="/blog/docker-containers/">
-                <span class="sq"></span>
-                <span class="label">
-                  <span class="name">Guia Prático de Docker</span>
-                  <span class="desc">Guia completo e prático de Docker, da instalação à orquestração com Docker Compose. Imagens, volumes, redes e boas práticas.</span>
                 </span>
               </li>
             </ul>
@@ -368,9 +384,9 @@
             <button type="button" class="btn" id="contactExpandBtn">enviar mensagem</button>
             <div class="contact-form-wrapper" id="contactFormWrapper">
               <form id="contactForm" class="contact-form" autocomplete="off">
-                <input type="text" id="contactName" name="name" placeholder="Nome" required maxlength="100" autocomplete="off" spellcheck="false" />
-                <input type="email" id="contactEmail" name="email" placeholder="E-mail" required maxlength="100" autocomplete="off" spellcheck="false" />
-                <textarea id="contactMessage" name="message" placeholder="Mensagem" required maxlength="1000" autocomplete="off" spellcheck="false"></textarea>
+                <input type="text" id="contactName" name="name" aria-label="Nome" placeholder="Nome" required maxlength="100" autocomplete="off" spellcheck="false" />
+                <input type="email" id="contactEmail" name="email" aria-label="E-mail" placeholder="E-mail" required maxlength="100" autocomplete="off" spellcheck="false" />
+                <textarea id="contactMessage" name="message" aria-label="Mensagem" placeholder="Mensagem" required maxlength="1000" autocomplete="off" spellcheck="false"></textarea>
                 <div class="cf-turnstile" data-sitekey="0x4AAAAAAFTF2BA7_ctKveQk" data-size="invisible"></div>
                 <div>
                   <button type="submit" id="contactSubmit" class="btn" style="width: 100%;">enviar</button>
@@ -391,7 +407,7 @@
           rel="noopener noreferrer"
           title="GitHub"
         >
-          <img src="assets/img/github.png" alt="GitHub" />
+          <img src="assets/img/github.png" width="64" height="64" alt="GitHub" />
         </a>
         <a
           href="https://linkedin.com/in/gabricouto"
@@ -399,7 +415,7 @@
           rel="noopener noreferrer"
           title="LinkedIn"
         >
-          <img src="assets/img/linkedin.png" alt="LinkedIn" />
+          <img src="assets/img/linkedin.png" width="64" height="64" alt="LinkedIn" />
         </a>
       </div>
     </div>
@@ -444,7 +460,7 @@
       </a>
     </div>
     
-    <div id="customNotification" class="custom-notification"></div>
+    <div id="customNotification" class="custom-notification" role="status" aria-live="polite"></div>
 
     <!-- Modals -->
     <div class="modal-overlay" id="idealModal" onclick="this.classList.remove('active')">

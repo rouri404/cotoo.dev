@@ -1,5 +1,6 @@
 ---
 title: Docker: Criando e Gerenciando Containers
+titleEn: Docker: Creating and Managing Containers
 description: Guia completo e prático de Docker, da instalação à orquestração com Docker Compose. Imagens, volumes, redes e boas práticas.
 date: 2026-10-12
 tags: Docker, Containers, DevOps, Docker Compose

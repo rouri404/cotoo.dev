@@ -26,6 +26,7 @@ Escreva seu conteúdo normalmente em Markdown...
 - **`date`**: Data no formato `YYYY-MM-DD` (usada para ordenação cronológica decrescente).
 - **`tags`**: Tags separadas por vírgula.
 - **`slug`**: Identificador da URL (ex: `slug: meu-post` gerará a página em `/blog/meu-post/`).
+- **`titleEn`** (opcional): título em inglês, usado nas páginas em inglês que citam o post.
 - **`draft`** (opcional): com `draft: true` o post abre pelo link, mas fica fora da listagem, das tags, do RSS, da home e do terminal, e não é indexado pelos buscadores.
 
 ---

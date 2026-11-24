@@ -100,7 +100,7 @@
         window.addEventListener("scroll", clipMainBelowHeader, { passive: true });
 
         const elementsToFlip = document.querySelectorAll(
-          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .lang-toggle, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, #nowUpdatedAgo, .now-live-label, .now-live-value, .now-live-sub, .now-edu-title, .now-edu-meta, .now-edu-seg, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .mascot, .mascot-bubble, .mascot-bubble a, .mermaid-zoom-title, .mermaid-zoom-btn, .mermaid-zoom-stage, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .rss-link'
+          '.blog-brand-link, .blog-nav-slash, .blog-nav-current, .crumbs, .crumbs a, .post-figure figcaption, .lang-toggle, .font-toggle, .theme-toggle, .post-header, h1, h2, h3, h4, h5, h6, p, li, .tag, .post-card, .post-card-title, .post-card-desc, .post-card-meta, .post-title, .post-desc, .post-meta, #nowUpdatedAgo, .now-live-label, .now-live-value, .now-live-sub, .now-edu-title, .now-edu-meta, .now-edu-seg, hr, blockquote, .callout, .callout-header, .callout-title, .callout-body, .callout-icon, .code-block, .mermaid-block, .mermaid-header, .mermaid-label, .mermaid-toggle, time, a, .prose :not(pre) > code, .table-wrap, table, th, td, .toc-title, .toc-list, .post-toc a, .post-search-label, .post-search-input, .post-search-empty, .mascot, .mascot-bubble, .mascot-bubble a, .mermaid-zoom-title, .mermaid-zoom-btn, .mermaid-zoom-stage, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .rss-link'
         );
 
         const flips = Array.from(elementsToFlip).map((el) => {
@@ -109,6 +109,17 @@
           const cy = rect.top + rect.height / 2;
           const d = Math.sqrt((window.innerWidth - cx) ** 2 + cy ** 2);
           return { el, d, lag: 1 / 3, flipped: false };
+        });
+
+        // Visible code lines hold the old theme until the wave reaches them, or the block would recolor all at once
+        const oldTheme = newTheme === "dark" ? "light" : "dark";
+        document.querySelectorAll(".code-line").forEach((el) => {
+          const rect = el.getBoundingClientRect();
+          if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+          el.setAttribute("data-theme", oldTheme);
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          flips.push({ el, d: Math.sqrt((window.innerWidth - cx) ** 2 + cy ** 2), lag: 1 / 3, flipped: false });
         });
 
         // Split header text into letters so each one flips as the wave reaches it
@@ -336,6 +347,33 @@
           views.hidden = false;
         })
         .catch(() => {});
+    }
+
+    // Tables and diagrams wider than the screen must also scroll by keyboard
+    const syncScrollable = (el) => {
+      if (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1) {
+        el.tabIndex = 0;
+        el.setAttribute("role", "group");
+        el.setAttribute("aria-label", el.matches(".table-wrap") ? tr("Tabela com rolagem") : tr("Diagrama com rolagem"));
+      } else {
+        el.removeAttribute("tabindex");
+        el.removeAttribute("role");
+        el.removeAttribute("aria-label");
+      }
+    };
+    const scrollAreas = document.querySelectorAll(".table-wrap, .mermaid-stage");
+    if (scrollAreas.length) {
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const area = entry.target.closest(".table-wrap, .mermaid-stage");
+          if (area) syncScrollable(area);
+        }
+      });
+      scrollAreas.forEach((el) => {
+        syncScrollable(el);
+        observer.observe(el);
+        if (el.firstElementChild) observer.observe(el.firstElementChild);
+      });
     }
 
     // Section links: the "#" next to a heading copies the URL of that section

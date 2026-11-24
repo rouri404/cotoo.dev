@@ -1,5 +1,6 @@
 ---
 title: OEDLA: portal editorial com custo zero
+titleEn: OEDLA: an editorial portal at zero cost
 shortTitle: Construindo o OEDLA
 description: Como cache, proxy e roteamento no edge transformaram planos gratuitos numa plataforma editorial rápida e segura, com custo de infraestrutura zero.
 date: 2026-10-14

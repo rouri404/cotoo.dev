@@ -289,10 +289,22 @@ function warmModal(modal) {
   if (modal) modal.querySelectorAll(".modal-shot img").forEach((img) => (img.loading = "eager"));
 }
 
+// An <li> cannot be a button or link, so the role and the focus live on the card's label
+document.querySelectorAll(".projects:not(#techList)").forEach((list) => list.setAttribute("role", "none"));
+document.querySelectorAll(".projects li:not(.static)").forEach((li) => {
+  const label = li.querySelector(".label");
+  const opensModal = li.hasAttribute("data-modal");
+  li.setAttribute("role", "none");
+  li.removeAttribute("tabindex");
+  label.tabIndex = 0;
+  label.setAttribute("role", opensModal ? "button" : "link");
+  if (opensModal) label.setAttribute("aria-haspopup", "dialog");
+});
+
 document.querySelectorAll(".projects li").forEach((li) => {
   const warm = () => warmModal(document.getElementById(li.getAttribute("data-modal")));
   li.addEventListener("pointerenter", warm, { once: true });
-  li.addEventListener("focus", warm, { once: true });
+  li.addEventListener("focusin", warm, { once: true });
   li.addEventListener("click", (e) => {
     const sel = window.getSelection ? window.getSelection().toString() : "";
     if (sel && sel.trim().length > 0) return;
@@ -310,7 +322,7 @@ document.querySelectorAll(".projects li").forEach((li) => {
       if (modal) {
         modal.classList.add("active");
         // Focus goes into the dialog and comes back to the card when Escape closes it
-        modalOpener = li;
+        modalOpener = li.querySelector(".label");
         const close = modal.querySelector(".modal-close");
         if (close) close.focus({ preventScroll: true });
         // The other theme's screenshot is hidden, so lazy loading would leave it blank the first time the theme flips
@@ -330,7 +342,7 @@ document.querySelectorAll(".projects li").forEach((li) => {
     }
   });
   li.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter") return;
+    if (e.key !== "Enter" && e.key !== " ") return;
     // Without this the same Enter would also press the modal's close button, which takes the focus on open
     e.preventDefault();
     li.click();
@@ -461,7 +473,8 @@ class ScrambleText {
 }
 
 setTimeout(() => {
-  document.querySelectorAll("#stage-hero h1, #stage-hero h2, #stage-hero p").forEach((el) => {
+  // The tagline must be readable right away
+  document.querySelectorAll("#stage-hero h1, #stage-hero h2, #stage-hero p:not(.tagline)").forEach((el) => {
     new ScrambleText(el).start();
   });
 }, 200);
@@ -523,6 +536,13 @@ function wrapLetters3D(el, textContent) {
   });
 
   // The letter count lets the hover exit play the same delays in reverse order (see style.css)
+  // Screen readers get the plain name instead of each letter and its 3D face
+  for (const child of el.children) child.setAttribute("aria-hidden", "true");
+  const plainName = document.createElement("span");
+  plainName.className = "sr-only";
+  plainName.textContent = text;
+  el.appendChild(plainName);
+
   (el.closest("li") || el).style.setProperty("--n", globalIndex);
 }
 
@@ -617,7 +637,7 @@ themeToggle.addEventListener("click", (e) => {
   document.body.classList.add("is-transitioning");
   
   const elementsToFlip = document.querySelectorAll(
-    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, .nav-lang, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .modal-shot, .shot-viewer img, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, .modal-font, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a, .heat-cell, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .project-meta .chip, .project-status'
+    '.theme-toggle, .top-nav, .nav-blog-btn, .nav-blog-text, .nav-lang, h1, h2, .letter-3d-wrapper, p, li, .sq, .name, .desc, .project-proof, .socials a img, .spotify-widget, .github-status, .visit-counter, .visit-digit, .education-card, .education-section, .contact-email, .btn, .blog-all-btn, .native-arrow, .link-arrow, .modal-link-text, .modal-shot, .shot-viewer img, .contact-form, .contact-form input, .contact-form textarea, .modal-content, .modal-close, .modal-font, code, .menu-col, .projects, .mascot, .mascot-bubble, .mascot-bubble a, .heat-cell, .term-title, .term-close, .term-line, .term-prompt, .term-input, .term-ghost, .project-meta .chip, .project-status'
   );
   
   const ditherBandRatio = 1 / 1.5;
@@ -989,12 +1009,19 @@ function showNotification(msg) {
   textEl.className = "tetris-msg";
   textEl.textContent = msg.toLowerCase();
   notifEl.appendChild(textEl);
+
+  // The blocks repeat the message, so screen readers get this single copy
+  const srEl = document.createElement("span");
+  srEl.className = "sr-only";
+  srEl.textContent = msg;
+  notifEl.appendChild(srEl);
   
   // Create falling blocks with clip-path masking
   const numBlocks = 5;
   for (let i = 0; i < numBlocks; i++) {
     const block = document.createElement("div");
     block.className = "tetris-chunk";
+    block.setAttribute("aria-hidden", "true");
     block.textContent = msg.toLowerCase();
     
     // Set clip path: inset(top right bottom left)

@@ -63,7 +63,7 @@
   box.innerHTML =
     `<div class="mascot-bubble"><svg class="mascot-bubble-art" aria-hidden="true"></svg>${
       isHome
-        ? `<a class="mascot-bubble-text" href="${REPO_URL}" target="_blank" rel="noopener noreferrer">`
+        ? `<a class="mascot-bubble-text" href="${REPO_URL}" target="_blank" rel="noopener noreferrer" aria-label="${BUBBLE_TEXT}">`
         : '<span class="mascot-bubble-text">'
     }<span class="on"></span><span class="off">${BUBBLE_TEXT}</span>${isHome ? "</a>" : "</span>"}</div>` +
     '<canvas id="mascot" class="mascot" aria-hidden="true"></canvas>' +

@@ -16,6 +16,7 @@
 
   const PROJECTS = [
     ["Protech The Future", "https://gs2025.cotoo.dev", "telemetria e detecção de enchentes em tempo real, 1º lugar FIAP GS 2025"],
+    ["Moskitto Radar", "https://gs2026.cotoo.dev", "risco de roubo por lugar e horário na Grande São Paulo, com app e modelo de IA"],
     ["CRMed", "https://crmed.cotoo.dev", "gestão clínica com Redis e GraphQL, Hospital São Rafael"],
     ["Grabtext", "https://github.com/rouri404/grabtext", "OCR local de baixa latência no clipboard GNU/Linux"],
     ["OEDLA (Unicamp)", "/blog/oedla-plataforma-editorial/", "portal de notícias de custo zero, com cache na borda (~93% de hit ratio)"],
@@ -25,10 +26,10 @@
   ].map(([name, url, desc]) => [name, url, tr(desc)]);
 
   const STACK = [
-    ["sistemas", "Java (JVM/GC), C/C++, QuickFIX/J, Linux Internals, Concorrência"],
-    ["redes", "Sockets (TCP/UDP), Protocolo FIX, Docker, Kubernetes, AWS, Cloudflare"],
-    ["back-end", "Redis, PostgreSQL, Python, TypeScript, GraphQL, Prisma"],
-    ["observabilidade", "Grafana, Jaeger, MQTT, GitHub Actions, Shell Scripting"],
+    ["sistemas", "Java, QuickFIX/J, Linux Internals, HID/WebHID, Engenharia Reversa, Concorrência"],
+    ["redes", "Sockets (TCP/UDP), Protocolo FIX, MQTT, Docker, Kubernetes, AWS, Cloudflare"],
+    ["back-end", "Redis, PostgreSQL, Python, scikit-learn, Node.js, TypeScript, GraphQL, Prisma"],
+    ["observabilidade", "Grafana, Jaeger, GitHub Actions, Shell Scripting"],
     ["front-end", "React, Tailwind CSS, Expo, Canvas Puro"],
   ].map(([area, items]) => [tr(area), tr(items)]);
 

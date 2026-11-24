@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { isFirstHit, isSiteOrigin, isThrottled } from './_guard.js';
 
 // Read counter of a blog post: POST counts one read, GET only returns the total
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -17,15 +18,22 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid slug.' });
   }
 
+  if (req.method === 'POST') {
+    if (!isSiteOrigin(req)) return res.status(403).json({ error: 'Origin not allowed.' });
+    if (isThrottled(req)) return res.status(429).json({ error: 'Too many requests.' });
+  }
+
   try {
     const { Redis } = await import('@upstash/redis');
+    const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
     const redis = new Redis({
       url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.UPSTASH_REDIS_KV_REST_API_URL,
-      token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.UPSTASH_REDIS_KV_REST_API_TOKEN,
+      token,
     });
 
     const key = `cotoo:views:${slug}`;
-    const views = req.method === 'POST' ? await redis.incr(key) : Number(await redis.get(key)) || 0;
+    const counts = req.method === 'POST' && (await isFirstHit(redis, `views:${slug}`, req, token));
+    const views = counts ? await redis.incr(key) : Number(await redis.get(key)) || 0;
 
     return res.status(200).json({ views });
   } catch (error) {

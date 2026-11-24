@@ -861,7 +861,7 @@ function getLocalPosts() {
       const fullPath = path.join(blogDir, file);
       const raw = fs.readFileSync(fullPath, 'utf8');
       const { meta, body } = parseFrontMatter(raw);
-      // A draft opens by its link but stays out of every list (index, tags, RSS, the JSON the home and the terminal read)
+      // A draft opens only on the local server and stays out of every list (index, tags, RSS, the JSON the home and the terminal read)
       if (meta.draft === 'true') continue;
       const slug = (meta.slug || file.replace(/\.md$/, '')).trim().replace(/^\/+|\/+$/g, '');
       const words = body.replace(/```[\s\S]*?```/g, ' ').split(/\s+/).filter(Boolean).length;
@@ -1132,6 +1132,13 @@ async function handler(req, res) {
       const cacheKey = `cotoo:blog:post:${cleanSlug}`;
       const filePath = resolvePostFilePath(cleanSlug);
       const fileInfo = filePath ? getFileHashAndMtime(filePath) : { exists: false, mtime: 0, hash: '', raw: '' };
+
+      // Drafts open only on the local server, before any cache can answer
+      if (fileInfo.exists && process.env.VERCEL_ENV !== 'development' && parseFrontMatter(fileInfo.raw)?.meta?.draft === 'true') {
+        if (isJson) return res.status(404).json({ error: 'Post not found' });
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.status(404).send(render404Html());
+      }
 
       // Tier 1: Fast in-memory cache check (<0.1ms)
       if (!forceRefresh && fileInfo.exists) {

@@ -123,9 +123,8 @@ export default async function handler(req, res) {
     <p>${safeMessage}</p>
   `;
 
-  const firstName = sanitizedName.split(' ')[0];
-  const shortMsg = message.length > 80 ? message.substring(0, 77) + '...' : message;
-  const ogUrl = `https://cotoo.dev/api/og?name=${encodeURIComponent(firstName)}&msg=${encodeURIComponent(shortMsg)}`;
+  // Fixed image: the address is unverified, so nothing typed in the form may reach it
+  const ogUrl = 'https://cotoo.dev/api/og?reply=1';
 
   const autoReplyHtmlBody = `
 <!DOCTYPE html>

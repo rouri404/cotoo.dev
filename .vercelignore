@@ -1,1 +1,6 @@
 scripts/
+/.github/
+/docs/
+/AGENTS.md
+/docker-compose.yaml
+/script-spotify.js

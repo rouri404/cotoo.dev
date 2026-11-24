@@ -1,0 +1,36 @@
+# Gabriel Couto
+
+> Software engineering student at FIAP and Architecture and Technology IT Intern at Ideal CTVM, in Brazil. Works on back-end and infrastructure, currently close to trading systems. Also known online as cotoo and rouri404.
+
+The site is available in Portuguese (default) and English. Blog posts are written in Portuguese.
+
+## Profile
+
+- [Home (English)](https://www.cotoo.dev/en/): Projects, skills, experience, education and contact
+- [Home (Portuguese)](https://www.cotoo.dev/): The same page in Portuguese
+- [Now](https://www.cotoo.dev/en/now/): What Gabriel is working on, studying and building right now
+- [Uses](https://www.cotoo.dev/en/uses/): Hardware, immutable Linux desktop and daily tools
+- [Colophon](https://www.cotoo.dev/en/colophon/): How this site is built and hosted
+- [GitHub](https://github.com/rouri404): Public code
+- [LinkedIn](https://linkedin.com/in/gabricouto): Professional profile
+
+## Projects
+
+- [Dorsal](https://dorsal.cotoo.dev): Linux configurator for the Attack Shark X85 Pro keyboard, with its HID protocol rebuilt from scratch ([source](https://github.com/rouri404/dorsal))
+- [OEDLA (Unicamp)](https://oedla.ifch.unicamp.br): Academic news portal on Vercel's edge cache, at R$ 0 per month with about 93% served from cache
+- [Protech The Future](https://gs2025.cotoo.dev): Real-time flood telemetry and detection (Edge/IoT), 1st place at FIAP GS 2025, under R$ 300 per unit against about R$ 15 thousand ([source](https://github.com/rouri404/site-gs-fiap))
+- [Moskitto Radar](https://gs2026.cotoo.dev): App and AI model that estimate robbery risk by place and time in Greater São Paulo, from 239 thousand real robberies across 129 places, conceived and architected by Gabriel in a team of 4 ([source](https://github.com/GrupoMoskitto/gs2026))
+- [CRMed](https://crmed.cotoo.dev): Clinic management with Redis in-memory cache and GraphQL, for Hospital São Rafael ([source](https://github.com/GrupoMoskitto/Challenge-2026))
+- [Grabtext](https://github.com/rouri404/grabtext): Low-latency local OCR from the GNU/Linux clipboard
+- [PremiumUUID](https://premiumuuid.cotoo.dev): Minecraft plugin that gives each premium player the correct UUID, even on offline-mode servers ([Modrinth](https://modrinth.com/plugin/premiumuuid))
+
+## Blog
+
+- [Dorsal: refazendo o protocolo de um teclado no Linux](https://www.cotoo.dev/blog/dorsal-engenharia-reversa-x85/): Reverse engineering the X85 Pro HID protocol to configure keys, lighting and screen on Linux
+- [OEDLA: portal editorial com custo zero](https://www.cotoo.dev/blog/oedla-plataforma-editorial/): How cache, proxying and edge routing turned free plans into a fast, secure editorial platform
+- [Docker: Criando e Gerenciando Containers](https://www.cotoo.dev/blog/docker-containers/): Practical Docker guide, from installation to Docker Compose
+
+## Optional
+
+- [RSS feed](https://www.cotoo.dev/blog/rss.xml): All published posts
+- [Sitemap](https://www.cotoo.dev/sitemap.xml): Every public page

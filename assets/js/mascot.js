@@ -911,15 +911,18 @@
       const left = pos.x + p.cx - a, top = pos.y + p.cy - b;
       return left < hr.right && left + bw > hr.left && top < hr.bottom && top + bh > hr.top;
     };
+    const tagline = hint ? hero.querySelector(".tagline") : null;
+    const tr2 = tagline && tagline.getBoundingClientRect();
+    const coversTagline = (p) => {
+      if (!tr2 || !tr2.width) return false;
+      const left = pos.x + p.cx - a, top = pos.y + p.cy - b;
+      return left < tr2.right && left + bw > tr2.left && top < tr2.bottom && top + bh > tr2.top;
+    };
     let place = spotAt(isHome ? ANGLE : (72 * Math.PI) / 180);
-    if (coversHint(place)) {
-      for (const ang of LOW_ANGLES) {
-        const low = spotAt(ang);
-        if (!coversHint(low) && Math.abs(low.shift) < 12) {
-          place = low;
-          break;
-        }
-      }
+    if (coversHint(place) || coversTagline(place)) {
+      const lows = LOW_ANGLES.map(spotAt).filter((low) => Math.abs(low.shift) < 12 && !coversTagline(low));
+      // The hint can step aside for the cloud, the tagline cannot
+      place = lows.find((low) => !coversHint(low)) || lows[0] || place;
     }
     bubbleSide = place.side;
     // On narrow phones no spot misses it, so the hint steps aside while the cloud is up

@@ -192,6 +192,15 @@
                 <span class="project-meta" aria-label="Stack e status"><span class="chip">Django</span><span class="chip">Fiware</span><span class="chip">ESP32</span><span class="chip">Chart.js</span><span class="chip">Leaflet</span><span class="chip">Tailwind</span><span class="chip">Docker</span>
               </span>
             </li>
+            <li class="featured" tabindex="0" data-modal="moskittoModal">
+              <span class="sq"></span>
+              <span class="label">
+                <span class="name">Moskitto Radar</span>
+                <span class="desc">App e modelo de IA que apontam o risco de roubo por lugar e horário na Grande São Paulo</span>
+                <span class="project-proof">239 mil roubos reais, 129 lugares, 8 disciplinas num produto só</span>
+                <span class="project-meta" aria-label="Stack e status"><span class="chip">Python</span><span class="chip">scikit-learn</span><span class="chip">React Native</span><span class="chip">TypeScript</span><span class="project-status">no ar</span></span>
+              </span>
+            </li>
             <li tabindex="0" data-modal="crmedModal">
               <span class="sq"></span>
               <span class="label">
@@ -208,34 +217,6 @@
                 <span class="project-meta" aria-label="Stack"><span class="chip">Python</span><span class="chip">Tesseract</span><span class="chip">Flameshot</span><span class="chip">OpenCV</span><span class="chip">Pillow</span></span>
               </span>
             </li>
-            <!-- <li tabindex="0" data-url="https://github.com/rouri404/armin-hofmann">
-              <span class="sq"></span>
-              <span class="label">
-                <span class="name">Armin Hofmann</span>
-                <span class="desc">recriação digital de winding suíço (arte generativa em canvas puro)</span>
-              </span>
-            </li> -->
-            <!-- <li tabindex="0" data-url="https://github.com/rouri404/oh-my-posh-toolbx">
-              <span class="sq"></span>
-              <span class="label">
-                <span class="name">Tema para Oh My Posh Toolbx/OCI</span>
-                <span class="desc">tema com detecção de container distrobox para fedora silverblue</span>
-              </span>
-            </li> -->
-            <!-- <li tabindex="0" data-modal="actionsModal">
-              <span class="sq"></span>
-              <span class="label">
-                <span class="name">Actions Heartbeat</span>
-                <span class="desc">dead man's switch para github actions — saas de monitoramento</span>
-              </span>
-            </li> -->
-            <!-- <li tabindex="0" data-modal="cadernoModal">
-              <span class="sq"></span>
-              <span class="label">
-                <span class="name">Caderno Digital</span>
-                <span class="desc">hardware (esp32) + visão computacional (ocr) + sync em tempo real</span>
-              </span>
-            </li> -->
             <li tabindex="0" data-modal="premiumModal">
               <span class="sq"></span>
               <span class="label">
@@ -261,28 +242,28 @@
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Sistemas &amp; Baixa Latência</span>
-                <span class="desc">Java (JVM/GC), C/C++, QuickFIX/J, Linux Internals, Concorrência</span>
+                <span class="desc">Java, QuickFIX/J, Linux Internals, HID/WebHID, Engenharia Reversa, Concorrência</span>
               </span>
             </li>
             <li class="static">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Redes &amp; Infraestrutura</span>
-                <span class="desc">Sockets (TCP/UDP), Protocolo FIX, Docker, Kubernetes, AWS, Cloudflare</span>
+                <span class="desc">Sockets (TCP/UDP), Protocolo FIX, MQTT, Docker, Kubernetes, AWS, Cloudflare</span>
               </span>
             </li>
             <li class="static">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Back-end &amp; Dados</span>
-                <span class="desc">Redis (In-Memory), PostgreSQL, Python, TypeScript, GraphQL, Prisma</span>
+                <span class="desc">Redis (In-Memory), PostgreSQL, Python, scikit-learn, Node.js, TypeScript, GraphQL, Prisma</span>
               </span>
             </li>
             <li class="static">
               <span class="sq"></span>
               <span class="label">
                 <span class="name">Observabilidade &amp; Automação</span>
-                <span class="desc">Grafana, Jaeger, MQTT, GitHub Actions, Shell Scripting</span>
+                <span class="desc">Grafana, Jaeger, GitHub Actions, Shell Scripting</span>
               </span>
             </li>
             <li class="static">
@@ -481,6 +462,13 @@
       <div class="modal-content" role="dialog" aria-modal="true" aria-label="Protech The Future" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="document.getElementById('protechModal').classList.remove('active')" title="fechar">x</button>
         <p><strong>Protech The Future — Detecção Precoce de Enchentes</strong><br><br>Projeto da Global Solution 2025 da FIAP (1º lugar), feito em equipe com mais dois colegas. Bueiros entupidos por lixo agravam as enchentes urbanas, e um alerta antecipado reduziria danos e salvaria vidas. A solução monitora o nível de água dos bueiros em tempo real e avisa a prefeitura e a Defesa Civil antes de o alagamento acontecer.<span class="modal-gallery"><button class="modal-shot" type="button" aria-label="Ampliar: Gráfico do histórico de nível de água de um bueiro, subindo até o nível crítico"><img src="/assets/img/projects/protech-chart.webp" width="830" height="495" loading="lazy" alt="Gráfico do histórico de nível de água de um bueiro, subindo até o nível crítico"></button><button class="modal-shot" type="button" aria-label="Ampliar: Mapa de São Paulo com os bueiros monitorados, marcados por nível normal, moderado e crítico"><img src="/assets/img/projects/protech-map.webp" width="1100" height="687" loading="lazy" alt="Mapa de São Paulo com os bueiros monitorados, marcados por nível normal, moderado e crítico"></button></span>• <strong>Sensores no bueiro:</strong> Um ESP32 numa caixa selada (IP67), fixada fora da linha d'água, lê um sensor analógico de nível de água e a umidade de um DHT22 perto da base, que denuncia o acúmulo antes de a água subir. Roda com bateria Li-ion e painel solar, ou com a rede elétrica municipal.<br>• <strong>Dados em tempo real:</strong> Os dispositivos enviam as leituras por MQTT para o broker FIWARE, e o dashboard em Python e Django mostra o nível de cada bueiro, os alertas e um mapa dos dispositivos pelos bairros.<br>• <strong>Alertas:</strong> Quando o nível passa de um limite definido, o sistema dispara o aviso por HTTP ou SMS. O dashboard também guarda o histórico de enchentes por local, com gráficos e relatórios mensais.<br>• <strong>Custo baixo:</strong> Menos de R$ 300 por unidade, usando ESP32, sensores comuns e plataformas de código aberto (Mosquitto e FIWARE). Uma solução parecida, de um projeto da FAPESP, custa cerca de R$ 15 mil por unidade. Isso permite instalar dezenas de bueiros críticos em cidades pequenas, e não só pontos isolados.<br><br><a href="https://gs2025.cotoo.dev" target="_blank" rel="noopener"><span class="modal-link-text">gs2025.cotoo.dev</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://github.com/rouri404/site-gs-fiap" target="_blank" rel="noopener"><span class="modal-link-text">github.com/rouri404/site-gs-fiap</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="moskittoModal" onclick="this.classList.remove('active')">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="Moskitto Radar" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="document.getElementById('moskittoModal').classList.remove('active')" title="fechar">x</button>
+        <p><strong>Moskitto Radar — Risco de Roubo na Grande São Paulo</strong><br><br>Projeto da Global Solution 2026 da FIAP, feito em equipe de quatro pessoas. Concebi a solução, organizei o projeto e defini a arquitetura que une as oito disciplinas num produto só. O morador relata um roubo pelo app, sem dados pessoais, e um modelo treinado com dados públicos da SSP-SP mostra onde e em que horário o risco é maior.<span class="modal-gallery"><button class="modal-shot" type="button" aria-label="Ampliar: Capa do site do Moskitto Radar, com um celular mostrando o mapa de risco da Grande São Paulo"><img class="shot-light" src="/assets/img/projects/moskitto-home-light.webp" width="1400" height="837" loading="lazy" alt="Capa do site do Moskitto Radar, com um celular mostrando o mapa de risco da Grande São Paulo"><img class="shot-dark" src="/assets/img/projects/moskitto-home-dark.webp" width="1400" height="837" loading="lazy" alt="Capa do site do Moskitto Radar, com um celular mostrando o mapa de risco da Grande São Paulo"></button><button class="modal-shot" type="button" aria-label="Ampliar: Consulta de risco ao vivo, com o mapa dos lugares e o nível de risco de Santo André à noite"><img class="shot-light" src="/assets/img/projects/moskitto-risk-light.webp" width="1400" height="756" loading="lazy" alt="Consulta de risco ao vivo, com o mapa dos lugares e o nível de risco de Santo André à noite"><img class="shot-dark" src="/assets/img/projects/moskitto-risk-dark.webp" width="1400" height="756" loading="lazy" alt="Consulta de risco ao vivo, com o mapa dos lugares e o nível de risco de Santo André à noite"></button></span>• <strong>Concepção e arquitetura:</strong> Defini o problema, o caminho entre app, API, modelo e câmera, e o formato comum dos dados entre as partes.<br>• <strong>Modelo de risco:</strong> Random Forest treinado com 239 mil roubos de 2024 a agosto de 2026, em 129 lugares. Aprende com o passado, é testado em 2026 e sempre comparado a uma regra simples.<br>• <strong>App do cidadão:</strong> React Native e Expo, com mapa de risco, relatos e previsão por lugar e faixa do dia.<br>• <strong>Site e vídeos:</strong> Desenvolvi a página que demonstra a solução inteira, com simulação do app e risco ao vivo, e produzi os vídeos da entrega.<br>• <strong>Equipe:</strong> João Vitor de Matos fez a API em ASP.NET Core e o app de moderação em C#, Gabriel Kato o servidor Windows e a câmera com ESP32, e Marcelo Affonso a segurança e o QA.<br><br><a href="https://gs2026.cotoo.dev" target="_blank" rel="noopener"><span class="modal-link-text">gs2026.cotoo.dev</span> <span class="link-arrow" aria-hidden="true">➚</span></a><br><a href="https://github.com/GrupoMoskitto/gs2026" target="_blank" rel="noopener"><span class="modal-link-text">github.com/GrupoMoskitto/gs2026</span> <span class="link-arrow" aria-hidden="true">➚</span></a></p>
       </div>
     </div>
 

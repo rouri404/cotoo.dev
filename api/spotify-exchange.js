@@ -1,15 +1,23 @@
+import { isSiteOrigin, isThrottled } from './_guard.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { code, redirect_uri } = req.body;
-  
-  if (!code || !redirect_uri) {
-    return res.status(400).json({ error: 'Missing code or redirect_uri' });
+  if (!isSiteOrigin(req)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+  if (isThrottled(req)) {
+    return res.status(429).json({ error: 'Too many requests' });
   }
 
-  const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = process.env;
+  const code = req.body && req.body.code;
+  if (typeof code !== 'string' || !code || code.length > 2048) {
+    return res.status(400).json({ error: 'Invalid code' });
+  }
+
+  const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI } = process.env;
 
   const basicAuth = Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64');
 
@@ -22,22 +30,22 @@ export default async function handler(req, res) {
       },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
-        code: code,
-        redirect_uri: redirect_uri,
+        code,
+        redirect_uri: SPOTIFY_REDIRECT_URI || 'https://cotoo.dev',
       }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      return res.status(response.status).json(data);
+      return res.status(502).json({ error: 'Spotify error' });
     }
+
+    const data = await response.json();
 
     return res.status(200).json({
       access_token: data.access_token,
       expires_in: data.expires_in
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: 'Spotify error' });
   }
 }

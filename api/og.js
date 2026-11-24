@@ -281,7 +281,7 @@ module.exports = async function handler(req, res) {
         return res.redirect(302, '/');
       }
       const post = resolvePost(cleanSlug);
-      if (!post) {
+      if (!post || post.meta.draft === 'true') {
         return res.redirect(302, '/');
       }
       const cacheKey = `${cleanSlug}:${post.hash}`;
@@ -296,7 +296,8 @@ module.exports = async function handler(req, res) {
     }
 
     const isValid = (v, max) => typeof v === 'string' && v.trim().length > 0 && v.length <= max;
-    if (!isValid(name, 100) || !isValid(msg, 80)) {
+    // Links in auto-replies already sent still carry name and msg: they get the same fixed image
+    if (query.reply !== '1' && (!isValid(name, 100) || !isValid(msg, 80))) {
       return res.redirect(302, '/');
     }
 
@@ -341,7 +342,7 @@ module.exports = async function handler(req, res) {
                     type: 'div',
                     props: {
                       style: { fontSize: 90, fontFamily: 'Tiny5', marginBottom: '30px' },
-                      children: `Olá, ${name}`
+                      children: 'Olá!'
                     }
                   },
                   {
@@ -367,7 +368,7 @@ module.exports = async function handler(req, res) {
                               },
                               {
                                 type: 'div',
-                                props: { style: { fontSize: 32, fontFamily: 'Tiny5', opacity: 0.6 }, children: `"${msg}"` }
+                                props: { style: { fontSize: 32, fontFamily: 'Tiny5', opacity: 0.6 }, children: 'Respondo assim que puder.' }
                               }
                             ]
                           }

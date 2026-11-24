@@ -233,6 +233,7 @@ window.I18N_EN = {
   "boa tentativa :)": "nice try :)",
 
   // Terminal data: projects, stack and fortunes
+  "risco de roubo por lugar e horário na Grande São Paulo, com app e modelo de IA": "robbery risk by place and time across Greater São Paulo, with an app and an AI model",
   "telemetria e detecção de enchentes em tempo real, 1º lugar FIAP GS 2025": "real-time flood telemetry and detection, 1st place at FIAP GS 2025",
   "gestão clínica com Redis e GraphQL, Hospital São Rafael": "clinic management with Redis and GraphQL, Hospital São Rafael",
   "OCR local de baixa latência no clipboard GNU/Linux": "low-latency local OCR to the clipboard on GNU/Linux",
@@ -243,8 +244,8 @@ window.I18N_EN = {
   "sistemas": "systems",
   "redes": "networking",
   "observabilidade": "observability",
-  "Java (JVM/GC), C/C++, QuickFIX/J, Linux Internals, Concorrência": "Java (JVM/GC), C/C++, QuickFIX/J, Linux Internals, Concurrency",
-  "Sockets (TCP/UDP), Protocolo FIX, Docker, Kubernetes, AWS, Cloudflare": "Sockets (TCP/UDP), FIX Protocol, Docker, Kubernetes, AWS, Cloudflare",
+  "Java, QuickFIX/J, Linux Internals, HID/WebHID, Engenharia Reversa, Concorrência": "Java, QuickFIX/J, Linux Internals, HID/WebHID, Reverse Engineering, Concurrency",
+  "Sockets (TCP/UDP), Protocolo FIX, MQTT, Docker, Kubernetes, AWS, Cloudflare": "Sockets (TCP/UDP), FIX Protocol, MQTT, Docker, Kubernetes, AWS, Cloudflare",
   "React, Tailwind CSS, Expo, Canvas Puro": "React, Tailwind CSS, Expo, Plain Canvas",
   "funciona na minha máquina. então a gente manda a minha máquina pro cliente.": "works on my machine. so we ship my machine to the client.",
   "não existe código sem bug, existe bug que ainda não te encontrou.": "there is no bug-free code, only bugs that haven't found you yet.",
